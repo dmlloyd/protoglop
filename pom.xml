@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!--
   ~ JBoss, Home of Professional Open Source.
   ~ Copyright 2011, Red Hat, Inc., and individual contributors
@@ -26,9 +27,29 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.jboss.as</groupId>
+    <groupId>org.jboss.mgmt</groupId>
     <artifactId>jboss-mgmt</artifactId>
+    <packaging>pom</packaging>
     <version>1.0.0.Beta1-SNAPSHOT</version>
+    <modules>
+        <module>api</module>
+        <module>tool</module>
+        <module>example</module>
+    </modules>
 
-    
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.jboss.mgmt</groupId>
+                <artifactId>jboss-mgmt-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.mgmt</groupId>
+                <artifactId>jboss-mgmt-tool</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 </project>
