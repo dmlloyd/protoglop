@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
+ * Copyright 2012, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,29 +20,15 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package example1;
-
-import org.jboss.mgmt.annotation.Attribute;
-import org.jboss.mgmt.annotation.AttributeType;
-import org.jboss.mgmt.annotation.Reference;
+package org.jboss.mgmt.annotation;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface FileHandlerResource extends HandlerResource {
+public @interface OperationHook {
+    String operationName();
 
-    @AttributeType
-    interface FileReference {
-        @Attribute(name = "file-name")
-        String getFileName();
+    String[] versions() default {};
 
-        @Attribute(name = "relative-to")
-        @Reference(resourceType = PathResource.class, monitor = true)
-        PathResource getRelativeTo();
 
-        String getRelativeToName();
-    }
-
-    @Attribute
-    FileReference getFile();
 }

@@ -22,14 +22,12 @@
 
 package example1;
 
-import org.jboss.mgmt.Access;
-import org.jboss.mgmt.Attribute;
-import org.jboss.mgmt.ResourceType;
+import org.jboss.mgmt.annotation.Access;
+import org.jboss.mgmt.annotation.Attribute;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-@ResourceType
 public interface DomainServerResource extends ServerResource {
 
     @Attribute(access = Access.READ_ONLY)

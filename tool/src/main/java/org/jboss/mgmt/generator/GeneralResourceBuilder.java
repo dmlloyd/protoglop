@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
+ * Copyright 2012, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,29 +20,27 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package example1;
+package org.jboss.mgmt.generator;
 
-import org.jboss.mgmt.annotation.Attribute;
-import org.jboss.mgmt.annotation.AttributeType;
-import org.jboss.mgmt.annotation.Reference;
+import java.util.Locale;
+import org.jboss.mgmt.annotation.RuntimeMode;
+
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.type.TypeMirror;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface FileHandlerResource extends HandlerResource {
+public interface GeneralResourceBuilder {
+    AttributeBuilder<? extends GeneralResourceBuilder> attribute();
 
-    @AttributeType
-    interface FileReference {
-        @Attribute(name = "file-name")
-        String getFileName();
+    GeneralResourceBuilder description(Locale locale, String description);
 
-        @Attribute(name = "relative-to")
-        @Reference(resourceType = PathResource.class, monitor = true)
-        PathResource getRelativeTo();
+    GeneralResourceBuilder operationHook(String opName, String version, ExecutableElement method);
 
-        String getRelativeToName();
-    }
+    GeneralResourceBuilder listener(TypeMirror listener, RuntimeMode... modes);
 
-    @Attribute
-    FileReference getFile();
+    GeneralResourceBuilder provides(String token);
+
+    GeneralResourceBuilder subResource(String address, boolean named);
 }

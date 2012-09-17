@@ -26,12 +26,18 @@ import java.util.List;
 import org.jboss.mgmt.annotation.ModelRoot;
 import org.jboss.mgmt.annotation.Provides;
 import org.jboss.mgmt.annotation.SubResource;
+import org.jboss.mgmt.annotation.xml.Mapping;
+import org.jboss.mgmt.annotation.xml.XmlVersionMapping;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @Provides("logging")
 @ModelRoot(name = "logging")
+@XmlVersionMapping({
+    @Mapping(xmlns = "ext:core.logging:1.0", version = "1.0"),
+    @Mapping(xmlns = "ext:core.logging:1.1", version = "1.1")
+})
 public interface LoggingSubsystemResource extends SubsystemResource {
 
     @SubResource

@@ -41,4 +41,6 @@ public @interface XmlRender {
     }
 
     As as();
+
+    boolean wrapperElement() default true;
 }

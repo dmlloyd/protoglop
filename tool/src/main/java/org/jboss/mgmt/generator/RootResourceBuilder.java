@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
+ * Copyright 2012, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,11 +20,28 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package example1;
+package org.jboss.mgmt.generator;
+
+import java.util.Locale;
+import org.jboss.mgmt.annotation.RuntimeMode;
+
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.type.TypeMirror;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface DomainProfileResource extends ProfileResource, NamedChildOf<DomainResource> {
+public interface RootResourceBuilder extends GeneralResourceBuilder, SubBuilder<ModelBuilder> {
 
+    AttributeBuilder<? extends RootResourceBuilder> attribute();
+
+    RootResourceBuilder description(Locale locale, String description);
+
+    RootResourceBuilder operationHook(String opName, String version, ExecutableElement method);
+
+    RootResourceBuilder listener(TypeMirror listener, RuntimeMode... modes);
+
+    RootResourceBuilder provides(String token);
+
+    SubResourceBuilder<RootResourceBuilder> subResource(String address, boolean named);
 }

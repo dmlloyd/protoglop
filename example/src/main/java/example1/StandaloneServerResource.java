@@ -22,12 +22,9 @@
 
 package example1;
 
-import org.jboss.mgmt.ResourceType;
-
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-@ResourceType
 public interface StandaloneServerResource extends ServerResource {
 
     // inline resource, cannot have conflicting attribute names

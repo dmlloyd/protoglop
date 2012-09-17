@@ -25,13 +25,14 @@ package org.jboss.mgmt.annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
- * A description for a resource.
+ * A description for a resource or attribute.
  */
-@Target(TYPE)
+@Target({TYPE, METHOD})
 @Retention(SOURCE)
 public @interface Description {
     String value();

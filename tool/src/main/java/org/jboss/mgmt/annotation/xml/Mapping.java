@@ -34,4 +34,6 @@ public @interface Mapping {
     String xmlns();
 
     String version();
+
+    String[] additionalXmlns() default {};
 }

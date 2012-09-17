@@ -22,9 +22,64 @@
 
 package example1;
 
+import java.util.List;
+import java.util.Map;
+import org.jboss.mgmt.Resource;
+import org.jboss.mgmt.annotation.Attribute;
+import org.jboss.mgmt.annotation.ModelRoot;
+import org.jboss.mgmt.annotation.SubResource;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface DomainResource {
+@ModelRoot(name = "domain")
+public interface DomainResource extends Resource {
 
+    @Attribute
+    Map<String, BootTimePropertyType> getProperties();
+
+    @SubResource
+    List<String> getPathNames();
+
+    PathResource getPath(String name);
+
+    @SubResource
+    List<String> getProfileNames();
+
+    ProfileResource getProfile(String name);
+
+    @SubResource
+    List<String> getInterfaceNames();
+
+    // InterfaceResource getInterface(String name);
+
+    @SubResource
+    List<String> getSocketBindingGroupNames();
+
+    // SocketBindingGroup getSocketBindingGroup(String name);
+
+    @SubResource
+    List<String> getDeploymentNames();
+
+    // DomainDeployment getDeployment(String name);
+
+    @SubResource
+    List<String> getServerGroupNames();
+
+    // ServerGroup getServerGroup(String name);
+
+    @SubResource
+    List<String> getManagementClientContextNames();
+
+    // ManagementClientContext getManagementClientContext(String name);
+
+    @SubResource
+    List<String> getJvmNames();
+
+    // Jvm getJvm(String name);
+
+    @SubResource
+    List<String> getServers();
+
+    DomainServerResource getServer(String name);
 }

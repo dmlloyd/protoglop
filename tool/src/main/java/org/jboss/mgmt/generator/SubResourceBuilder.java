@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
+ * Copyright 2012, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,29 +20,30 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package example1;
+package org.jboss.mgmt.generator;
 
-import org.jboss.mgmt.annotation.Attribute;
-import org.jboss.mgmt.annotation.AttributeType;
-import org.jboss.mgmt.annotation.Reference;
+import java.util.Locale;
+import org.jboss.mgmt.annotation.RuntimeMode;
+
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.type.TypeMirror;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface FileHandlerResource extends HandlerResource {
+public interface SubResourceBuilder<P extends GeneralResourceBuilder> extends GeneralResourceBuilder, SubBuilder<P> {
 
-    @AttributeType
-    interface FileReference {
-        @Attribute(name = "file-name")
-        String getFileName();
+    AttributeBuilder<? extends SubResourceBuilder<P>> attribute();
 
-        @Attribute(name = "relative-to")
-        @Reference(resourceType = PathResource.class, monitor = true)
-        PathResource getRelativeTo();
+    SubResourceBuilder<P> description(Locale locale, String description);
 
-        String getRelativeToName();
-    }
+    SubResourceBuilder<P> operationHook(String opName, String version, ExecutableElement method);
 
-    @Attribute
-    FileReference getFile();
+    SubResourceBuilder<P> listener(TypeMirror listener, RuntimeMode... modes);
+
+    SubResourceBuilder<P> provides(String token);
+
+    SubResourceBuilder<P> requiresUniqueProvider(boolean required);
+
+    SubResourceBuilder<SubResourceBuilder<P>> subResource(String address, boolean named);
 }
