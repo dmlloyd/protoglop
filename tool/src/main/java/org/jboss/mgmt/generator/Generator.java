@@ -22,11 +22,11 @@
 
 package org.jboss.mgmt.generator;
 
-import java.util.Locale;
-import org.jboss.mgmt.AttributeListener;
-import org.jboss.mgmt.annotation.RuntimeMode;
+import javax.annotation.processing.ProcessingEnvironment;
 
 /**
+ * The big generator.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public final class Generator {
@@ -34,31 +34,13 @@ public final class Generator {
     private Generator() {
     }
 
-    private static void EXAMPLE() {
-        // Annotation processor reads the data and then does this
-        openSession()
-            .model("domain")
-                .resource("bar")
-                    .attribute()
-                        .name("blah")
-                        .done()
-                    .provides("blah")
-                    .done()
-                .resource("foo")
-                    .subResource("blah", true)
-                    .attribute()
-                        .name("zap")
-                        .description(Locale.ROOT, "Blah blah blah")
-                        .description(Locale.US, "Yo blah blah blah")
-                        .listener(AttributeListener.class, RuntimeMode.HOST, RuntimeMode.MANAGEMENT)
-                        .done()
-                    .done()
-                .done()
-            .done()
-        .generateSource("target/generated-sources/whatever");
-    }
-
-    public static Session openSession() {
-        return null;
+    /**
+     * Start a session.
+     *
+     * @param env the environment
+     * @return the session
+     */
+    public static Session openSession(final ProcessingEnvironment env) {
+        return new SessionImpl(env);
     }
 }

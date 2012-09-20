@@ -34,5 +34,5 @@ public interface ProfileResource extends Resource {
     @SubResource(requiresUniqueProvider = true)
     List<String> getSubsystemNames();
 
-    SubsystemResource getSubsystem(String name);
+    LoggingSubsystemResource getSubsystem(String name);
 }

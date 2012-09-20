@@ -20,54 +20,41 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.model;
+package org.jboss.mgmt;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class ResourceID {
+public abstract class AbstractResource implements Resource {
+    private final String preComment;
+    private final String postComment;
     private final String name;
-    private final String value;
+    private final Resource parent;
 
-    public ResourceID(final String name, final String value) {
+    protected AbstractResource(final String preComment, final String postComment, final String name, final Resource parent) {
+        this.preComment = preComment;
+        this.postComment = postComment;
         this.name = name;
-        this.value = value;
+        this.parent = parent;
+    }
+
+    public String getPreComment() {
+        return preComment;
+    }
+
+    public String getPostComment() {
+        return postComment;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getValue() {
-        return value;
+    public Resource getParent() {
+        return parent;
     }
 
-    public int hashCode() {
-        return name.hashCode() * 13 + value.hashCode();
-    }
-
-    /**
-     * Determine whether this object is equal to another.
-     *
-     * @param other the other object
-     * @return {@code true} if they are equal, {@code false} otherwise
-     */
-    public boolean equals(Object other) {
-        return other instanceof ResourceID && equals((ResourceID)other);
-    }
-
-    /**
-     * Determine whether this object is equal to another.
-     *
-     * @param other the other object
-     * @return {@code true} if they are equal, {@code false} otherwise
-     */
-    public boolean equals(ResourceID other) {
-        return this == other || other != null && name.equals(other.name) && value.equals(other.value);
-    }
-
-
-    public String toString() {
-        return String.format("%s=%s", name, value);
+    protected static IllegalArgumentException notReadable() {
+        throw new IllegalArgumentException("This attribute is not readable");
     }
 }

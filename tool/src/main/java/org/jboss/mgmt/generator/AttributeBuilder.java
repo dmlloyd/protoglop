@@ -25,12 +25,11 @@ package org.jboss.mgmt.generator;
 import java.util.Locale;
 import org.jboss.mgmt.AttributeListener;
 import org.jboss.mgmt.AttributeValidator;
-import org.jboss.mgmt.VirtualAttribute;
 import org.jboss.mgmt.annotation.Access;
 import org.jboss.mgmt.annotation.RuntimeMode;
 import org.jboss.mgmt.annotation.xml.XmlRender;
 
-import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.DeclaredType;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
@@ -38,9 +37,7 @@ import javax.lang.model.type.TypeMirror;
 public interface AttributeBuilder<P extends GeneralResourceBuilder> extends SubBuilder<P> {
     AttributeBuilder<P> name(String name);
 
-    AttributeBuilder<P> type(TypeMirror type);
-
-    AttributeBuilder<P> type(Class<?> type);
+    AttributeBuilder<P> type(DeclaredType type);
 
     AttributeBuilder<P> description(Locale locale, String description);
 
@@ -48,17 +45,15 @@ public interface AttributeBuilder<P extends GeneralResourceBuilder> extends SubB
 
     AttributeBuilder<P> required(boolean required);
 
-    AttributeBuilder<P> virtual(TypeMirror virtual); // extends VirtualAttribute
-
-    AttributeBuilder<P> virtual(Class<? extends VirtualAttribute> virtual);
+    AttributeBuilder<P> virtual(DeclaredType virtual); // extends VirtualAttribute
 
     AttributeBuilder<P> defaultValue(String value);
 
-    AttributeBuilder<P> validator(TypeMirror validator);
+    AttributeBuilder<P> validator(DeclaredType validator);
 
     AttributeBuilder<P> validator(Class<? extends AttributeValidator> validator);
 
-    AttributeBuilder<P> listener(TypeMirror listener, RuntimeMode... modes);
+    AttributeBuilder<P> listener(DeclaredType listener, RuntimeMode... modes);
 
     AttributeBuilder<P> listener(Class<? extends AttributeListener> listener, RuntimeMode... modes);
 

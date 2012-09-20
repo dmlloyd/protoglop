@@ -46,4 +46,6 @@ public interface SubResourceBuilder<P extends GeneralResourceBuilder> extends Ge
     SubResourceBuilder<P> requiresUniqueProvider(boolean required);
 
     SubResourceBuilder<SubResourceBuilder<P>> subResource(String address, boolean named);
+
+    SubResourceBuilder<P> xmlName(String name);
 }

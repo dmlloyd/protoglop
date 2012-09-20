@@ -20,23 +20,29 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.generator;
+package org.jboss.mgmt;
 
-import javax.lang.model.type.DeclaredType;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface Session {
-    RootResourceBuilder rootResource(String type, DeclaredType resourceInterface, String version);
+public final class ExceptionThrowingValidationContext implements AttributeValidator.Context, ResourceValidator.Context {
+    private final List<String> problems = new ArrayList<String>(0);
 
-    AttributeTypeBuilder attributeType(DeclaredType attributeInterface);
+    public void reportProblem(final String problem) {
+        problems.add(problem);
+    }
 
-    Session addXmlNamespace(String xmlns, String version, String schemaLocation);
-
-    Session generateSource();
-
-    Session generateSchema();
-
-
+    public void throwProblems() throws IllegalArgumentException {
+        if (problems.isEmpty()) {
+            return;
+        }
+        final StringBuilder msg = new StringBuilder("Validation failed for the following reason(s):");
+        for (String problem : problems) {
+            msg.append("\n    ").append(problem);
+        }
+        throw new IllegalArgumentException(msg.toString());
+    }
 }

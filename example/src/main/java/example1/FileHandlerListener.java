@@ -20,12 +20,19 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.generator;
+package example1;
+
+import org.jboss.mgmt.ModelChangeContext;
+import org.jboss.mgmt.ResourceListener;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface ModelBuilder extends SubBuilder<Session> {
+public final class FileHandlerListener implements ResourceListener<FileHandlerResource, Object> {
 
-    RootResourceBuilder resource(String key);
+    public void resourceRemoved(final ModelChangeContext context, final FileHandlerResource resource, final Object attachment) {
+    }
+
+    public void resourceAdded(final ModelChangeContext context, final FileHandlerResource resource, final Object attachment) {
+    }
 }

@@ -31,7 +31,7 @@ import javax.lang.model.type.TypeMirror;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface RootResourceBuilder extends GeneralResourceBuilder, SubBuilder<ModelBuilder> {
+public interface RootResourceBuilder extends GeneralResourceBuilder, SubBuilder<Session> {
 
     AttributeBuilder<? extends RootResourceBuilder> attribute();
 
@@ -43,5 +43,11 @@ public interface RootResourceBuilder extends GeneralResourceBuilder, SubBuilder<
 
     RootResourceBuilder provides(String token);
 
+    RootResourceBuilder addXmlNamespace(String namespace, String version, String schemaLocation);
+
+    RootResourceBuilder addXmlNamespace(String namespace, String version);
+
     SubResourceBuilder<RootResourceBuilder> subResource(String address, boolean named);
+
+    RootResourceBuilder xmlName(String name);
 }

@@ -20,23 +20,21 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.generator;
-
-import javax.lang.model.type.DeclaredType;
+package org.jboss.mgmt;
 
 /**
+ * A scoped builder interface.
+ *
+ * @param <P> the parent builder type
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface Session {
-    RootResourceBuilder rootResource(String type, DeclaredType resourceInterface, String version);
+public interface NestedBuilder<P> {
 
-    AttributeTypeBuilder attributeType(DeclaredType attributeInterface);
-
-    Session addXmlNamespace(String xmlns, String version, String schemaLocation);
-
-    Session generateSource();
-
-    Session generateSchema();
-
-
+    /**
+     * Signal that the current builder scope is done and escape to the parent scope.
+     *
+     * @return the parent builder
+     */
+    P done();
 }

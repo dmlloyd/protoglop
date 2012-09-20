@@ -28,11 +28,13 @@ import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.annotation.Attribute;
 import org.jboss.mgmt.annotation.ModelRoot;
 import org.jboss.mgmt.annotation.SubResource;
+import org.jboss.mgmt.annotation.xml.XmlName;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-@ModelRoot(name = "domain")
+@ModelRoot(type = "model")
+@XmlName("domain")
 public interface DomainResource extends Resource {
 
     @Attribute

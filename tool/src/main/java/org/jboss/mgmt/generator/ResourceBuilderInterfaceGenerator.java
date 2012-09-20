@@ -22,27 +22,34 @@
 
 package org.jboss.mgmt.generator;
 
-import java.util.Locale;
-import org.jboss.mgmt.annotation.RuntimeMode;
+import org.jboss.mgmt.annotation.Access;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.TypeMirror;
+import com.sun.codemodel.ClassType;
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JDocComment;
+import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JTypeVar;
+
+import javax.annotation.processing.Messager;
+
+import static com.sun.codemodel.ClassType.*;
+import static com.sun.codemodel.JMod.*;
+import static javax.tools.Diagnostic.Kind.*;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface GeneralResourceBuilder {
-    AttributeBuilder<? extends GeneralResourceBuilder> attribute();
+public final class ResourceBuilderInterfaceGenerator extends AbstractClassGenerator {
+    private final GeneralResourceBuilderImpl<?> resourceBuilder;
 
-    GeneralResourceBuilder description(Locale locale, String description);
+    public ResourceBuilderInterfaceGenerator(final JCodeModel codeModel, final Messager messager, final String className, final String packageName, final GeneralResourceBuilderImpl builder) {
+        super(codeModel, messager, className, packageName, INTERFACE, PUBLIC);
+        resourceBuilder = builder;
+    }
 
-    GeneralResourceBuilder operationHook(String opName, String version, ExecutableElement method);
+    protected void populate(final JDefinedClass builderInterface) {
+        final JCodeModel codeModel = getCodeModel();
 
-    GeneralResourceBuilder listener(TypeMirror listener, RuntimeMode... modes);
-
-    GeneralResourceBuilder provides(String token);
-
-    GeneralResourceBuilder subResource(String address, boolean named);
-
-    GeneralResourceBuilder xmlName(String name);
+    }
 }

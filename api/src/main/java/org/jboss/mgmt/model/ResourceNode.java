@@ -22,15 +22,45 @@
 
 package org.jboss.mgmt.model;
 
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public abstract class ResourceNode {
-    final int id;
-    final int rev;
+public final class ResourceNode<R> {
+    private volatile int state;
+    private volatile R current;
+    private volatile Object owningTxn;
+    private volatile Thread waiter;
 
-    protected ResourceNode(final int id, final int rev) {
-        this.id = id;
-        this.rev = rev;
+    private static final AtomicIntegerFieldUpdater<ResourceNode> stateUpdater = AtomicIntegerFieldUpdater.newUpdater(ResourceNode.class, "state");
+    private static final AtomicReferenceFieldUpdater<ResourceNode, Object> currentUpdater = AtomicReferenceFieldUpdater.newUpdater(ResourceNode.class, Object.class, "current");
+    private static final AtomicReferenceFieldUpdater<ResourceNode, Object> owningTxnUpdater = AtomicReferenceFieldUpdater.newUpdater(ResourceNode.class, Object.class, "owningTxn");
+    private static final AtomicReferenceFieldUpdater<ResourceNode, Thread> waiterUpdater = AtomicReferenceFieldUpdater.newUpdater(ResourceNode.class, Thread.class, "waiter");
+
+    private static final int WRITE_LOCK = (1 << 31);
+    private static final int INTENT_WRITE_LOCK = (1 << 30);
+    private static final int READERS = INTENT_WRITE_LOCK - 1;
+
+    private static Object currentTransaction() {
+        return null; // todo once msc-2 stabilizes...
+    }
+
+    public R readResource(boolean writeLock) {
+        if (writeLock) {
+            lockWrite(currentTransaction());
+        } else {
+            lockRead(currentTransaction());
+        }
+        return current;
+    }
+
+    private void lockRead(final Object txn) {
+        // increment count or block with txn
+    }
+
+    private void lockWrite(final Object txn) {
+        // set write flag or set iwrite and wait or block with txn
     }
 }

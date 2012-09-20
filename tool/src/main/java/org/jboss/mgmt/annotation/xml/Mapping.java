@@ -35,5 +35,5 @@ public @interface Mapping {
 
     String version();
 
-    String[] additionalXmlns() default {};
+    String schemaLocation() default "";
 }

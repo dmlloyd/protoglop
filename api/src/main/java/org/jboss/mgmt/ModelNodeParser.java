@@ -20,23 +20,15 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.generator;
+package org.jboss.mgmt;
 
-import javax.lang.model.type.DeclaredType;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface Session {
-    RootResourceBuilder rootResource(String type, DeclaredType resourceInterface, String version);
+public interface ModelNodeParser<R> {
 
-    AttributeTypeBuilder attributeType(DeclaredType attributeInterface);
-
-    Session addXmlNamespace(String xmlns, String version, String schemaLocation);
-
-    Session generateSource();
-
-    Session generateSchema();
-
-
+    R parse(XMLStreamReader streamReader) throws XMLStreamException;
 }

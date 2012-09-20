@@ -20,36 +20,42 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.model;
+package org.jboss.mgmt.generator;
+
+import java.io.IOException;
+import java.io.OutputStream;
+
+import com.sun.codemodel.CodeWriter;
+import com.sun.codemodel.JPackage;
+
+import javax.annotation.processing.Filer;
+
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
 
 /**
+ * A bridge between {@link CodeWriter} and {@link Filer}.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public abstract class ManagementDatabase {
+public class FilerCodeWriter extends CodeWriter {
 
-    private final ThreadLocal<Transaction> transactionHolder = new ThreadLocal<Transaction>();
+    private final Filer filer;
 
-    /**
-     * Read a point-in-time resource snapshot.
-     *
-     * @param resourceTypeInterface the resource type interface
-     * @param address the address of the resource
-     * @param <T> the resource type
-     * @return the resource
-     * @throws IllegalArgumentException if the resource type does not match the type of the given address
-     */
-    public abstract <T> T readResource(Class<T> resourceTypeInterface, ResourceID... address) throws IllegalArgumentException;
+    FilerCodeWriter(final Filer filer) {
+        this.filer = filer;
+    }
 
-    /**
-     * Begin a management transaction.
-     *
-     * @return the transaction
-     */
-    public abstract Transaction begin();
+    public OutputStream openBinary(final JPackage pkg, final String fileName) throws IOException {
+        final FileObject sourceFile;
+        if (fileName.endsWith(".java")) {
+            sourceFile = filer.createSourceFile(pkg.name() + "." + fileName.substring(0, fileName.length() - 5));
+        } else {
+            sourceFile = filer.createResource(StandardLocation.SOURCE_OUTPUT, pkg.name(), fileName);
+        }
+        return sourceFile.openOutputStream();
+    }
 
-    
-
-    ThreadLocal<Transaction> getTransactionHolder() {
-        return transactionHolder;
+    public void close() throws IOException {
     }
 }

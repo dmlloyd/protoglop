@@ -27,7 +27,6 @@ package org.jboss.mgmt.annotation;
  */
 public enum RuntimeMode {
     HOST,
-    MANAGEMENT,
-    RUNTIME,
+    SERVER,
     ;
 }

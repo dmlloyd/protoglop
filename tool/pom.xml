@@ -13,10 +13,33 @@
 
     <artifactId>jboss-mgmt-tool</artifactId>
 
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <compilerArgument>-proc:none</compilerArgument>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>org.jboss.mgmt</groupId>
             <artifactId>jboss-mgmt-api</artifactId>
+        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.jboss.msc2</groupId>-->
+            <!--<artifactId>jboss-msc2</artifactId>-->
+        <!--</dependency>-->
+        <dependency>
+            <groupId>com.sun.codemodel</groupId>
+            <artifactId>codemodel</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>xom</groupId>
+            <artifactId>xom</artifactId>
         </dependency>
     </dependencies>
 </project>

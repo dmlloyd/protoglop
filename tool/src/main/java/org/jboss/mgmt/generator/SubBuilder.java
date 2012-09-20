@@ -26,5 +26,5 @@ package org.jboss.mgmt.generator;
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public interface SubBuilder<P> {
-    P done();
+    P end();
 }

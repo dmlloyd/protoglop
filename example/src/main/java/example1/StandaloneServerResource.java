@@ -22,9 +22,14 @@
 
 package example1;
 
+import org.jboss.mgmt.annotation.ModelRoot;
+import org.jboss.mgmt.annotation.xml.XmlName;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
+@ModelRoot(type = "model")
+@XmlName("standalone")
 public interface StandaloneServerResource extends ServerResource {
 
     // inline resource, cannot have conflicting attribute names

@@ -36,9 +36,9 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 public @interface ModelRoot {
 
     /**
-     * The name of the root.
+     * The type of the root.
      *
-     * @return the name
+     * @return the type
      */
-    String name();
+    String type();
 }

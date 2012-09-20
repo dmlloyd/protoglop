@@ -20,16 +20,13 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.model;
-
-import org.jboss.mgmt.AttributeListener;
-import org.jboss.mgmt.Resource;
+package org.jboss.mgmt.generator;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public abstract class ResourceDefinition extends ResourceNode {
-    private final Class<? extends Resource> resourceTypeClass = null;
+public interface AttributeTypeBuilder extends SubBuilder<Session> {
+    AttributeTypeBuilder xmlName(String xmlName);
 
-    private final AttributeListener<?, ?, ?> listeners = null;
+
 }

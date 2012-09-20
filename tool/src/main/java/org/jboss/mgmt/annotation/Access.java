@@ -26,9 +26,24 @@ package org.jboss.mgmt.annotation;
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public enum Access {
-    NO_ACCESS,
-    READ_ONLY,
-    WRITE_ONLY,
-    READ_WRITE,
+    NO_ACCESS(false, false),
+    READ_ONLY(true, false),
+    WRITE_ONLY(false, true),
+    READ_WRITE(true, true),
     ;
+    private final boolean readable;
+    private final boolean writable;
+
+    private Access(final boolean readable, final boolean writable) {
+        this.readable = readable;
+        this.writable = writable;
+    }
+
+    public boolean isReadable() {
+        return readable;
+    }
+
+    public boolean isWritable() {
+        return writable;
+    }
 }

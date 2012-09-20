@@ -20,13 +20,14 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.model;
+package org.jboss.mgmt.annotation;
 
 /**
- * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
+ *
  */
-public final class ModelManager {
-    private volatile ResourceDatabase current;
-
-
+public enum RunLevel {
+    STOPPED,
+    MANAGEMENT,
+    RUNNING,
+    ;
 }
