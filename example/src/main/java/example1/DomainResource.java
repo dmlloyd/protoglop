@@ -26,15 +26,19 @@ import java.util.List;
 import java.util.Map;
 import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.annotation.Attribute;
-import org.jboss.mgmt.annotation.ModelRoot;
+import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.SubResource;
-import org.jboss.mgmt.annotation.xml.XmlName;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-@ModelRoot(type = "model")
-@XmlName("domain")
+@RootResource(
+    type = "top",
+    namespace = "jboss",
+    version = "1.0",
+    kind = RootResource.Kind.SYSTEM,
+    compatibilityNamespaces = { "urn:jboss:domain:1.0" }
+)
 public interface DomainResource extends Resource {
 
     @Attribute
@@ -58,7 +62,7 @@ public interface DomainResource extends Resource {
     @SubResource
     List<String> getSocketBindingGroupNames();
 
-    // SocketBindingGroup getSocketBindingGroup(String name);
+    // SocketBindingGroupResource getSocketBindingGroup(String name);
 
     @SubResource
     List<String> getDeploymentNames();

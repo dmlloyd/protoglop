@@ -25,11 +25,14 @@ package example1;
 import java.util.List;
 import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.annotation.Attribute;
+import org.jboss.mgmt.annotation.Enumerated;
 import org.jboss.mgmt.annotation.Reference;
+import org.jboss.mgmt.annotation.ResourceType;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
+@ResourceType(name = "core.logging.handler")
 public interface HandlerResource extends Resource {
     @Attribute
     @Reference(resourceType = HandlerResource.class)
@@ -37,4 +40,8 @@ public interface HandlerResource extends Resource {
 
     @Attribute(validators = { /* FilterStringValidator.class */ })
     String getFilterSpec();
+
+    @Attribute
+    @Enumerated({"OFF", "FATAL", "ERROR", "WARN", "WARNING", "NOTICE", "INFO", "CONFIG", "DEBUG", "FINE", "FINER", "FINEST", "TRACE", "ALL"})
+    String getLevel();
 }

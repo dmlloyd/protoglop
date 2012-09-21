@@ -26,19 +26,21 @@ import java.util.Locale;
 import org.jboss.mgmt.annotation.RuntimeMode;
 
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.DeclaredType;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public interface GeneralResourceBuilder {
-    AttributeBuilder<? extends GeneralResourceBuilder> attribute();
+    AttributeBuilder<? extends GeneralResourceBuilder> attribute(String name);
 
-    GeneralResourceBuilder description(Locale locale, String description);
+    AttributeGroupBuilder<? extends GeneralResourceBuilder> attributeGroup(String name, DeclaredType type);
+
+    GeneralResourceBuilder description(String description);
 
     GeneralResourceBuilder operationHook(String opName, String version, ExecutableElement method);
 
-    GeneralResourceBuilder listener(TypeMirror listener, RuntimeMode... modes);
+    GeneralResourceBuilder listener(DeclaredType listener, RuntimeMode... modes);
 
     GeneralResourceBuilder provides(String token);
 

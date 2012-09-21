@@ -22,66 +22,42 @@
 
 package org.jboss.mgmt.generator;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import org.jboss.mgmt.annotation.RuntimeMode;
+import org.jboss.mgmt.annotation.RootResource;
 
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeMirror;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 final class RootResourceBuilderImpl extends GeneralResourceBuilderImpl<RootResourceBuilderImpl> implements RootResourceBuilder {
     private final Session session;
-    private final Map<String, String> namespaces = new HashMap<String, String>();
-    private final Map<String, String> schemaLocations = new HashMap<String, String>();
+    private String namespace;
+    private String version = "1.0";
+    private String schemaLocation;
+    private RootResource.Kind kind = RootResource.Kind.EXTENSION;
 
     RootResourceBuilderImpl(final Session session, final String type, final DeclaredType resourceInterface) {
         super(type, resourceInterface);
         this.session = session;
     }
 
-    public RootResourceBuilder description(final Locale locale, final String description) {
-        super.description(locale, description);
+    public RootResourceBuilder schemaLocation(final String schemaLocation) {
+        this.schemaLocation = schemaLocation;
         return this;
     }
 
-    public RootResourceBuilder operationHook(final String opName, final String version, final ExecutableElement method) {
-        super.operationHook(opName, version, method);
+    public RootResourceBuilder version(final String version) {
+        this.version = version;
         return this;
     }
 
-    public RootResourceBuilder listener(final TypeMirror listener, final RuntimeMode... modes) {
-        super.listener(listener, modes);
+    public RootResourceBuilder kind(final RootResource.Kind kind) {
+        this.kind = kind;
         return this;
     }
 
-    public RootResourceBuilder provides(final String token) {
-        super.provides(token);
-        return this;
-    }
-
-    @SuppressWarnings("unchecked")
-    public SubResourceBuilder<RootResourceBuilder> subResource(final String address, final boolean named) {
-        return (SubResourceBuilder<RootResourceBuilder>) super.subResource(address, named);
-    }
-
-    public RootResourceBuilder xmlName(final String xmlName) {
-        super.xmlName(xmlName);
-        return this;
-    }
-
-    public RootResourceBuilder addXmlNamespace(final String namespace, final String version, final String schemaLocation) {
-        schemaLocations.put(namespace, schemaLocation);
-        return addXmlNamespace(namespace, version);
-    }
-
-    public RootResourceBuilder addXmlNamespace(final String namespace, final String version) {
-        namespaces.put(namespace, version);
-        ((SessionImpl)session).addNamespace(namespace, this);
+    public RootResourceBuilder namespace(final String namespace) {
+        this.namespace = namespace;
         return this;
     }
 
@@ -89,11 +65,19 @@ final class RootResourceBuilderImpl extends GeneralResourceBuilderImpl<RootResou
         return session;
     }
 
-    Map<String, String> getNamespaces() {
-        return namespaces;
+    String getNamespace() {
+        return namespace;
     }
 
-    Map<String, String> getSchemaLocations() {
-        return schemaLocations;
+    String getVersion() {
+        return version;
+    }
+
+    String getSchemaLocation() {
+        return schemaLocation;
+    }
+
+    RootResource.Kind getKind() {
+        return kind;
     }
 }

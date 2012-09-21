@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class ResourceNode<R> {
+public abstract class ResourceNode<R> {
     private volatile int state;
     private volatile R current;
     private volatile Object owningTxn;
@@ -47,13 +47,19 @@ public final class ResourceNode<R> {
         return null; // todo once msc-2 stabilizes...
     }
 
-    public R readResource(boolean writeLock) {
+    protected R getCurrent(boolean writeLock) {
         if (writeLock) {
             lockWrite(currentTransaction());
         } else {
             lockRead(currentTransaction());
         }
+        // if (transaction.get(this) != null) { return it; }
         return current;
+    }
+
+    protected void modify(R newValue) {
+        lockWrite(currentTransaction());
+        // transaction.put(this, newValue);
     }
 
     private void lockRead(final Object txn) {
@@ -61,6 +67,6 @@ public final class ResourceNode<R> {
     }
 
     private void lockWrite(final Object txn) {
-        // set write flag or set iwrite and wait or block with txn
+        // set write flag or block with txn
     }
 }

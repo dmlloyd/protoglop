@@ -22,32 +22,36 @@
 
 package org.jboss.mgmt.generator;
 
-import java.util.Locale;
+import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.RuntimeMode;
 
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.DeclaredType;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public interface RootResourceBuilder extends GeneralResourceBuilder, SubBuilder<Session> {
 
-    AttributeBuilder<? extends RootResourceBuilder> attribute();
+    AttributeBuilder<? extends RootResourceBuilder> attribute(final String name);
 
-    RootResourceBuilder description(Locale locale, String description);
+    RootResourceBuilder description(String description);
 
     RootResourceBuilder operationHook(String opName, String version, ExecutableElement method);
 
-    RootResourceBuilder listener(TypeMirror listener, RuntimeMode... modes);
+    RootResourceBuilder listener(DeclaredType listener, RuntimeMode... modes);
 
     RootResourceBuilder provides(String token);
 
-    RootResourceBuilder addXmlNamespace(String namespace, String version, String schemaLocation);
+    RootResourceBuilder schemaLocation(String location);
 
-    RootResourceBuilder addXmlNamespace(String namespace, String version);
+    RootResourceBuilder version(String version);
 
-    SubResourceBuilder<RootResourceBuilder> subResource(String address, boolean named);
+    RootResourceBuilder kind(RootResource.Kind kind);
+
+    RootResourceBuilder namespace(String namespace);
+
+    SubResourceBuilder<? extends RootResourceBuilder> subResource(String address, boolean named);
 
     RootResourceBuilder xmlName(String name);
 }

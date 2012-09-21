@@ -23,28 +23,25 @@
 package example1;
 
 import java.util.List;
-import org.jboss.mgmt.annotation.ModelRoot;
+import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.Provides;
 import org.jboss.mgmt.annotation.SubResource;
-import org.jboss.mgmt.annotation.Versions;
-import org.jboss.mgmt.annotation.xml.Mapping;
 import org.jboss.mgmt.annotation.xml.XmlName;
-import org.jboss.mgmt.annotation.xml.XmlVersionMapping;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @Provides("logging")
-@ModelRoot(type = "subsystem")
+@RootResource(
+    type = "subsystem",
+    name = "logging",
+    namespace = "core.logging",
+    version = "1.0"
+)
 @XmlName("subsystem")
-@Versions({"1.0", "1.1"})
-@XmlVersionMapping({
-    @Mapping(xmlns = "ext:core.logging:1.0", version = "1.0", schemaLocation = "http://docs.jboss.org/foo/blah/1.0"),
-    @Mapping(xmlns = "ext:core.logging:1.1", version = "1.1", schemaLocation = "http://docs.jboss.org/foo/blah/1.1")
-})
 public interface LoggingSubsystemResource {
 
-    @SubResource
+    @SubResource(children = { FileHandlerResource.class })
     List<String> getHandlerNames();
 
     HandlerResource getHandler(String name);

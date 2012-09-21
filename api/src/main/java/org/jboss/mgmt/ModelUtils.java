@@ -48,7 +48,7 @@ public final class ModelUtils {
         return VERSION_PATTERN.matcher(versionString).matches();
     }
 
-    private static int[] versionFromSeg(String versionString, int idx, int i) {
+    private static int[] versionToSegments(String versionString, int idx, int i) {
         int c, d, a;
         c = versionString.codePointAt(idx);
         idx = versionString.offsetByCodePoints(idx, 1);
@@ -61,7 +61,7 @@ public final class ModelUtils {
             c = versionString.codePointAt(idx);
             idx = versionString.offsetByCodePoints(idx, 1);
             if (c == '.') {
-                final int[] ints = versionFromSeg(versionString, idx + 1, i + 1);
+                final int[] ints = versionToSegments(versionString, idx + 1, i + 1);
                 ints[i] = a;
                 return ints;
             }
@@ -78,8 +78,19 @@ public final class ModelUtils {
         }
     }
 
+    public static String segmentsToVersion(int[] segments) {
+        final StringBuilder b = new StringBuilder(segments.length * 3);
+        for (int idx = 0; idx < segments.length; idx++) {
+            b.append(segments[idx]);
+            if (idx < segments.length - 1) {
+                b.append('.');
+            }
+        }
+        return b.toString();
+    }
+
     public static int[] versionToSegments(String versionString) {
-        return versionFromSeg(versionString, 0, 0);
+        return versionToSegments(versionString, 0, 0);
     }
 
     public static int compareVersions(String versionA, String versionB) {

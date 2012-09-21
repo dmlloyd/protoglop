@@ -25,7 +25,6 @@ package example1;
 import org.jboss.mgmt.annotation.Attribute;
 import org.jboss.mgmt.annotation.AttributeType;
 import org.jboss.mgmt.annotation.Listener;
-import org.jboss.mgmt.annotation.ModelRoot;
 import org.jboss.mgmt.annotation.Reference;
 import org.jboss.mgmt.annotation.RuntimeMode;
 import org.jboss.mgmt.annotation.xml.XmlName;
@@ -33,7 +32,6 @@ import org.jboss.mgmt.annotation.xml.XmlName;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-@ModelRoot(type = "core.logging.handler")
 @XmlName("file-handler")
 @Listener(value = FileHandlerListener.class, modes = { RuntimeMode.SERVER })
 public interface FileHandlerResource extends HandlerResource {
@@ -52,4 +50,9 @@ public interface FileHandlerResource extends HandlerResource {
 
     @Attribute
     FileReference getFile();
+
+    @Attribute
+    boolean isAppend();
+
+
 }

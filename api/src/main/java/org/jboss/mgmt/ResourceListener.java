@@ -24,11 +24,10 @@ package org.jboss.mgmt;
 
 /**
  * @param <R> the resource type
- * @param <A> attachment type
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface ResourceListener<R, A> {
-    void resourceRemoved(ModelChangeContext context, R resource, A attachment);
+public interface ResourceListener<R> {
+    void resourceRemoved(ModelChangeContext context, R resource);
 
-    void resourceAdded(ModelChangeContext context, R resource, A attachment);
+    void resourceAdded(ModelChangeContext context, R resource);
 }

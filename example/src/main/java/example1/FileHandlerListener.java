@@ -28,11 +28,11 @@ import org.jboss.mgmt.ResourceListener;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class FileHandlerListener implements ResourceListener<FileHandlerResource, Object> {
+public final class FileHandlerListener implements ResourceListener<FileHandlerResource> {
 
-    public void resourceRemoved(final ModelChangeContext context, final FileHandlerResource resource, final Object attachment) {
+    public void resourceRemoved(final ModelChangeContext context, final FileHandlerResource resource) {
     }
 
-    public void resourceAdded(final ModelChangeContext context, final FileHandlerResource resource, final Object attachment) {
+    public void resourceAdded(final ModelChangeContext context, final FileHandlerResource resource) {
     }
 }

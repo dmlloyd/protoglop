@@ -25,11 +25,10 @@ package example1;
 import java.util.List;
 import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.annotation.Attribute;
+import org.jboss.mgmt.annotation.Enumerated;
 import org.jboss.mgmt.annotation.Reference;
 import org.jboss.mgmt.annotation.xml.XmlName;
 import org.jboss.mgmt.annotation.xml.XmlRender;
-
-import java.util.logging.Level;
 
 import static org.jboss.mgmt.annotation.xml.XmlRender.As.ATTRIBUTE;
 import static org.jboss.mgmt.annotation.xml.XmlRender.As.ELEMENT;
@@ -46,14 +45,13 @@ public interface LoggerResource extends Resource {
 
     @Attribute(validators = { /* FilterStringValidator.class */ })
     @XmlRender(as = ELEMENT)
-    @XmlName("filter")
-    String getFilterSpec();
+    String getFilter();
 
     @Attribute
-    @XmlName("use-parent-handlers")
     @XmlRender(as = ATTRIBUTE)
     boolean isUseParentHandlers();
 
     @Attribute
-    Level getLevel();
+    @Enumerated({"OFF", "FATAL", "ERROR", "WARN", "WARNING", "NOTICE", "INFO", "CONFIG", "DEBUG", "FINE", "FINER", "FINEST", "TRACE", "ALL"})
+    String getLevel();
 }

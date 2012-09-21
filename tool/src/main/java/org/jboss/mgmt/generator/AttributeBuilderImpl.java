@@ -32,15 +32,16 @@ import org.jboss.mgmt.annotation.RuntimeMode;
 import org.jboss.mgmt.annotation.xml.XmlRender;
 
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class AttributeBuilderImpl<P extends GeneralResourceBuilderImpl<P>> implements AttributeBuilder<P> {
+final class AttributeBuilderImpl<P> implements AttributeBuilder<P> {
     private final P parent;
+    private final String name;
 
-    private String name;
-    private DeclaredType type;
+    private TypeMirror type;
     private Access access = Access.READ_WRITE;
     private boolean required = true;
     private DeclaredType virtual;
@@ -51,16 +52,12 @@ final class AttributeBuilderImpl<P extends GeneralResourceBuilderImpl<P>> implem
     private XmlRender.As renderAs = XmlRender.As.ELEMENT;
     private String xmlName;
 
-    AttributeBuilderImpl(final P parent) {
+    AttributeBuilderImpl(final P parent, final String name) {
         this.parent = parent;
-    }
-
-    public AttributeBuilder<P> name(final String name) {
         this.name = name;
-        return this;
     }
 
-    public AttributeBuilder<P> type(final DeclaredType type) {
+    public AttributeBuilder<P> type(final TypeMirror type) {
         this.type = type;
         return this;
     }
@@ -138,7 +135,7 @@ final class AttributeBuilderImpl<P extends GeneralResourceBuilderImpl<P>> implem
         return name;
     }
 
-    DeclaredType getType() {
+    TypeMirror getType() {
         return type;
     }
 

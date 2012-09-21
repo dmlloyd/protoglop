@@ -31,7 +31,6 @@ import org.jboss.mgmt.annotation.RuntimeMode;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeMirror;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
@@ -41,6 +40,7 @@ abstract class GeneralResourceBuilderImpl<THIS extends GeneralResourceBuilderImp
     private final DeclaredType resourceInterface;
     private final Set<String> provides = new HashSet<String>();
     private final List<AttributeBuilderImpl<?>> attributes = new ArrayList<AttributeBuilderImpl<?>>();
+    private final List<SubResourceBuilderImpl<?>> subResources = new ArrayList<SubResourceBuilderImpl<?>>();
 
     private String xmlName;
     private String name;
@@ -53,34 +53,40 @@ abstract class GeneralResourceBuilderImpl<THIS extends GeneralResourceBuilderImp
     @SuppressWarnings("unchecked")
     final THIS _this() { return (THIS) this; }
 
-    public AttributeBuilder<THIS> attribute() {
-        return new AttributeBuilderImpl<THIS>(_this());
+    public AttributeBuilder<THIS> attribute(final String name) {
+        final AttributeBuilderImpl<THIS> attr = new AttributeBuilderImpl<THIS>(_this(), name);
+        attributes.add(attr);
+        return attr;
     }
 
-    public GeneralResourceBuilder description(final Locale locale, final String description) {
-        return this;
+    public THIS description(final String description) {
+        return _this();
     }
 
-    public GeneralResourceBuilder operationHook(final String opName, final String version, final ExecutableElement method) {
-        return this;
+    public THIS operationHook(final String opName, final String version, final ExecutableElement method) {
+        return _this();
     }
 
-    public GeneralResourceBuilder listener(final TypeMirror listener, final RuntimeMode... modes) {
-        return this;
+    public THIS listener(final DeclaredType listener, final RuntimeMode... modes) {
+        return _this();
     }
 
-    public GeneralResourceBuilder provides(final String token) {
+    public AttributeGroupBuilder<THIS> attributeGroup(final String name, final DeclaredType type) {
+        return new AttributeGroupBuilderImpl<THIS>(_this(), name, type);
+    }
+
+    public THIS provides(final String token) {
         provides.add(token);
-        return this;
+        return _this();
     }
 
-    public GeneralResourceBuilder subResource(final String address, final boolean named) {
-        return this;
+    public SubResourceBuilder<THIS> subResource(final String address, final boolean named) {
+        return new SubResourceBuilderImpl<THIS>(_this(), address, named);
     }
 
-    public GeneralResourceBuilder xmlName(final String xmlName) {
+    public THIS xmlName(final String xmlName) {
         this.xmlName = xmlName;
-        return this;
+        return _this();
     }
 
     String getXmlName() {
@@ -105,5 +111,9 @@ abstract class GeneralResourceBuilderImpl<THIS extends GeneralResourceBuilderImp
 
     String getName() {
         return name;
+    }
+
+    public List<SubResourceBuilderImpl<?>> getSubResources() {
+        return subResources;
     }
 }

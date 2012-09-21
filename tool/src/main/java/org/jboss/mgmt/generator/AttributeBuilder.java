@@ -30,14 +30,14 @@ import org.jboss.mgmt.annotation.RuntimeMode;
 import org.jboss.mgmt.annotation.xml.XmlRender;
 
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface AttributeBuilder<P extends GeneralResourceBuilder> extends SubBuilder<P> {
-    AttributeBuilder<P> name(String name);
+public interface AttributeBuilder<P> extends SubBuilder<P> {
 
-    AttributeBuilder<P> type(DeclaredType type);
+    AttributeBuilder<P> type(TypeMirror type);
 
     AttributeBuilder<P> description(Locale locale, String description);
 

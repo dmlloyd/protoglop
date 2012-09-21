@@ -26,26 +26,26 @@ import java.util.Locale;
 import org.jboss.mgmt.annotation.RuntimeMode;
 
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.DeclaredType;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface SubResourceBuilder<P extends GeneralResourceBuilder> extends GeneralResourceBuilder, SubBuilder<P> {
+public interface SubResourceBuilder<P> extends GeneralResourceBuilder, SubBuilder<P> {
 
-    AttributeBuilder<? extends SubResourceBuilder<P>> attribute();
+    AttributeBuilder<? extends SubResourceBuilder<P>> attribute(final String name);
 
-    SubResourceBuilder<P> description(Locale locale, String description);
+    SubResourceBuilder<P> description(String description);
 
     SubResourceBuilder<P> operationHook(String opName, String version, ExecutableElement method);
 
-    SubResourceBuilder<P> listener(TypeMirror listener, RuntimeMode... modes);
+    SubResourceBuilder<P> listener(DeclaredType listener, RuntimeMode... modes);
 
     SubResourceBuilder<P> provides(String token);
 
     SubResourceBuilder<P> requiresUniqueProvider(boolean required);
 
-    SubResourceBuilder<SubResourceBuilder<P>> subResource(String address, boolean named);
+    SubResourceBuilder<? extends SubResourceBuilder<P>> subResource(String address, boolean named);
 
     SubResourceBuilder<P> xmlName(String name);
 }

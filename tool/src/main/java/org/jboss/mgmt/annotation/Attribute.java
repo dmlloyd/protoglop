@@ -28,12 +28,12 @@ import org.jboss.mgmt.AttributeValidator;
 import org.jboss.mgmt.VirtualAttribute;
 
 import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-@Retention(SOURCE)
+@Retention(CLASS)
 @Target(METHOD)
 public @interface Attribute {
     String name() default "";

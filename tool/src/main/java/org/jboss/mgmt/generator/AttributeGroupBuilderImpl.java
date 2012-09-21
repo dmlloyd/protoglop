@@ -22,17 +22,45 @@
 
 package org.jboss.mgmt.generator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.lang.model.type.DeclaredType;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface Session {
-    RootResourceBuilder rootResource(String type, DeclaredType resourceInterface, String version);
+public final class AttributeGroupBuilderImpl<P> implements AttributeGroupBuilder<P> {
+    private final P parent;
+    private final String name;
+    private final DeclaredType type;
+    private final List<AttributeBuilderImpl<?>> attributes = new ArrayList<AttributeBuilderImpl<?>>();
 
-    AttributeTypeBuilder attributeType(DeclaredType attributeInterface);
+    public AttributeGroupBuilderImpl(final P parent, final String name, final DeclaredType type) {
+        this.parent = parent;
+        this.name = name;
+        this.type = type;
+    }
 
-    Session addXmlNamespace(String xmlns, String version, String schemaLocation);
+    public AttributeBuilder<AttributeGroupBuilder<P>> attribute(final String name) {
+        final AttributeBuilderImpl<AttributeGroupBuilder<P>> attr = new AttributeBuilderImpl<AttributeGroupBuilder<P>>(this, name);
+        attributes.add(attr);
+        return attr;
+    }
 
-    Session generateSource();
+    public P end() {
+        return parent;
+    }
+
+    String getName() {
+        return name;
+    }
+
+    DeclaredType getType() {
+        return type;
+    }
+
+    List<AttributeBuilderImpl<?>> getAttributes() {
+        return attributes;
+    }
 }

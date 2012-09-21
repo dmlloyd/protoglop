@@ -26,9 +26,12 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 /**
+ * A model node parser.
+ *
+ * @param <B> the builder type
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface ModelNodeParser<R> {
+public interface ModelNodeParser<B> {
 
-    R parse(XMLStreamReader streamReader) throws XMLStreamException;
+    void parse(XMLStreamReader streamReader, B builder) throws XMLStreamException;
 }

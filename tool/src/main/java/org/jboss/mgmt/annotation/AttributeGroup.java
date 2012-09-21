@@ -22,11 +22,21 @@
 
 package org.jboss.mgmt.annotation;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.CLASS;
+
 /**
- * Specifies the versions in which an attribute is present.
- *
- * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
+ * An attribute group.  These attributes are grouped for organizational or appearance purposes, but are still
+ * a part of the enclosing resource.  Attribute groups may contain other attribute groups.
  */
-public @interface Versions {
-    String[] value();
+@Retention(CLASS)
+@Target(METHOD)
+public @interface AttributeGroup {
+
+    String name() default "";
+
+    boolean required() default true;
 }

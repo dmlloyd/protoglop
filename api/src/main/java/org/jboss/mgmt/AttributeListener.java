@@ -25,15 +25,14 @@ package org.jboss.mgmt;
 /**
  * @param <R> the resource type
  * @param <T> the attribute type
- * @param <A> attachment type
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface AttributeListener<R, T, A> {
-    void attributeRemoved(ModelChangeContext context, R resourceBefore, R resourceAfter, String attributeName, T oldValue, A attachment);
+public interface AttributeListener<R, T> {
+    void attributeRemoved(ModelChangeContext context, R resourceBefore, R resourceAfter, String attributeName, T oldValue);
 
-    void attributeUpdated(ModelChangeContext context, R resourceBefore, R resourceAfter, String attributeName, T oldValue, T newValue, A attachment);
+    void attributeUpdated(ModelChangeContext context, R resourceBefore, R resourceAfter, String attributeName, T oldValue, T newValue);
 
-    void attributeAdded(ModelChangeContext context, R resourceBefore, R resourceAfter, String attributeName, T newValue, A attachment);
+    void attributeAdded(ModelChangeContext context, R resourceBefore, R resourceAfter, String attributeName, T newValue);
 
-    void attributeRefreshed(ModelChangeContext context, R resourceBefore, R resourceAfter, String attributeName, T value, A attachment);
+    void attributeRefreshed(ModelChangeContext context, R resourceBefore, R resourceAfter, String attributeName, T value);
 }

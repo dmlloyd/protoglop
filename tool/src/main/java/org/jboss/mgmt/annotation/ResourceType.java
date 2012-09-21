@@ -1,8 +1,8 @@
 /*
- * JBoss, Home of Professional Open Source
- * Copyright 2008, JBoss Inc., and individual contributors as indicated
- * by the @authors tag. See the copyright.txt in the distribution for a
- * full listing of individual contributors.
+ * JBoss, Home of Professional Open Source.
+ * Copyright 2012, Red Hat, Inc., and individual contributors
+ * as indicated by the @author tags. See the copyright.txt file in the
+ * distribution for a full listing of individual contributors.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -20,20 +20,27 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation.xml;
+package org.jboss.mgmt.annotation;
 
 import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * A single xmlns to version mapping.
+ * A resource type, which allows polymorphic installation of a resource.
+ *
+ * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-@Retention(SOURCE)
-public @interface Mapping {
-    String xmlns();
+@Retention(CLASS)
+@Target(TYPE)
+public @interface ResourceType {
 
-    String version();
-
-    String schemaLocation() default "";
+    /**
+     * The name of this type.
+     *
+     * @return the name of this type
+     */
+    String name();
 }

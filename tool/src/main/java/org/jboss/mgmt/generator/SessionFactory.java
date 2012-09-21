@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
+ * Copyright 2012, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,19 +20,27 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package example1;
+package org.jboss.mgmt.generator;
 
-import org.jboss.mgmt.annotation.RootResource;
-import org.jboss.mgmt.annotation.xml.XmlName;
+import javax.annotation.processing.ProcessingEnvironment;
 
 /**
+ * The big generator.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-@RootResource(type = "model", kind = RootResource.Kind.SYSTEM, name = "standalone", version = "1.0", namespace = "jboss")
-@XmlName("standalone")
-public interface StandaloneServerResource extends ServerResource {
+public final class SessionFactory {
 
-    // inline resource, cannot have conflicting attribute names
-    ProfileResource getProfile();
+    private SessionFactory() {
+    }
 
+    /**
+     * Start a session.
+     *
+     * @param env the environment
+     * @return the session
+     */
+    public static Session openSession(final ProcessingEnvironment env) {
+        return new SessionImpl(env);
+    }
 }

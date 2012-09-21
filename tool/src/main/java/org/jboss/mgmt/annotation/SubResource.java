@@ -28,7 +28,34 @@ package org.jboss.mgmt.annotation;
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public @interface SubResource {
+
+    /**
+     * Specify a type for the sub-resource.  This allows root resources to be used.  If not given,
+     * the return type will be inspected to see if it is a typed sub-resource.
+     *
+     * @return
+     */
     String type() default "";
 
+    /**
+     * The name in the model.
+     *
+     * @return the name name
+     */
+    String name() default "";
+
+    /**
+     * Requires a unique value for "provides" values.
+     *
+     * @return {@code true} to enforce uniqueness, {@code false} to ignore "provides" values
+     */
     boolean requiresUniqueProvider() default false;
+
+    /**
+     * Get the non-root child resources for this sub-resource, if any.  If none are given, only
+     * root resources can satisfy this link.
+     *
+     * @return the non-root children
+     */
+    Class<?>[] children() default {};
 }
