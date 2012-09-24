@@ -171,7 +171,7 @@ final class Generator {
         }
 
         for (Map.Entry<String, Document> entry : namespaceDocuments.entrySet()) {
-            final String namespace = entry.getKey();
+            final String namespace = entry.getKey().replaceAll(":","-");
             final Document document = entry.getValue();
             final Serializer serializer;
             final OutputStream stream;
