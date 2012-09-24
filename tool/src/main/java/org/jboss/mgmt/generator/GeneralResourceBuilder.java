@@ -22,7 +22,6 @@
 
 package org.jboss.mgmt.generator;
 
-import java.util.Locale;
 import org.jboss.mgmt.annotation.RuntimeMode;
 
 import javax.lang.model.element.ExecutableElement;
@@ -36,6 +35,8 @@ public interface GeneralResourceBuilder {
 
     AttributeGroupBuilder<? extends GeneralResourceBuilder> attributeGroup(String name, DeclaredType type);
 
+    GeneralResourceBuilder type(String typeName);
+
     GeneralResourceBuilder description(String description);
 
     GeneralResourceBuilder operationHook(String opName, String version, ExecutableElement method);
@@ -44,7 +45,7 @@ public interface GeneralResourceBuilder {
 
     GeneralResourceBuilder provides(String token);
 
-    GeneralResourceBuilder subResource(String address, boolean named);
+    GeneralResourceBuilder subResource(String name, boolean named);
 
     GeneralResourceBuilder xmlName(String name);
 }

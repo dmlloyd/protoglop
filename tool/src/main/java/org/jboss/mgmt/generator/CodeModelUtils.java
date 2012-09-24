@@ -31,7 +31,6 @@ import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JTypeVar;
@@ -124,94 +123,93 @@ public final class CodeModelUtils {
         return variableElement.asType();
     }
 
-    private static JClass mirror(ProcessingEnvironment env, JCodeModel codeModel, TypeElement element) {
-        if (true) {
-            return codeModel.directClass(element.getQualifiedName().toString());
-        }
+    private static JDefinedClass mirror(ProcessingEnvironment env, JCodeModel codeModel, TypeElement element) {
+        final String classQualifiedName = element.getQualifiedName().toString();
+        final String classSimpleName = element.getSimpleName().toString();
         final Messager messager = env.getMessager();
         final Element enclosingElement = element.getEnclosingElement();
         JDefinedClass definedClass;
         if (enclosingElement instanceof TypeElement) {
-            final JDefinedClass enclosing = (JDefinedClass) mirror(env, codeModel, (TypeElement) enclosingElement);
+            final JDefinedClass enclosing = mirror(env, codeModel, (TypeElement) enclosingElement);
             final Iterator<JDefinedClass> iterator = enclosing.classes();
             while (iterator.hasNext()) {
                 final JDefinedClass nested = iterator.next();
-                if (nested.name().equals(element.getSimpleName().toString())) {
+                if (nested.name().equals(classSimpleName)) {
                     return nested;
                 }
             }
             try {
-                definedClass = enclosing._class(translateModifiers(element), element.getSimpleName().toString(), translateElementType(messager, element));
+                definedClass = enclosing._class(translateModifiers(element), classSimpleName, translateElementType(messager, element));
             } catch (JClassAlreadyExistsException e) {
                 // should be impossible!
                 throw new IllegalStateException(e);
             }
         } else {
-            definedClass = codeModel._getClass(element.getQualifiedName().toString());
+            definedClass = codeModel._getClass(classQualifiedName);
             if (definedClass != null) {
                 return definedClass;
             }
             try {
-                definedClass = codeModel._class(translateModifiers(element), element.getQualifiedName().toString(), translateElementType(messager, element));
+                definedClass = codeModel._class(translateModifiers(element), classQualifiedName, translateElementType(messager, element));
             } catch (JClassAlreadyExistsException e) {
                 // should be impossible!
                 throw new IllegalStateException(e);
             }
         }
+        // don't emit already emitted class
         definedClass.hide();
-        for (Element memberElement : element.getEnclosedElements()) {
-            final String simpleName = memberElement.getSimpleName().toString();
-            switch (memberElement.getKind()) {
-                case ENUM:
-                case CLASS:
-                case ANNOTATION_TYPE:
-                case INTERFACE:
-                    mirror(env, codeModel, (TypeElement) memberElement);
-                    break;
-                case ENUM_CONSTANT:
-                    // we don't really care about the parameters or anything like that...
-                    definedClass.enumConstant(simpleName);
-                    break;
-                case FIELD:
-                    definedClass.field(translateModifiers(memberElement), typeFor(env, codeModel, variableType((VariableElement) memberElement)), simpleName);
-                    break;
-                case METHOD: {
-                    ExecutableElement executableElement = (ExecutableElement) memberElement;
-                    final JMethod method = definedClass.method(translateModifiers(memberElement), typeFor(env, codeModel, returnType(executableElement)), simpleName);
-                    for (VariableElement parameter : executableElement.getParameters()) {
-                        method.param(translateModifiers(parameter), typeFor(env, codeModel, variableType(parameter)), parameter.getSimpleName().toString());
-                    }
-                    break;
-                }
-                case CONSTRUCTOR: {
-                    ExecutableElement executableElement = (ExecutableElement) memberElement;
-                    final JMethod method = definedClass.constructor(translateModifiers(memberElement));
-                    for (VariableElement parameter : executableElement.getParameters()) {
-                        method.param(translateModifiers(parameter), typeFor(env, codeModel, variableType(parameter)), parameter.getSimpleName().toString());
-                    }
-                    break;
-                }
-                case STATIC_INIT:
-                    // skip
-                    break;
-                case INSTANCE_INIT: {
-                    // skip
-                    break;
-                }
-                case TYPE_PARAMETER:
-                    TypeParameterElement typeParameterElement = (TypeParameterElement) memberElement;
-                    final List<? extends TypeMirror> bounds = typeParameterElement.getBounds();
-                    if (bounds.isEmpty()) {
-                        definedClass.generify(simpleName);
+        // clone type parameters
+        final List<? extends TypeParameterElement> typeParameters = element.getTypeParameters();
+        System.out.println("" + element + " has " + typeParameters.size() + " params: " + typeParameters);
+        for (TypeParameterElement typeParameter : typeParameters) {
+            final String paramName = typeParameter.getSimpleName().toString();
+            final List<? extends TypeMirror> bounds = typeParameter.getBounds();
+            final JTypeVar typeVar = definedClass.generify(paramName);
+            for (TypeMirror bound : bounds) {
+                if (bound instanceof DeclaredType) {
+                    final Element boundElement = ((DeclaredType) bound).asElement();
+                    if (boundElement instanceof TypeElement) {
+                        typeVar.bound(mirror(env, codeModel, (TypeElement) boundElement));
                     } else {
-                        definedClass.generify(simpleName).bound((JClass) typeFor(env, codeModel, bounds.get(0)));
+                        messager.printMessage(Diagnostic.Kind.ERROR, "Expected element to be type element but it was a " + boundElement, boundElement);
                     }
-                    break;
-                case OTHER:
-                    // ???
-                    break;
+                } else {
+                    // type param?
+                    messager.printMessage(Diagnostic.Kind.ERROR, "Expected bound to be type but it was a " + bound, element);
+                }
             }
         }
+        // clone extends/implements
+        if (element.getKind() == ElementKind.CLASS) {
+            final TypeMirror superclass = element.getSuperclass();
+            if (superclass.getKind() != TypeKind.NONE) {
+                if (superclass instanceof DeclaredType) {
+                    final Element superclassElement = ((DeclaredType) superclass).asElement();
+                    if (superclassElement instanceof TypeElement) {
+                        definedClass._extends(mirror(env, codeModel, (TypeElement) superclassElement));
+                    } else {
+                        messager.printMessage(Diagnostic.Kind.ERROR, "Expected superclass to be type element but it was a " + superclassElement, superclassElement);
+                    }
+                } else {
+                    messager.printMessage(Diagnostic.Kind.ERROR, "Expected superclass to be a type but it was a " + superclass, element);
+                }
+            }
+        }
+        for (TypeMirror interf : element.getInterfaces()) {
+            if (interf instanceof DeclaredType) {
+                final Element interfElement = ((DeclaredType) interf).asElement();
+                if (interfElement instanceof TypeElement) {
+                    definedClass._implements(mirror(env, codeModel, (TypeElement) interfElement));
+                } else {
+                    messager.printMessage(Diagnostic.Kind.ERROR, "Expected interface to be type element but it was a " + interfElement, interfElement);
+                }
+            } else {
+                messager.printMessage(Diagnostic.Kind.ERROR, "Expected interface to be a type but it was a " + interf, element);
+            }
+        }
+        // clone constructors, fields, and methods
+        // clone annotations...?
+
         return definedClass;
     }
 
@@ -259,51 +257,18 @@ public final class CodeModelUtils {
             case DECLARED:
             case ERROR:
                 final DeclaredType declaredType = (DeclaredType) typeMirror;
-                final JClass directClass = mirror(env, codeModel, (TypeElement) declaredType.asElement());
-//                final List<? extends TypeMirror> arguments = declaredType.getTypeArguments();
-//                if (arguments.isEmpty()) {
-                // return raw type for now - todo
-                    return directClass;
-//                }
-//                final JClass[] params = new JClass[arguments.size()];
-//                for (int i = 0; i < params.length; i ++) {
-//                    params[i] = (JClass) typeFor(messager, codeModel, arguments.get(i));
-//                }
-//                return directClass.erasure().narrow(params);
-            case TYPEVAR:
-                final TypeVariable typeVariable = (TypeVariable) typeMirror;
-                final TypeMirror upperBound = typeVariable.getUpperBound();
-                final Element element = typeVariable.asElement();
-                final String varName = element.getSimpleName().toString();
-                final Element enclosingElement = element.getEnclosingElement();
-                JTypeVar typeVar;
-                if (enclosingElement.getKind() == ElementKind.METHOD) {
-                    // type var on a method...
-                    messager.printMessage(Diagnostic.Kind.ERROR, "Can't process type var on method (yet) " + enclosingElement.getKind(), element);
-                    return codeModel.wildcard();
-                } else if (enclosingElement instanceof TypeElement) {
-                    final JClass definedClass = mirror(env, codeModel, (TypeElement) enclosingElement);
-                    typeVar = null;
-                    for (JTypeVar typeParam : definedClass.typeParams()) {
-                        if (typeParam.name().equals(varName)) {
-                            typeVar = typeParam;
-                        }
-                    }
-                    if (typeVar == null) {
-                        messager.printMessage(Diagnostic.Kind.ERROR, "Type variable " + varName + " not found", element);
-                        return codeModel.wildcard();
-                    }
-                } else {
-                    messager.printMessage(Diagnostic.Kind.ERROR, "Unknown type variable enclosing element type " + enclosingElement.getKind());
-                    return codeModel.wildcard();
+                final JDefinedClass mirrored = mirror(env, codeModel, (TypeElement) declaredType.asElement());
+                final List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
+                final int argCount = typeArguments.size();
+                if (argCount == 0) {
+                    return mirrored;
                 }
-                if (upperBound != null) {
-                    final List<? extends TypeMirror> superTypes = env.getTypeUtils().directSupertypes(upperBound);
-                    for (TypeMirror type : superTypes) {
-                        typeVar.bound((JClass) typeFor(env, codeModel, type));
-                    }
+                final JClass[] arguments = new JClass[argCount];
+                for (int idx = 0; idx < typeArguments.size(); idx++) {
+                    TypeMirror mirror = typeArguments.get(idx);
+                    arguments[idx] = (JClass) typeFor(env, codeModel, mirror);
                 }
-                return typeVar;
+                return mirrored.narrow(arguments);
             case WILDCARD:
                 final WildcardType wildcardType = (WildcardType) typeMirror;
                 final TypeMirror extendsBound = wildcardType.getExtendsBound();

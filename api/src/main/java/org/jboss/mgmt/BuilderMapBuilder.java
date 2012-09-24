@@ -20,16 +20,15 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.generator;
-
-import org.jboss.mgmt.NestedBuilder;
+package org.jboss.mgmt;
 
 /**
+ * A builder for attributes of a map type whose values are complex.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface AttributeGroupBuilder<P> extends NestedBuilder<P> {
+public interface BuilderMapBuilder<P, K, V extends NestedBuilder<BuilderMapBuilder<P, K, V>>> extends NestedBuilder<P> {
+    V put(K key);
 
-    AttributeBuilder<AttributeGroupBuilder<P>> attribute(String name);
-
-    P end();
+    BuilderMapBuilder<P, K, V> remove(K key);
 }

@@ -20,11 +20,21 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.generator;
+package example1;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface SubBuilder<P> {
-    P end();
+public final class Test {
+
+    public static void main(String[] args) {
+        DomainBuilder<Void> foo = new DomainBuilderImpl<Void>(null);
+        foo.properties()
+                .put("foo", "bar")
+                .put("bar", "baz")
+                .end()
+            .properties()
+                .end()
+            .end();
+    }
 }

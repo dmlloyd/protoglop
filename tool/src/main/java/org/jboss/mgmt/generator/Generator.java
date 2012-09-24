@@ -33,10 +33,16 @@ import nu.xom.Element;
 import nu.xom.Serializer;
 import org.jboss.mgmt.AbstractResource;
 import org.jboss.mgmt.AttributeValidator;
+import org.jboss.mgmt.BuilderCollectionBuilder;
+import org.jboss.mgmt.BuilderMapBuilder;
 import org.jboss.mgmt.ExceptionThrowingValidationContext;
 import org.jboss.mgmt.ModelNodeDeparser;
 import org.jboss.mgmt.ModelNodeParser;
+import org.jboss.mgmt.NestedBuilder;
 import org.jboss.mgmt.Resource;
+import org.jboss.mgmt.ResourceBuilderFactory;
+import org.jboss.mgmt.SimpleCollectionBuilder;
+import org.jboss.mgmt.SimpleMapBuilder;
 import org.jboss.mgmt.VirtualAttribute;
 import org.jboss.mgmt.annotation.Access;
 import org.jboss.mgmt.annotation.Gen;
@@ -66,6 +72,7 @@ import javax.xml.stream.XMLStreamWriter;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
@@ -81,6 +88,7 @@ import static com.sun.codemodel.JMod.FINAL;
 import static com.sun.codemodel.JMod.NONE;
 import static com.sun.codemodel.JMod.PRIVATE;
 import static com.sun.codemodel.JMod.PUBLIC;
+import static com.sun.codemodel.JMod.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
 import static javax.tools.Diagnostic.Kind.WARNING;
 
@@ -115,12 +123,21 @@ final class Generator {
     private final JClass string = codeModel.ref(String.class);
     private final JClass virtualAttribute = codeModel.ref(VirtualAttribute.class).erasure();
     private final JClass resourceNode = codeModel.ref(ResourceNode.class).erasure();
+    private final JClass resourceBuilderFactory = codeModel.ref(ResourceBuilderFactory.class).erasure();
+    private final JClass nestedBuilder = codeModel.ref(NestedBuilder.class).erasure();
+    private final JClass simpleMapBuilder = codeModel.ref(SimpleMapBuilder.class).erasure();
+    private final JClass simpleCollectionBuilder = codeModel.ref(SimpleCollectionBuilder.class).erasure();
+    private final JClass builderMapBuilder = codeModel.ref(BuilderMapBuilder.class).erasure();
+    private final JClass builderCollectionBuilder = codeModel.ref(BuilderCollectionBuilder.class).erasure();
+
 
     private final Map<String, Document> namespaceDocuments = new HashMap<String, Document>();
     private final Map<String, Element> namespaceSchemas = new HashMap<String, Element>();
     private final Map<String, String> namespaceSchemaLocations = new HashMap<String, String>();
+    private final RoundEnvironment roundEnv;
 
-    Generator(final ProcessingEnvironment env, final SessionImpl session) {
+    Generator(final ProcessingEnvironment env, final RoundEnvironment roundEnv, final SessionImpl session) {
+        this.roundEnv = roundEnv;
         this.session = session;
         this.env = env;
         filer = env.getFiler();
@@ -167,7 +184,16 @@ final class Generator {
                     messager.printMessage(WARNING, "Namespace '" + xmlNamespace + "' declared with conflicting schema locations");
                 }
             }
-            new ResourceWriter(resource, schemaElement).generate();
+            // Root resources declare elements in the root schema.
+            new ResourceWriter(resource, schemaElement, schemaElement, xmlNamespace, true).generate();
+        }
+
+        // --------------------------------------------------
+        // Emit results (if no error)
+        // --------------------------------------------------
+
+        if (roundEnv.errorRaised()) {
+            return;
         }
 
         for (Map.Entry<String, Document> entry : namespaceDocuments.entrySet()) {
@@ -195,7 +221,6 @@ final class Generator {
             }
         }
 
-        // emit
         try {
             codeModel.build(new FilerCodeWriter(filer));
         } catch (IOException e) {
@@ -206,10 +231,16 @@ final class Generator {
     class ResourceWriter {
         private final GeneralResourceBuilderImpl<?> resource;
         private final Element schemaElement;
+        private final Element parentElement;
+        private final String xmlNamespace;
+        private final boolean root;
 
-        ResourceWriter(final GeneralResourceBuilderImpl<?> resource, final Element schemaElement) {
+        ResourceWriter(final GeneralResourceBuilderImpl<?> resource, final Element schemaElement, final Element parentElement, final String xmlNamespace, final boolean root) {
             this.resource = resource;
             this.schemaElement = schemaElement;
+            this.parentElement = parentElement;
+            this.xmlNamespace = xmlNamespace;
+            this.root = root;
         }
 
         void generate() {
@@ -238,6 +269,7 @@ final class Generator {
             final JDefinedClass deparserClass;
             final JDefinedClass builderInterface;
             final JDefinedClass builderClass;
+            final JDefinedClass builderFactoryClass;
             final JDefinedClass implementationClass;
             final JDefinedClass resourceNodeClass;
             final JDefinedClass coreClass;
@@ -251,7 +283,8 @@ final class Generator {
                 builderClass = codeModel._class(PUBLIC | FINAL, fqcn + "BuilderImpl", CLASS);
                 implementationClass = codeModel._class(PUBLIC | FINAL, fqcn + "ResourceImpl", CLASS);
                 resourceNodeClass = codeModel._class(PUBLIC | FINAL, fqcn + "NodeImpl", CLASS);
-                coreClass = codeModel._class(PUBLIC | FINAL, fqcn, CLASS);
+                coreClass = root ? codeModel._class(PUBLIC | FINAL, fqcn, CLASS) : null;
+                builderFactoryClass = codeModel._class(PUBLIC | FINAL, fqcn + "BuilderFactory", CLASS);
             } catch (JClassAlreadyExistsException e) {
                 messager.printMessage(ERROR, "Duplicate class generation for " + fqcn);
                 return;
@@ -262,7 +295,7 @@ final class Generator {
             // --------------------------------------------------
 
             final Element elementElement = new Element("xs:element", XSD);
-            schemaElement.appendChild(elementElement);
+            parentElement.appendChild(elementElement);
             elementElement.addAttribute(new Attribute("name", xmlName));
             elementElement.addAttribute(new Attribute("type", xmlName));
 
@@ -270,7 +303,7 @@ final class Generator {
             schemaElement.appendChild(typeElement);
             typeElement.addAttribute(new Attribute("name", xmlName));
 
-            final Element typeSeqElement = new Element("xs:sequence", XSD); // todo - xs:all?
+            final Element typeSeqElement = new Element("xs:sequence", XSD);
             typeElement.appendChild(typeSeqElement);
 
             addDocumentation(elementElement, "RESOURCE DESCRIPTION");
@@ -285,10 +318,10 @@ final class Generator {
             builderClass.annotate(Gen.class).param("value", GENERATOR_VERSION);
             implementationClass.annotate(Gen.class).param("value", GENERATOR_VERSION);
             resourceNodeClass.annotate(Gen.class).param("value", GENERATOR_VERSION);
-            coreClass.annotate(Gen.class).param("value", GENERATOR_VERSION);
+            if (root) coreClass.annotate(Gen.class).param("value", GENERATOR_VERSION);
 
             final JTypeVar builderInterfaceP = builderInterface.generify("P");
-            builderInterface._extends(codeModel.ref(SubBuilder.class).narrow(builderInterfaceP));
+            builderInterface._extends(nestedBuilder.erasure().narrow(builderInterfaceP));
 
             builderInterface.javadoc().add("A builder for " + resource.getName() + " resources.  This interface was automatically generated.");
 
@@ -303,6 +336,9 @@ final class Generator {
 
             resourceNodeClass._extends(resourceNode.narrow(resourceInterface));
 
+            final JTypeVar builderFactoryP = builderFactoryClass.generify("P");
+            builderFactoryClass._implements(resourceBuilderFactory.narrow(builderFactoryP, builderInterface.erasure().narrow(builderFactoryP)));
+
             final JMethod implConstructor = implementationClass.constructor(PUBLIC);
             final JBlock implConstructorBody = implConstructor.body();
             final JInvocation implConstructorSuperCall = implConstructorBody.invoke("super");
@@ -313,6 +349,38 @@ final class Generator {
 
             // The core class is not instantiatable
             coreClass.constructor(PRIVATE);
+
+            // --------------------------------------------------
+            // Impl class stuff
+            // --------------------------------------------------
+
+            final JMethod implNavigateMethod = implementationClass.method(PUBLIC, Resource.class, "navigate");
+            final JVar implNavigateMethodKey = implNavigateMethod.param(FINAL, String.class, "key");
+            final JVar implNavigateMethodValue = implNavigateMethod.param(FINAL, String.class, "value");
+            final JBlock implNavigateMethodBody = implNavigateMethod.body();
+            implNavigateMethodBody._return(JExpr._null()); // todo
+
+            // --------------------------------------------------
+            // Builder stuff
+            // --------------------------------------------------
+
+            final JFieldVar builderClassParentField = builderClass.field(PRIVATE | FINAL, builderClassP, "parent");
+            final JMethod builderClassConstructor = builderClass.constructor(NONE);
+            builderClassConstructor.body().assign(JExpr._this().ref(builderClassParentField), builderClassConstructor.param(FINAL, builderClassP, "parent"));
+            builderClass.method(PUBLIC, builderClassP, "end").body()._return(builderClassParentField);
+
+            final JMethod builderFactoryConstructMethod = builderFactoryClass.method(PUBLIC, builderClass.narrow(builderFactoryP), "construct");
+            builderFactoryConstructMethod.body()._return(JExpr._new(builderClass.narrow(builderFactoryP)).arg(builderFactoryConstructMethod.param(FINAL, builderFactoryP, "parent")));
+
+            if (root) {
+                final JMethod coreBuildMethod = coreClass.method(PUBLIC | STATIC, builderFactoryClass, "build");
+                coreBuildMethod.javadoc().add("Introduce this resource type into a builder which supports nested polymorphic types.");
+                coreBuildMethod.javadoc().add("Normally this method should not be directly invoked, but rather as part of a builder invocation chain.");
+                coreBuildMethod.javadoc().addReturn().add("the appropriate builder factory");
+                final JTypeVar coreBuildMethodP = coreBuildMethod.generify("P");
+                coreBuildMethod.type(builderFactoryClass.narrow(coreBuildMethodP));
+                coreBuildMethod.body()._return(JExpr._new(builderFactoryClass.narrow(coreBuildMethodP)));
+            }
 
             // --------------------------------------------------
             // Resource parse/deparse methods
@@ -329,6 +397,26 @@ final class Generator {
             final JVar deparseMethodStreamWriter = deparseMethod.param(xmlStreamWriter, "streamWriter");
             final JVar deparseMethodResource = deparseMethod.param(resourceInterface, "resource");
             final JBlock deparseMethodBody = deparseMethod.body();
+            final JVar deparsePreComment = deparseMethodBody.decl(FINAL, string, "preComment", JExpr.invoke(deparseMethodResource, "getPreComment"));
+            final JVar deparsePostComment = deparseMethodBody.decl(FINAL, string, "postComment", JExpr.invoke(deparseMethodResource, "getPostComment"));
+            deparseMethodBody._if(deparsePreComment.ne(JExpr._null()))._then().invoke(deparseMethodStreamWriter, "writeComment").arg(deparsePreComment);
+            deparseMethodBody.invoke(deparseMethodStreamWriter, "writeStartElement").arg(xmlNamespace).arg(xmlName);
+            final JBlock deparseMethodAttributesBlock = deparseMethodBody.block();
+            final JBlock deparseMethodElementsBlock = deparseMethodBody.block();
+            deparseMethodBody._if(deparsePostComment.ne(JExpr._null()))._then().invoke(deparseMethodStreamWriter, "writeComment").arg(deparsePostComment);
+            deparseMethodBody.invoke(deparseMethodStreamWriter, "writeEndElement");
+
+            // --------------------------------------------------
+            // Sub-resources
+            // --------------------------------------------------
+
+            for (SubResourceBuilderImpl<?> resourceBuilder : resource.getSubResources()) {
+                new ResourceWriter(resourceBuilder, schemaElement, parentElement, xmlNamespace, false).generate();
+            }
+
+            // --------------------------------------------------
+            // Attributes
+            // --------------------------------------------------
 
             class AttributeGenerator {
                 final AttributeBuilderImpl<?> attributeBuilder;
@@ -351,8 +439,8 @@ final class Generator {
                     final DeclaredType virtual = attributeBuilder.getVirtual();
 
                     final String name = attributeBuilder.getName();
+                    final String attrVarName = fieldify(name);
                     final String getterName;
-                    final String fieldName = "attr_" + name;
                     final String attrXmlName = def(attributeBuilder.getXmlName(), xmlify(name));
 
                     final TypeMirror attributeType = attributeBuilder.getType();
@@ -389,6 +477,29 @@ final class Generator {
                     }
 
                     // --------------------------------------------------
+                    // Parser / Deparser
+                    // --------------------------------------------------
+
+                    if (virtualAttribute == null) {
+                        // ----------------------------------------------
+                        // Deparser
+                        // ----------------------------------------------
+                        if (as == XmlRender.As.ELEMENT) {
+                            // real attributes get persisted
+                            deparseMethodElementsBlock.invoke(deparseMethodStreamWriter, "writeStartElement").arg(JExpr.lit(xmlNamespace)).arg(JExpr.lit(xmlName));
+                            // todo emit attribute content
+                            deparseMethodElementsBlock.invoke(deparseMethodStreamWriter, "writeEndElement");
+                        } else {
+                            deparseMethodAttributesBlock.invoke(deparseMethodStreamWriter, "writeAttribute").arg(JExpr.lit(xmlName)).arg("...value...");
+                        }
+
+                        // ----------------------------------------------
+                        // Parser
+                        // ----------------------------------------------
+
+                    }
+
+                    // --------------------------------------------------
                     // Generate impl class field, getter, & constructor param
                     // --------------------------------------------------
 
@@ -399,8 +510,8 @@ final class Generator {
                             // todo - cache virtual instances
                             getterMethodBody._return(JExpr.invoke(JExpr._new(virtualAttribute.narrow(attributeJType)), "getValue"));
                         } else {
-                            final JFieldVar field = implementationClass.field(PRIVATE | FINAL, attributeJType, fieldName);
-                            implConstructorBody.assign(field, implConstructor.param(FINAL, attributeJType, fieldName));
+                            final JFieldVar field = implementationClass.field(PRIVATE | FINAL, attributeJType, attrVarName);
+                            implConstructorBody.assign(JExpr._this().ref(field), implConstructor.param(FINAL, attributeJType, attrVarName));
                             getterMethodBody._return(field);
                         }
                     } else {
@@ -412,63 +523,103 @@ final class Generator {
                     // --------------------------------------------------
 
                     if (access.isWritable()) {
-                        final JFieldVar attributeField = builderClass.field(PRIVATE, attributeJType, fieldName);
-                        if (defaultValueExpr != null) {
-                            attributeField.assign(defaultValueExpr);
-                        }
+                        final JMethod builderInterfaceSetMethod;
+                        final JMethod builderClassSetMethod;
 
-                        final JMethod builderInterfaceSetMethod = builderInterface.method(NONE, builderInterface, name);
-                        final JMethod builderClassSetMethod = builderClass.method(PUBLIC, builderInterface, name);
+                        // todo - better classification needed
+                        if (attributeJType.erasure().fullName().equals("java.util.Map")) {
+                            final JClass attributeJClass = (JClass) attributeJType;
+                            final JClass keyType;
+                            final JClass valueType;
+                            if (attributeJClass.getTypeParameters().size() != 2) {
+                                keyType = valueType = codeModel.ref(Object.class);
+                            } else {
+                                keyType = attributeJClass.getTypeParameters().get(0);
+                                valueType = attributeJClass.getTypeParameters().get(1);
+                            }
 
-                        final JDocComment javadoc = builderInterfaceSetMethod.javadoc();
+                            if (true /* todo detect value type */) {
 
-                        javadoc.add("Set the " + attributeBuilder.getRootDescription() + " for this resource.");
-                        if (required) {
-                            javadoc.add("  This attribute is required.");
+                                // value is a simple type
+
+                                JClass[] typeParams = {
+                                        builderInterface.narrow(builderInterfaceP),
+                                        keyType,
+                                        valueType,
+                                };
+
+                                final JFieldVar attributeField = builderClass.field(PRIVATE | FINAL, simpleMapBuilder.narrow(typeParams), attrVarName);
+                                if (defaultValueExpr != null) {
+                                    attributeField.assign(defaultValueExpr);
+                                }
+                                attributeField.init(JExpr._null()); // todo fixed builder instance
+
+                                builderInterfaceSetMethod = builderInterface.method(NONE, simpleMapBuilder.narrow(typeParams), attrVarName);
+                                builderClassSetMethod = builderClass.method(PUBLIC, simpleMapBuilder.narrow(typeParams), attrVarName);
+                                builderClassSetMethod.body()._return(attributeField);
+                            } else {
+                                // value is a complex (resource) type
+
+                            }
                         } else {
-                            javadoc.add("  This attribute is optional.");
-                            if (defaultValue != null) {
-                                javadoc.add("  If not specified, this attribute will default to \"" + defaultValue + "\".");
+                            // value is a simple type...
+                            // todo collections, sub-resources, attribute groups all need special builders
+
+                            final JFieldVar attributeField = builderClass.field(PRIVATE, attributeJType, attrVarName);
+                            if (defaultValueExpr != null) {
+                                attributeField.assign(defaultValueExpr);
                             }
-                        }
-                        javadoc.addParam(name).append("the " + attributeBuilder.getRootDescription());
-                        javadoc.addReturn().append("this builder");
 
-                        // todo for complex types, we must deconstruct the type and create a method param for each component...
-                        builderInterfaceSetMethod.param(attributeJType, name);
-                        final JVar newValueParam = builderClassSetMethod.param(attributeJType, name);
+                            builderInterfaceSetMethod = builderInterface.method(NONE, builderInterface.narrow(builderInterfaceP), attrVarName);
+                            builderClassSetMethod = builderClass.method(PUBLIC, builderInterface.narrow(builderInterfaceP), attrVarName);
 
-                        final JBlock body = builderClassSetMethod.body();
-                        if (! validators.isEmpty()) {
+                            final JDocComment javadoc = builderInterfaceSetMethod.javadoc();
 
-                            // --------------------------------------------------
-                            // Emit validation block
-                            // --------------------------------------------------
-
-                            final JVar context = body.decl(FINAL, exceptionThrowingValidationContext, "_context", JExpr._new(exceptionThrowingValidationContext));
-                            for (DeclaredType validator : validators) {
-                                final JClass validatorType = (JClass) CodeModelUtils.typeFor(env, codeModel, validator);
-                                // todo - cache validator instances
-                                final JInvocation inv = body.invoke(JExpr._new(validatorType.erasure().narrow(resourceInterface, attributeJType.boxify())), "validate");
-                                inv.arg(JExpr._null()); // TODO - no resource yet...?
-                                inv.arg(JExpr.lit(name));
-                                inv.arg(JExpr._null());
-                                inv.arg(newValueParam);
-                                inv.arg(context);
+                            javadoc.add("Set the " + attributeBuilder.getRootDescription() + " for this resource.");
+                            if (required) {
+                                javadoc.add("  This attribute is required.");
+                            } else {
+                                javadoc.add("  This attribute is optional.");
+                                if (defaultValue != null) {
+                                    javadoc.add("  If not specified, this attribute will default to \"" + defaultValue + "\".");
+                                }
                             }
-                            body.invoke(context, "throwProblems");
-                        }
+                            javadoc.addParam(attrVarName).append("the " + attributeBuilder.getRootDescription());
+                            javadoc.addReturn().append("this builder");
 
-                        body.assign(attributeField, newValueParam);
-                        body._return(JExpr._this());
+                            // todo for complex types, we must deconstruct the type and create a method param for each component...
+                            builderInterfaceSetMethod.param(attributeJType, attrVarName);
+                            final JVar newValueParam = builderClassSetMethod.param(attributeJType, attrVarName);
+
+                            final JBlock body = builderClassSetMethod.body();
+                            if (! validators.isEmpty()) {
+
+                                // --------------------------------------------------
+                                // Emit validation block
+                                // --------------------------------------------------
+
+                                final JVar context = body.decl(FINAL, exceptionThrowingValidationContext, "_context", JExpr._new(exceptionThrowingValidationContext));
+                                for (DeclaredType validator : validators) {
+                                    final JClass validatorType = (JClass) CodeModelUtils.typeFor(env, codeModel, validator);
+                                    // todo - cache validator instances
+                                    final JInvocation inv = body.invoke(JExpr._new(validatorType.erasure().narrow(resourceInterface, attributeJType.boxify())), "validate");
+                                    inv.arg(JExpr._null()); // TODO - no resource yet...?
+                                    inv.arg(JExpr.lit(attrVarName));
+                                    inv.arg(JExpr._null());
+                                    inv.arg(newValueParam);
+                                    inv.arg(context);
+                                }
+                                body.invoke(context, "throwProblems");
+                            }
+
+                            body.assign(attributeField, newValueParam);
+                            body._return(JExpr._this());
+                        }
                     }
                 }
             }
             for (AttributeBuilderImpl<?> attributeBuilder : resource.getAttributes()) {
                 new AttributeGenerator(attributeBuilder).generate();
-            }
-            for (SubResourceBuilderImpl<?> resourceBuilder : resource.getSubResources()) {
-                new ResourceWriter(resourceBuilder, schemaElement).generate();
             }
         }
     }
@@ -502,6 +653,44 @@ final class Generator {
                 }
                 c = n;
                 continue;
+            } else {
+                builder.appendCodePoint(Character.toLowerCase(c));
+                return builder.toString();
+            }
+        }
+    }
+
+    /*
+      BLAFunnyJavaKindAThing -> blaFunnyJavaKindAThing
+      FOO -> foo
+      Foo -> foo
+      foo -> foo
+      FOOBar -> fooBar
+     */
+    private static String fieldify(String camelHumpsName) {
+        final int length = camelHumpsName.length();
+        final StringBuilder builder = new StringBuilder(length);
+        int idx = 0;
+        int c = camelHumpsName.codePointAt(idx), n;
+        if (Character.isLowerCase(c)) {
+            return camelHumpsName;
+        }
+        builder.appendCodePoint(Character.toLowerCase(c));
+        idx = camelHumpsName.offsetByCodePoints(idx, 1);
+        c = camelHumpsName.codePointAt(idx);
+        for (;;) {
+            idx = camelHumpsName.offsetByCodePoints(idx, 1);
+            if (idx < length) {
+                n = camelHumpsName.codePointAt(idx);
+                if (Character.isLowerCase(n)) {
+                    // next is lowercase; we're done
+                    builder.appendCodePoint(c);
+                    builder.append(camelHumpsName.substring(idx));
+                    return builder.toString();
+                } else {
+                    builder.appendCodePoint(Character.toLowerCase(c));
+                    c = n;
+                }
             } else {
                 builder.appendCodePoint(Character.toLowerCase(c));
                 return builder.toString();

@@ -31,6 +31,15 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
+ * A resource attribute.  An attribute can be:
+ * <ul>
+ *     <li>A simple type: any primitive or {@link String}</li>
+ *     <li>A map (ordered {@link java.util.Map}, or {@link java.util.SortedMap}) of simple type to any valid attribute type</li>
+ *     <li>A collection ({@link java.util.List}, ordered {@link java.util.Set}, or {@link java.util.SortedSet}) of simple type</li>
+ *     <li>An array (ordered) of simple type</li>
+ *     <li>An attribute group type ({@link AttributeGroup})</li>
+ *     <li>A complex attribute type ({@link AttributeType})</li>
+ * </ul>
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @Retention(CLASS)

@@ -22,11 +22,15 @@
 
 package org.jboss.mgmt.generator;
 
+import org.jboss.mgmt.NestedBuilder;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface ReferenceBuilder<P> extends SubBuilder<P> {
+public interface ReferenceBuilder<P> extends NestedBuilder<P> {
     ReferenceBuilder<P> scope(String enclosing);
 
     ReferenceBuilder<P> referenceType(String type);
+
+    P end();
 }

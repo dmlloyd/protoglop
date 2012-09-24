@@ -29,14 +29,27 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * An attribute group.  These attributes are grouped for organizational or appearance purposes, but are still
- * a part of the enclosing resource.  Attribute groups may contain other attribute groups.
+ * An attribute group.  Must be associated with a property whose type is an interface and whose methods are all
+ * attributes.  These attributes are grouped for organizational or appearance purposes, but are still
+ * a part of the enclosing resource.  Attribute groups may contain one or more attributes of any valid attribute
+ * type.  They are rendered as DMR OBJECTs or XML container elements in addition to being represented by a nested
+ * interface.
  */
 @Retention(CLASS)
 @Target(METHOD)
 public @interface AttributeGroup {
 
+    /**
+     * The attribute group name.  Defaults to the property name of the method.
+     *
+     * @return the name
+     */
     String name() default "";
 
+    /**
+     * Attribute group must be present.
+     *
+     * @return {@code true} for required, {@code false} for optional
+     */
     boolean required() default true;
 }

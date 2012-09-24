@@ -22,11 +22,13 @@
 
 package org.jboss.mgmt.generator;
 
+import org.jboss.mgmt.NestedBuilder;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface AttributeTypeBuilder extends SubBuilder<Session> {
+public interface AttributeTypeBuilder extends NestedBuilder<Session> {
     AttributeTypeBuilder xmlName(String xmlName);
 
-
+    Session end();
 }

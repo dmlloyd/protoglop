@@ -36,7 +36,7 @@ import javax.lang.model.type.DeclaredType;
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 abstract class GeneralResourceBuilderImpl<THIS extends GeneralResourceBuilderImpl<THIS>> implements GeneralResourceBuilder {
-    private final String type;
+    private String type;
     private final DeclaredType resourceInterface;
     private final Set<String> provides = new HashSet<String>();
     private final List<AttributeBuilderImpl<?>> attributes = new ArrayList<AttributeBuilderImpl<?>>();
@@ -80,12 +80,17 @@ abstract class GeneralResourceBuilderImpl<THIS extends GeneralResourceBuilderImp
         return _this();
     }
 
-    public SubResourceBuilder<THIS> subResource(final String address, final boolean named) {
-        return new SubResourceBuilderImpl<THIS>(_this(), address, named);
+    public SubResourceBuilder<THIS> subResource(final String name, final boolean named) {
+        return new SubResourceBuilderImpl<THIS>(_this(), name, named);
     }
 
     public THIS xmlName(final String xmlName) {
         this.xmlName = xmlName;
+        return _this();
+    }
+
+    public THIS type(final String typeName) {
+        type = typeName;
         return _this();
     }
 

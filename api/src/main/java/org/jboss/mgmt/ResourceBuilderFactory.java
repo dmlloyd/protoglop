@@ -23,10 +23,10 @@
 package org.jboss.mgmt;
 
 /**
+ * The super-interface of generated parent builder factories.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public abstract class ResourceBuilderFactory<B> {
-    B constructBuilder(Object contextInfo) {
-        return null;
-    }
+public interface ResourceBuilderFactory<P, B extends NestedBuilder<P>> {
+    B construct(P parent);
 }

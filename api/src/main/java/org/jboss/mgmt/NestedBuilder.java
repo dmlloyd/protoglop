@@ -36,5 +36,5 @@ public interface NestedBuilder<P> {
      *
      * @return the parent builder
      */
-    P done();
+    P end();
 }

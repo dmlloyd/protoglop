@@ -22,6 +22,7 @@
 
 package org.jboss.mgmt.generator;
 
+import org.jboss.mgmt.NestedBuilder;
 import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.RuntimeMode;
 
@@ -31,7 +32,7 @@ import javax.lang.model.type.DeclaredType;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface RootResourceBuilder extends GeneralResourceBuilder, SubBuilder<Session> {
+public interface RootResourceBuilder extends GeneralResourceBuilder, NestedBuilder<Session> {
 
     AttributeBuilder<? extends RootResourceBuilder> attribute(final String name);
 
@@ -51,7 +52,9 @@ public interface RootResourceBuilder extends GeneralResourceBuilder, SubBuilder<
 
     RootResourceBuilder namespace(String namespace);
 
-    SubResourceBuilder<? extends RootResourceBuilder> subResource(String address, boolean named);
+    SubResourceBuilder<? extends RootResourceBuilder> subResource(String name, boolean named);
 
     RootResourceBuilder xmlName(String name);
+
+    Session end();
 }

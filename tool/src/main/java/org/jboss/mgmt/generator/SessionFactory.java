@@ -23,6 +23,7 @@
 package org.jboss.mgmt.generator;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
 
 /**
  * The big generator.
@@ -37,10 +38,12 @@ public final class SessionFactory {
     /**
      * Start a session.
      *
+     *
      * @param env the environment
+     * @param roundEnv
      * @return the session
      */
-    public static Session openSession(final ProcessingEnvironment env) {
-        return new SessionImpl(env);
+    public static Session openSession(final ProcessingEnvironment env, final RoundEnvironment roundEnv) {
+        return new SessionImpl(env, roundEnv);
     }
 }

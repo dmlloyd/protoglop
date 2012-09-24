@@ -22,7 +22,7 @@
 
 package org.jboss.mgmt.generator;
 
-import java.util.Locale;
+import org.jboss.mgmt.NestedBuilder;
 import org.jboss.mgmt.annotation.RuntimeMode;
 
 import javax.lang.model.element.ExecutableElement;
@@ -31,7 +31,7 @@ import javax.lang.model.type.DeclaredType;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface SubResourceBuilder<P> extends GeneralResourceBuilder, SubBuilder<P> {
+public interface SubResourceBuilder<P> extends GeneralResourceBuilder, NestedBuilder<P> {
 
     AttributeBuilder<? extends SubResourceBuilder<P>> attribute(final String name);
 
@@ -43,9 +43,15 @@ public interface SubResourceBuilder<P> extends GeneralResourceBuilder, SubBuilde
 
     SubResourceBuilder<P> provides(String token);
 
+    AttributeGroupBuilder<? extends SubResourceBuilder<P>> attributeGroup(String name, DeclaredType type);
+
+    SubResourceBuilder<P> type(String typeName);
+
     SubResourceBuilder<P> requiresUniqueProvider(boolean required);
 
-    SubResourceBuilder<? extends SubResourceBuilder<P>> subResource(String address, boolean named);
+    SubResourceBuilder<? extends SubResourceBuilder<P>> subResource(String name, boolean named);
 
     SubResourceBuilder<P> xmlName(String name);
+
+    P end();
 }

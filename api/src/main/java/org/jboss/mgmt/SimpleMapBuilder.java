@@ -20,16 +20,11 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.generator;
-
-import org.jboss.mgmt.NestedBuilder;
+package org.jboss.mgmt;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface AttributeGroupBuilder<P> extends NestedBuilder<P> {
-
-    AttributeBuilder<AttributeGroupBuilder<P>> attribute(String name);
-
-    P end();
+public interface SimpleMapBuilder<P, K, V> extends NestedBuilder<P> {
+    SimpleMapBuilder<P, K, V> put(K key, V value);
 }

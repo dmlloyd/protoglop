@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
 
 import javax.lang.model.type.DeclaredType;
 
@@ -39,11 +40,13 @@ import javax.lang.model.type.DeclaredType;
 final class SessionImpl implements Session {
 
     private final ProcessingEnvironment env;
+    private final RoundEnvironment roundEnv;
     private final List<RootResourceBuilderImpl> resources = new ArrayList<RootResourceBuilderImpl>();
     private final Map<String, Set<RootResourceBuilderImpl>> rootByNamespace = new HashMap<String, Set<RootResourceBuilderImpl>>();
 
-    SessionImpl(final ProcessingEnvironment env) {
+    SessionImpl(final ProcessingEnvironment env, final RoundEnvironment roundEnv) {
         this.env = env;
+        this.roundEnv = roundEnv;
     }
 
     public RootResourceBuilder rootResource(final String type, final DeclaredType resourceInterface, final String version) {
@@ -69,7 +72,7 @@ final class SessionImpl implements Session {
     }
 
     public Session generateSource() {
-        new Generator(env, this).generate();
+        new Generator(env, roundEnv, this).generate();
         return this;
     }
 

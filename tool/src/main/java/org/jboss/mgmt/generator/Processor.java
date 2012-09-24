@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.annotation.Access;
 import org.jboss.mgmt.annotation.Attribute;
 import org.jboss.mgmt.annotation.AttributeType;
@@ -82,13 +83,16 @@ public final class Processor implements javax.annotation.processing.Processor {
 
     public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
         final Messager messager = env.getMessager();
-        final Session session = SessionFactory.openSession(env);
+        final Session session = SessionFactory.openSession(env, roundEnv);
         final Set<? extends Element> attributeTypeElements = roundEnv.getElementsAnnotatedWith(AttributeType.class);
         final Set<? extends Element> resourceTypeElements = roundEnv.getElementsAnnotatedWith(ResourceType.class);
         final Set<? extends Element> rootResourceElements = roundEnv.getElementsAnnotatedWith(RootResource.class);
         for (TypeElement element : ElementFilter.typesIn(rootResourceElements)) {
             if (element.getKind() != ElementKind.INTERFACE) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "Only interfaces may be annotated with " + RootResource.class, element);
+            }
+            if (! env.getTypeUtils().isAssignable(element.asType(), env.getElementUtils().getTypeElement(Resource.class.getName()).asType())) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "Resource interfaces must extend " + Resource.class, element);
             }
             final List<? extends AnnotationMirror> mirrors = env.getElementUtils().getAllAnnotationMirrors(element);
             String version = "1.0";

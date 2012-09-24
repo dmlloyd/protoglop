@@ -22,8 +22,6 @@
 
 package org.jboss.mgmt.generator;
 
-import javax.lang.model.type.DeclaredType;
-
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */

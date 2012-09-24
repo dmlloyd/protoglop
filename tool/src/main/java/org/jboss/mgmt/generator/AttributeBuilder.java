@@ -25,6 +25,7 @@ package org.jboss.mgmt.generator;
 import java.util.Locale;
 import org.jboss.mgmt.AttributeListener;
 import org.jboss.mgmt.AttributeValidator;
+import org.jboss.mgmt.NestedBuilder;
 import org.jboss.mgmt.annotation.Access;
 import org.jboss.mgmt.annotation.RuntimeMode;
 import org.jboss.mgmt.annotation.xml.XmlRender;
@@ -35,7 +36,7 @@ import javax.lang.model.type.TypeMirror;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface AttributeBuilder<P> extends SubBuilder<P> {
+public interface AttributeBuilder<P> extends NestedBuilder<P> {
 
     AttributeBuilder<P> type(TypeMirror type);
 
@@ -65,4 +66,5 @@ public interface AttributeBuilder<P> extends SubBuilder<P> {
 
     ReferenceBuilder<AttributeBuilder<P>> reference();
 
+    P end();
 }

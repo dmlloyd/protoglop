@@ -23,6 +23,7 @@
 package example1;
 
 import java.util.List;
+import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.Provides;
 import org.jboss.mgmt.annotation.SubResource;
@@ -39,7 +40,7 @@ import org.jboss.mgmt.annotation.xml.XmlName;
     version = "1.0"
 )
 @XmlName("subsystem")
-public interface LoggingSubsystemResource {
+public interface LoggingSubsystemResource extends Resource {
 
     @SubResource(children = { FileHandlerResource.class })
     List<String> getHandlerNames();

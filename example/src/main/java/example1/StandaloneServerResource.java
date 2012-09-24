@@ -22,6 +22,7 @@
 
 package example1;
 
+import org.jboss.mgmt.annotation.AttributeGroup;
 import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.xml.XmlName;
 
@@ -32,7 +33,7 @@ import org.jboss.mgmt.annotation.xml.XmlName;
 @XmlName("standalone")
 public interface StandaloneServerResource extends ServerResource {
 
-    // inline resource, cannot have conflicting attribute names
+    @AttributeGroup
     ProfileResource getProfile();
 
 }
