@@ -40,7 +40,7 @@ import static javax.tools.Diagnostic.Kind.*;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class ResourceBuilderInterfaceGenerator extends AbstractClassGenerator {
+final class ResourceBuilderInterfaceGenerator extends AbstractClassGenerator {
     private final GeneralResourceBuilderImpl<?> resourceBuilder;
 
     public ResourceBuilderInterfaceGenerator(final JCodeModel codeModel, final Messager messager, final String className, final String packageName, final GeneralResourceBuilderImpl builder) {

@@ -35,8 +35,9 @@ import org.jboss.mgmt.annotation.SubResource;
 @RootResource(
     type = "top",
     namespace = "jboss",
-    version = "1.0",
+    version = "8.0",
     kind = RootResource.Kind.SYSTEM,
+    schemaLocation = "http://www.jboss.org/schema/jbossas/jboss_8_0.xsd",
     compatibilityNamespaces = { "urn:jboss:domain:1.0" }
 )
 public interface DomainResource extends Resource {

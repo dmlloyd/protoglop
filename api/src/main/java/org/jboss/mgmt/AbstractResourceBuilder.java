@@ -23,8 +23,17 @@
 package org.jboss.mgmt;
 
 /**
+ * Infrastructure class used by generated resource implementations.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface SimpleMapBuilder<P, K, V> extends NestedBuilder<P> {
-    SimpleMapBuilder<P, K, V> put(K key, V value);
+public abstract class AbstractResourceBuilder<R extends Resource, P extends NestedBuilder<?>, THIS extends AbstractResourceBuilder<R, P, THIS>> implements NestedBuilder<P> {
+    protected final ResourceNode<R> construct(ResourceNode<?> parentNode) {
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected final THIS _this() {
+        return (THIS) this;
+    }
 }

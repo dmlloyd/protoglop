@@ -20,19 +20,24 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.model;
+package org.jboss.mgmt;
 
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import org.jboss.msc.txn.WorkContext;
+
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public abstract class ResourceNode<R> {
+public abstract class ResourceNode<R extends Resource> implements Resource {
     private volatile int state;
     private volatile R current;
     private volatile Object owningTxn;
     private volatile Thread waiter;
+    private final ResourceNode<?> parent;
 
     private static final AtomicIntegerFieldUpdater<ResourceNode> stateUpdater = AtomicIntegerFieldUpdater.newUpdater(ResourceNode.class, "state");
     private static final AtomicReferenceFieldUpdater<ResourceNode, Object> currentUpdater = AtomicReferenceFieldUpdater.newUpdater(ResourceNode.class, Object.class, "current");
@@ -42,6 +47,10 @@ public abstract class ResourceNode<R> {
     private static final int WRITE_LOCK = (1 << 31);
     private static final int INTENT_WRITE_LOCK = (1 << 30);
     private static final int READERS = INTENT_WRITE_LOCK - 1;
+
+    protected ResourceNode(final ResourceNode<?> parent) {
+        this.parent = parent;
+    }
 
     private static Object currentTransaction() {
         return null; // todo once msc-2 stabilizes...
@@ -68,5 +77,34 @@ public abstract class ResourceNode<R> {
 
     private void lockWrite(final Object txn) {
         // set write flag or block with txn
+    }
+
+    public String getPreComment() {
+        return current.getPreComment();
+    }
+
+    public String getPostComment() {
+        return current.getPostComment();
+    }
+
+    public String getName() {
+        return current.getName();
+    }
+
+    public Resource getParent() {
+        return parent;
+    }
+
+    public Resource navigate(final String key, final String value) {
+        return null;
+    }
+
+    protected abstract R writeAttribute(WorkContext workContext, String name, Object value);
+
+    protected abstract void persist(XMLStreamWriter writer) throws XMLStreamException;
+
+    @SuppressWarnings("unchecked")
+    R asResource() {
+        return (R) this;
     }
 }

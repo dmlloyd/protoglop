@@ -23,15 +23,17 @@
 package org.jboss.mgmt;
 
 /**
+ * Base class for resource data objects.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public abstract class AbstractResource implements Resource {
     private final String preComment;
     private final String postComment;
     private final String name;
-    private final Resource parent;
+    private final ResourceNode<?> parent;
 
-    protected AbstractResource(final String preComment, final String postComment, final String name, final Resource parent) {
+    protected AbstractResource(final String preComment, final String postComment, final String name, final ResourceNode<?> parent) {
         this.preComment = preComment;
         this.postComment = postComment;
         this.name = name;

@@ -39,8 +39,8 @@
     </parent>
     <properties>
         <version.compiler.plugin>2.5.1</version.compiler.plugin>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.6</maven.compiler.target>
+        <maven.compiler.source>1.6</maven.compiler.source>
     </properties>
 
 
@@ -57,8 +57,8 @@
                 <version>${version.compiler.plugin}</version>
                 <configuration>
                     <compilerArguments>
-                        <XprintRounds />
-                        <XprintProcessorInfo/>
+                        <!--<XprintRounds />-->
+                        <!--<XprintProcessorInfo/>-->
                     </compilerArguments>
                 </configuration>
             </plugin>
@@ -76,11 +76,11 @@
                 <artifactId>jboss-mgmt-tool</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <!--<dependency>-->
-                <!--<groupId>org.jboss.msc</groupId>-->
-                <!--<artifactId>jboss-msc2</artifactId>-->
-                <!--<version>2.0.0.Beta1-SNAPSHOT</version>-->
-            <!--</dependency>-->
+            <dependency>
+                <groupId>org.jboss.msc</groupId>
+                <artifactId>jboss-msc2</artifactId>
+                <version>2.0.0.Beta1-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>xom</groupId>
                 <artifactId>xom</artifactId>

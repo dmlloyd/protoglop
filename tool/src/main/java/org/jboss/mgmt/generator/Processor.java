@@ -32,6 +32,7 @@ import java.util.Set;
 import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.annotation.Access;
 import org.jboss.mgmt.annotation.Attribute;
+import org.jboss.mgmt.annotation.AttributeGroup;
 import org.jboss.mgmt.annotation.AttributeType;
 import org.jboss.mgmt.annotation.Provides;
 import org.jboss.mgmt.annotation.ResourceType;
@@ -67,9 +68,10 @@ public final class Processor implements javax.annotation.processing.Processor {
 
     public Set<String> getSupportedAnnotationTypes() {
         return new HashSet<String>(Arrays.asList(
-                AttributeType.class.getName(),
-                ResourceType.class.getName(),
-                RootResource.class.getName()
+            AttributeType.class.getName(),
+            ResourceType.class.getName(),
+            RootResource.class.getName(),
+            AttributeGroup.class.getName()
         ));
     }
 
@@ -101,6 +103,7 @@ public final class Processor implements javax.annotation.processing.Processor {
             String resourceType = null;
             String resourceModelName = null;
             String resourceNamespace = null;
+            String schemaLocation = null;
             String[] resourceCompatNamespaces = null;
             RootResource.Kind resourceKind = RootResource.Kind.EXTENSION;
             final Map<String, AnnotationMirror> mirrorMap = mirrorListToMap(mirrors);
@@ -116,6 +119,7 @@ public final class Processor implements javax.annotation.processing.Processor {
                     if (valueMap.containsKey("kind")) resourceKind = getAnnotationValue(RootResource.Kind.class, valueMap.get("kind"));
                     if (valueMap.containsKey("namespace")) resourceNamespace = valueMap.get("namespace").getValue().toString();
                     if (valueMap.containsKey("compatibilityNamespaces")) resourceCompatNamespaces = getStringArrayAnnotationValue(valueMap.get("compatibilityNamespaces"));
+                    if (valueMap.containsKey("schemaLocation")) schemaLocation = valueMap.get("schemaLocation").getValue().toString();
                 } else if (annotationName.equals(XmlName.class.getName())) {
                     xmlName = valueMap.get("value").getValue().toString();
                 } else if (annotationName.equals(Provides.class.getName())) {
@@ -145,6 +149,9 @@ public final class Processor implements javax.annotation.processing.Processor {
             }
             if (resourceKind != null) {
                 resourceBuilder.kind(resourceKind);
+            }
+            if (schemaLocation != null) {
+                resourceBuilder.schemaLocation(schemaLocation);
             }
 
             for (ExecutableElement enclosedElement : ElementFilter.methodsIn(element.getEnclosedElements())) {

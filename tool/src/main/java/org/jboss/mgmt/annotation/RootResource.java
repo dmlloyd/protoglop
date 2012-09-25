@@ -72,6 +72,13 @@ public @interface RootResource {
     String namespace();
 
     /**
+     * The schema location.  This URL string will be used to determine the target filename of the generated schema.
+     *
+     * @return the URL
+     */
+    String schemaLocation();
+
+    /**
      * Compatibility namespaces that should also be recognized (but not generated).
      *
      * @return the namespaces

@@ -37,7 +37,8 @@ import org.jboss.mgmt.annotation.xml.XmlName;
     type = "subsystem",
     name = "logging",
     namespace = "core.logging",
-    version = "1.0"
+    schemaLocation = "http://www.jboss.org/schema/jbossas/jboss-core-logging_8_0.xsd",
+    version = "8.0"
 )
 @XmlName("subsystem")
 public interface LoggingSubsystemResource extends Resource {

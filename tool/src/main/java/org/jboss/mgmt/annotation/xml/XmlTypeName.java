@@ -20,11 +20,20 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt;
+package org.jboss.mgmt.annotation.xml;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
+ * The name of the XML type to assign to a resource, attribute type, or attribute group.
  */
-public interface SimpleCollectionBuilder<P, E> extends NestedBuilder<P> {
-    SimpleCollectionBuilder<P, E> add(E value);
+@Target({TYPE, METHOD})
+@Retention(CLASS)
+public @interface XmlTypeName {
+    String value();
 }

@@ -22,9 +22,31 @@
 
 package org.jboss.mgmt;
 
+import java.util.Map;
+
 /**
+ * An immutable map entry, used by builder classes.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface BuilderCollectionBuilder<P, E extends NestedBuilder<BuilderCollectionBuilder<P, E>>> extends NestedBuilder<P> {
-    E add();
+public final class Entry<K, V> implements Map.Entry<K, V> {
+    private final K key;
+    private final V value;
+
+    Entry(final K key, final V value) {
+        this.value = value;
+        this.key = key;
+    }
+
+    public K getKey() {
+        return key;
+    }
+
+    public V getValue() {
+        return value;
+    }
+
+    public V setValue(final V value) {
+        throw new UnsupportedOperationException();
+    }
 }

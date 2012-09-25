@@ -24,32 +24,35 @@ package org.jboss.mgmt.generator;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import nu.xom.Attribute;
+import nu.xom.Comment;
 import nu.xom.Document;
 import nu.xom.Element;
 import nu.xom.Serializer;
 import org.jboss.mgmt.AbstractResource;
-import org.jboss.mgmt.AttributeValidator;
-import org.jboss.mgmt.BuilderCollectionBuilder;
-import org.jboss.mgmt.BuilderMapBuilder;
+import org.jboss.mgmt.BuilderFactory;
+import org.jboss.mgmt.Entry;
 import org.jboss.mgmt.ExceptionThrowingValidationContext;
 import org.jboss.mgmt.ModelNodeDeparser;
 import org.jboss.mgmt.ModelNodeParser;
 import org.jboss.mgmt.NestedBuilder;
 import org.jboss.mgmt.Resource;
-import org.jboss.mgmt.ResourceBuilderFactory;
-import org.jboss.mgmt.SimpleCollectionBuilder;
-import org.jboss.mgmt.SimpleMapBuilder;
 import org.jboss.mgmt.VirtualAttribute;
 import org.jboss.mgmt.annotation.Access;
-import org.jboss.mgmt.annotation.Gen;
 import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.xml.XmlRender;
-import org.jboss.mgmt.model.ResourceNode;
+import org.jboss.mgmt.ResourceNode;
 
+import com.sun.codemodel.JArray;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
@@ -69,6 +72,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
+import javax.annotation.Generated;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -100,6 +104,7 @@ final class Generator {
     private static final String GENERATOR_VERSION = "1.0";
 
     private final ProcessingEnvironment env;
+    private final RoundEnvironment roundEnv;
     private final Filer filer;
     private final Messager messager;
     private final Types types;
@@ -108,33 +113,23 @@ final class Generator {
     private final JCodeModel codeModel = new JCodeModel();
 
     // --------------------------------------------------
-    // Common types
+    // Accumulated output
     // --------------------------------------------------
 
-    private final JClass modelNodeParser = codeModel.ref(ModelNodeParser.class).erasure();
-    private final JClass modelNodeDeparser = codeModel.ref(ModelNodeDeparser.class).erasure();
-    private final JClass xmlStreamReader = codeModel.ref(XMLStreamReader.class);
-    private final JClass xmlStreamWriter = codeModel.ref(XMLStreamWriter.class);
-    private final JClass xmlStreamException = codeModel.ref(XMLStreamException.class);
-    private final JClass exceptionThrowingValidationContext = codeModel.ref(ExceptionThrowingValidationContext.class);
-    private final JClass attributeValidator = codeModel.ref(AttributeValidator.class);
-    private final JClass resourceJClass = codeModel.ref(Resource.class);
-    private final JClass abstractResource = codeModel.ref(AbstractResource.class);
-    private final JClass string = codeModel.ref(String.class);
-    private final JClass virtualAttribute = codeModel.ref(VirtualAttribute.class).erasure();
-    private final JClass resourceNode = codeModel.ref(ResourceNode.class).erasure();
-    private final JClass resourceBuilderFactory = codeModel.ref(ResourceBuilderFactory.class).erasure();
-    private final JClass nestedBuilder = codeModel.ref(NestedBuilder.class).erasure();
-    private final JClass simpleMapBuilder = codeModel.ref(SimpleMapBuilder.class).erasure();
-    private final JClass simpleCollectionBuilder = codeModel.ref(SimpleCollectionBuilder.class).erasure();
-    private final JClass builderMapBuilder = codeModel.ref(BuilderMapBuilder.class).erasure();
-    private final JClass builderCollectionBuilder = codeModel.ref(BuilderCollectionBuilder.class).erasure();
+    static class DocInfo {
+        final Map<String, Element> typeDecls = new TreeMap<String, Element>();
+        final Map<String, Element> rootElementDecls = new TreeMap<String, Element>();
+        final Set<String> altXmlNamespaces = new HashSet<String>();
+        String schemaLocation;
+        RootResource.Kind resourceNamespaceKind = RootResource.Kind.EXTENSION;
+        String version;
+        String namespace; // just the module part
+    }
 
-
-    private final Map<String, Document> namespaceDocuments = new HashMap<String, Document>();
-    private final Map<String, Element> namespaceSchemas = new HashMap<String, Element>();
-    private final Map<String, String> namespaceSchemaLocations = new HashMap<String, String>();
-    private final RoundEnvironment roundEnv;
+    private final Map<String, DocInfo> namespaceSchemas = new HashMap<String, DocInfo>();
+    private final Set<String> generatedResourceTypes = new HashSet<String>();
+    private final Set<String> generatedAttributeTypes = new HashSet<String>();
+    private final Set<String> generatedAttributeGroups = new HashSet<String>();
 
     Generator(final ProcessingEnvironment env, final RoundEnvironment roundEnv, final SessionImpl session) {
         this.roundEnv = roundEnv;
@@ -147,7 +142,6 @@ final class Generator {
     }
 
     void generate() {
-
         final List<RootResourceBuilderImpl> resources = session.getResources();
 
         for (RootResourceBuilderImpl resource : resources) {
@@ -158,70 +152,102 @@ final class Generator {
 
             final String version = def(resource.getVersion(), "1.0");
             final String namespace = def(resource.getNamespace(), "unspecified");
-            final String schemaLocation = def(resource.getSchemaLocation(), "http://nowhere.com/");
+            final String schemaLocation = resource.getSchemaLocation();
             final RootResource.Kind resourceNamespaceKind = def(resource.getKind(), RootResource.Kind.EXTENSION);
             final String xmlNamespace = buildNamespace(resourceNamespaceKind, namespace, version);
 
-            Element schemaElement;
+            final DocInfo docInfo;
             if (! namespaceSchemas.containsKey(xmlNamespace)) {
-                final Document schemaDocument;
-
-                schemaElement = new Element("xs:schema", XSD);
-                schemaElement.addNamespaceDeclaration("", xmlNamespace);
-                schemaElement.addNamespaceDeclaration("xs", XSD);
-                schemaDocument = new Document(schemaElement);
-
-                schemaElement.addAttribute(new Attribute("targetNamespace", xmlNamespace));
-                schemaElement.addAttribute(new Attribute("elementFormDefault", "qualified"));
-                schemaElement.addAttribute(new Attribute("attributeFormDefault", "unqualified"));
-
-                namespaceDocuments.put(xmlNamespace, schemaDocument);
-                namespaceSchemas.put(xmlNamespace, schemaElement);
-                namespaceSchemaLocations.put(xmlNamespace, schemaLocation);
+                docInfo = new DocInfo();
+                docInfo.schemaLocation = schemaLocation;
+                docInfo.namespace = namespace;
+                docInfo.resourceNamespaceKind = resourceNamespaceKind;
+                docInfo.version = version;
+                namespaceSchemas.put(xmlNamespace, docInfo);
             } else {
-                schemaElement = namespaceSchemas.get(xmlNamespace);
-                if (! schemaLocation.equals(namespaceSchemaLocations.get(xmlNamespace))) {
+                docInfo = namespaceSchemas.get(xmlNamespace);
+                if (! schemaLocation.equals(docInfo.schemaLocation)) {
                     messager.printMessage(WARNING, "Namespace '" + xmlNamespace + "' declared with conflicting schema locations");
                 }
             }
             // Root resources declare elements in the root schema.
-            new ResourceWriter(resource, schemaElement, schemaElement, xmlNamespace, true).generate();
+            new ResourceWriter(resource, docInfo, xmlNamespace, null).generate();
         }
 
         // --------------------------------------------------
         // Emit results (if no error)
         // --------------------------------------------------
 
-        if (roundEnv.errorRaised()) {
-            return;
-        }
+        for (Map.Entry<String, DocInfo> entry : namespaceSchemas.entrySet()) {
+            final Element schemaElement = new Element("xs:schema", XSD);
+            final Document document = new Document(schemaElement);
+            final String xmlNamespace = entry.getKey();
+            final DocInfo docInfo = entry.getValue();
 
-        for (Map.Entry<String, Document> entry : namespaceDocuments.entrySet()) {
-            final String namespace = entry.getKey().replaceAll(":","-");
-            final Document document = entry.getValue();
-            final Serializer serializer;
-            final OutputStream stream;
+            schemaElement.addNamespaceDeclaration("", xmlNamespace);
+            schemaElement.addNamespaceDeclaration("xs", XSD);
+
+            schemaElement.addAttribute(new Attribute("targetNamespace", xmlNamespace));
+            schemaElement.addAttribute(new Attribute("elementFormDefault", "qualified"));
+            schemaElement.addAttribute(new Attribute("attributeFormDefault", "unqualified"));
+
+            schemaElement.appendChild("\n");
+            schemaElement.appendChild(new Comment("Root elements"));
+            schemaElement.appendChild("\n");
+            for (Map.Entry<String, Element> elementEntry : docInfo.rootElementDecls.entrySet()) {
+                schemaElement.appendChild(elementEntry.getValue());
+            }
+            schemaElement.appendChild("\n");
+            schemaElement.appendChild(new Comment("Element types"));
+            schemaElement.appendChild("\n");
+            for (Map.Entry<String, Element> elementEntry : docInfo.typeDecls.entrySet()) {
+                schemaElement.appendChild(elementEntry.getValue());
+            }
+            if (docInfo.schemaLocation == null) {
+                messager.printMessage(ERROR, "No namespace location for schema " + xmlNamespace);
+                continue;
+            }
+            final URI uri;
             try {
-                stream = filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "META-INF/" + namespace + ".xsd").openOutputStream();
+                uri = new URI(docInfo.schemaLocation);
+            } catch (URISyntaxException e) {
+                messager.printMessage(ERROR, "Namespace schema location '" + docInfo.schemaLocation + "' is not valid for " + xmlNamespace);
+                continue;
+            }
+            final String path = uri.getPath();
+            if (path == null) {
+                messager.printMessage(ERROR, "Namespace schema location '" + docInfo.schemaLocation + "' does not have a path component for " + xmlNamespace);
+                continue;
+            }
+            final String fileName = path.substring(path.lastIndexOf('/') + 1);
+            if (! fileName.endsWith(".xsd")) {
+                messager.printMessage(WARNING, "Namespace schema location '" + docInfo.schemaLocation + "' should specify a file name ending in \".xsd\"");
+            }
+            if (! roundEnv.errorRaised()) {
+                final Serializer serializer;
+                final OutputStream stream;
                 try {
-                    serializer = new Serializer(stream);
-                    serializer.setIndent(4);
-                    serializer.setLineSeparator("\n");
-                    serializer.write(document);
-                    serializer.flush();
-                } finally {
+                    stream = filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "META-INF/" + fileName).openOutputStream();
                     try {
-                        stream.close();
-                    } catch (IOException e) {
-                        messager.printMessage(ERROR, "Failed to close XSD stream: " + e);
+                        serializer = new Serializer(stream);
+                        serializer.setIndent(4);
+                        serializer.setLineSeparator("\n");
+                        serializer.write(document);
+                        serializer.flush();
+                    } finally {
+                        try {
+                            stream.close();
+                        } catch (IOException e) {
+                            messager.printMessage(ERROR, "Failed to close XSD stream for '" + docInfo.schemaLocation + "' of " + xmlNamespace + ": " + e);
+                        }
                     }
+                } catch (IOException e) {
+                    messager.printMessage(ERROR, "Failed to write XSD for '" + docInfo.schemaLocation + "' of " + xmlNamespace + ": " + e);
                 }
-            } catch (IOException e) {
-                messager.printMessage(ERROR, "Failed to write XSD: " + e);
             }
         }
 
-        try {
+        if (! roundEnv.errorRaised()) try {
             codeModel.build(new FilerCodeWriter(filer));
         } catch (IOException e) {
             messager.printMessage(ERROR, "Failed to write source files: " + e);
@@ -230,17 +256,15 @@ final class Generator {
 
     class ResourceWriter {
         private final GeneralResourceBuilderImpl<?> resource;
-        private final Element schemaElement;
-        private final Element parentElement;
+        private final DocInfo docInfo;
         private final String xmlNamespace;
-        private final boolean root;
+        private final Element parentType;
 
-        ResourceWriter(final GeneralResourceBuilderImpl<?> resource, final Element schemaElement, final Element parentElement, final String xmlNamespace, final boolean root) {
+        ResourceWriter(final GeneralResourceBuilderImpl<?> resource, final DocInfo docInfo, final String xmlNamespace, final Element parentType) {
             this.resource = resource;
-            this.schemaElement = schemaElement;
-            this.parentElement = parentElement;
+            this.docInfo = docInfo;
             this.xmlNamespace = xmlNamespace;
-            this.root = root;
+            this.parentType = parentType;
         }
 
         void generate() {
@@ -260,6 +284,29 @@ final class Generator {
             final String fqcn = resourceFqcn.substring(0, resourceFqcn.length() - 8);
             final String scn = resourceScn.substring(0, resourceScn.length() - 8);
             final String xmlName = def(resource.getXmlName(), xmlify(scn));
+
+            // --------------------------------------------------
+            // Schema root element for root resource
+            // --------------------------------------------------
+
+            final Element elementElement = new Element("xs:element", XSD);
+            elementElement.addAttribute(new Attribute("name", xmlName));
+
+            final Element typeElement = new Element("xs:complexType", XSD);
+            if (parentType == null) {
+                elementElement.appendChild(typeElement);
+                docInfo.rootElementDecls.put(xmlName, elementElement);
+            } else {
+                parentType.appendChild(elementElement);
+                elementElement.addAttribute(new Attribute("type", xmlName));
+                typeElement.addAttribute(new Attribute("name", xmlName));
+                docInfo.typeDecls.put(xmlName, typeElement);
+            }
+
+            final Element typeSeqElement = new Element("xs:sequence", XSD);
+            typeElement.appendChild(typeSeqElement);
+
+            addDocumentation(elementElement, "RESOURCE DESCRIPTION");
 
             // --------------------------------------------------
             // Code model class instances
@@ -283,7 +330,7 @@ final class Generator {
                 builderClass = codeModel._class(PUBLIC | FINAL, fqcn + "BuilderImpl", CLASS);
                 implementationClass = codeModel._class(PUBLIC | FINAL, fqcn + "ResourceImpl", CLASS);
                 resourceNodeClass = codeModel._class(PUBLIC | FINAL, fqcn + "NodeImpl", CLASS);
-                coreClass = root ? codeModel._class(PUBLIC | FINAL, fqcn, CLASS) : null;
+                coreClass = parentType == null ? codeModel._class(PUBLIC | FINAL, fqcn, CLASS) : null;
                 builderFactoryClass = codeModel._class(PUBLIC | FINAL, fqcn + "BuilderFactory", CLASS);
             } catch (JClassAlreadyExistsException e) {
                 messager.printMessage(ERROR, "Duplicate class generation for " + fqcn);
@@ -291,61 +338,43 @@ final class Generator {
             }
 
             // --------------------------------------------------
-            // Schema root element for root resource
-            // --------------------------------------------------
-
-            final Element elementElement = new Element("xs:element", XSD);
-            parentElement.appendChild(elementElement);
-            elementElement.addAttribute(new Attribute("name", xmlName));
-            elementElement.addAttribute(new Attribute("type", xmlName));
-
-            final Element typeElement = new Element("xs:complexType", XSD);
-            schemaElement.appendChild(typeElement);
-            typeElement.addAttribute(new Attribute("name", xmlName));
-
-            final Element typeSeqElement = new Element("xs:sequence", XSD);
-            typeElement.appendChild(typeSeqElement);
-
-            addDocumentation(elementElement, "RESOURCE DESCRIPTION");
-
-            // --------------------------------------------------
             // Class headers, extends/implements
             // --------------------------------------------------
 
-            parserClass.annotate(Gen.class).param("value", GENERATOR_VERSION);
-            deparserClass.annotate(Gen.class).param("value", GENERATOR_VERSION);
-            builderInterface.annotate(Gen.class).param("value", GENERATOR_VERSION);
-            builderClass.annotate(Gen.class).param("value", GENERATOR_VERSION);
-            implementationClass.annotate(Gen.class).param("value", GENERATOR_VERSION);
-            resourceNodeClass.annotate(Gen.class).param("value", GENERATOR_VERSION);
-            if (root) coreClass.annotate(Gen.class).param("value", GENERATOR_VERSION);
+            parserClass.annotate(Generated.class).paramArray("value").param(Generator.class.getName()).param(GENERATOR_VERSION);
+            deparserClass.annotate(Generated.class).paramArray("value").param(Generator.class.getName()).param(GENERATOR_VERSION);
+            builderInterface.annotate(Generated.class).paramArray("value").param(Generator.class.getName()).param(GENERATOR_VERSION);
+            builderClass.annotate(Generated.class).paramArray("value").param(Generator.class.getName()).param(GENERATOR_VERSION);
+            implementationClass.annotate(Generated.class).paramArray("value").param(Generator.class.getName()).param(GENERATOR_VERSION);
+            resourceNodeClass.annotate(Generated.class).paramArray("value").param(Generator.class.getName()).param(GENERATOR_VERSION);
+            if (parentType == null) coreClass.annotate(Generated.class).paramArray("value").param(Generator.class.getName()).param(GENERATOR_VERSION);
 
             final JTypeVar builderInterfaceP = builderInterface.generify("P");
-            builderInterface._extends(nestedBuilder.erasure().narrow(builderInterfaceP));
+            builderInterface._extends(codeModel.ref(NestedBuilder.class).erasure().erasure().narrow(builderInterfaceP));
 
             builderInterface.javadoc().add("A builder for " + resource.getName() + " resources.  This interface was automatically generated.");
 
             final JTypeVar builderClassP = builderClass.generify("P");
             builderClass._implements(builderInterface.narrow(builderClassP));
 
-            parserClass._implements(modelNodeParser.narrow(builderInterface.narrow(codeModel.wildcard())));
-            deparserClass._implements(modelNodeDeparser.narrow(resourceInterface));
+            parserClass._implements(codeModel.ref(ModelNodeParser.class).erasure().narrow(builderInterface.narrow(codeModel.wildcard())));
+            deparserClass._implements(codeModel.ref(ModelNodeDeparser.class).erasure().narrow(resourceInterface));
 
-            implementationClass._extends(abstractResource);
+            implementationClass._extends(codeModel.ref(AbstractResource.class));
             implementationClass._implements(resourceInterface);
 
-            resourceNodeClass._extends(resourceNode.narrow(resourceInterface));
+            resourceNodeClass._extends(codeModel.ref(ResourceNode.class).erasure().narrow(resourceInterface));
 
             final JTypeVar builderFactoryP = builderFactoryClass.generify("P");
-            builderFactoryClass._implements(resourceBuilderFactory.narrow(builderFactoryP, builderInterface.erasure().narrow(builderFactoryP)));
+            builderFactoryClass._implements(codeModel.ref(BuilderFactory.class).erasure().narrow(builderFactoryP, builderInterface.erasure().narrow(builderFactoryP)));
 
             final JMethod implConstructor = implementationClass.constructor(PUBLIC);
             final JBlock implConstructorBody = implConstructor.body();
             final JInvocation implConstructorSuperCall = implConstructorBody.invoke("super");
-            implConstructorSuperCall.arg(implConstructor.param(FINAL, string, "preComment"));
-            implConstructorSuperCall.arg(implConstructor.param(FINAL, string, "postComment"));
-            implConstructorSuperCall.arg(implConstructor.param(FINAL, string, "name"));
-            implConstructorSuperCall.arg(implConstructor.param(FINAL, resourceJClass, "parent"));
+            implConstructorSuperCall.arg(implConstructor.param(FINAL, codeModel.ref(String.class), "preComment"));
+            implConstructorSuperCall.arg(implConstructor.param(FINAL, codeModel.ref(String.class), "postComment"));
+            implConstructorSuperCall.arg(implConstructor.param(FINAL, codeModel.ref(String.class), "name"));
+            implConstructorSuperCall.arg(implConstructor.param(FINAL, codeModel.ref(Resource.class), "parent"));
 
             // The core class is not instantiatable
             coreClass.constructor(PRIVATE);
@@ -372,7 +401,7 @@ final class Generator {
             final JMethod builderFactoryConstructMethod = builderFactoryClass.method(PUBLIC, builderClass.narrow(builderFactoryP), "construct");
             builderFactoryConstructMethod.body()._return(JExpr._new(builderClass.narrow(builderFactoryP)).arg(builderFactoryConstructMethod.param(FINAL, builderFactoryP, "parent")));
 
-            if (root) {
+            if (parentType == null) {
                 final JMethod coreBuildMethod = coreClass.method(PUBLIC | STATIC, builderFactoryClass, "build");
                 coreBuildMethod.javadoc().add("Introduce this resource type into a builder which supports nested polymorphic types.");
                 coreBuildMethod.javadoc().add("Normally this method should not be directly invoked, but rather as part of a builder invocation chain.");
@@ -387,18 +416,18 @@ final class Generator {
             // --------------------------------------------------
 
             final JMethod parseMethod = parserClass.method(PUBLIC, codeModel.VOID, "parse");
-            parseMethod._throws(xmlStreamException);
-            final JVar parseMethodStreamReader = parseMethod.param(xmlStreamReader, "streamReader");
+            parseMethod._throws(codeModel.ref(XMLStreamException.class));
+            final JVar parseMethodStreamReader = parseMethod.param(codeModel.ref(XMLStreamReader.class), "streamReader");
             final JVar parseMethodBuilder = parseMethod.param(builderInterface.narrow(codeModel.wildcard()), "builder");
             final JBlock parseMethodBody = parseMethod.body();
 
             final JMethod deparseMethod = deparserClass.method(PUBLIC, codeModel.VOID, "deparse");
-            deparseMethod._throws(xmlStreamException);
-            final JVar deparseMethodStreamWriter = deparseMethod.param(xmlStreamWriter, "streamWriter");
+            deparseMethod._throws(codeModel.ref(XMLStreamException.class));
+            final JVar deparseMethodStreamWriter = deparseMethod.param(codeModel.ref(XMLStreamWriter.class), "streamWriter");
             final JVar deparseMethodResource = deparseMethod.param(resourceInterface, "resource");
             final JBlock deparseMethodBody = deparseMethod.body();
-            final JVar deparsePreComment = deparseMethodBody.decl(FINAL, string, "preComment", JExpr.invoke(deparseMethodResource, "getPreComment"));
-            final JVar deparsePostComment = deparseMethodBody.decl(FINAL, string, "postComment", JExpr.invoke(deparseMethodResource, "getPostComment"));
+            final JVar deparsePreComment = deparseMethodBody.decl(FINAL, codeModel.ref(String.class), "preComment", JExpr.invoke(deparseMethodResource, "getPreComment"));
+            final JVar deparsePostComment = deparseMethodBody.decl(FINAL, codeModel.ref(String.class), "postComment", JExpr.invoke(deparseMethodResource, "getPostComment"));
             deparseMethodBody._if(deparsePreComment.ne(JExpr._null()))._then().invoke(deparseMethodStreamWriter, "writeComment").arg(deparsePreComment);
             deparseMethodBody.invoke(deparseMethodStreamWriter, "writeStartElement").arg(xmlNamespace).arg(xmlName);
             final JBlock deparseMethodAttributesBlock = deparseMethodBody.block();
@@ -411,7 +440,7 @@ final class Generator {
             // --------------------------------------------------
 
             for (SubResourceBuilderImpl<?> resourceBuilder : resource.getSubResources()) {
-                new ResourceWriter(resourceBuilder, schemaElement, parentElement, xmlNamespace, false).generate();
+                new ResourceWriter(resourceBuilder, docInfo, xmlNamespace, typeElement).generate();
             }
 
             // --------------------------------------------------
@@ -480,7 +509,7 @@ final class Generator {
                     // Parser / Deparser
                     // --------------------------------------------------
 
-                    if (virtualAttribute == null) {
+                    if (codeModel.ref(VirtualAttribute.class).erasure() == null) {
                         // ----------------------------------------------
                         // Deparser
                         // ----------------------------------------------
@@ -508,14 +537,14 @@ final class Generator {
                     if (access.isReadable()) {
                         if (virtual != null) {
                             // todo - cache virtual instances
-                            getterMethodBody._return(JExpr.invoke(JExpr._new(virtualAttribute.narrow(attributeJType)), "getValue"));
+                            getterMethodBody._return(JExpr.invoke(JExpr._new(codeModel.ref(VirtualAttribute.class).erasure().narrow(attributeJType)), "getValue"));
                         } else {
                             final JFieldVar field = implementationClass.field(PRIVATE | FINAL, attributeJType, attrVarName);
                             implConstructorBody.assign(JExpr._this().ref(field), implConstructor.param(FINAL, attributeJType, attrVarName));
                             getterMethodBody._return(field);
                         }
                     } else {
-                        getterMethodBody._throw(abstractResource.staticInvoke("notReadable"));
+                        getterMethodBody._throw(codeModel.ref(AbstractResource.class).staticInvoke("notReadable"));
                     }
 
                     // --------------------------------------------------
@@ -542,24 +571,43 @@ final class Generator {
 
                                 // value is a simple type
 
-                                JClass[] typeParams = {
-                                        builderInterface.narrow(builderInterfaceP),
-                                        keyType,
-                                        valueType,
-                                };
+                                final JClass listType = codeModel.ref(ArrayList.class).narrow(codeModel.ref(Entry.class).narrow(keyType, valueType));
+                                final JFieldVar attributeField = builderClass.field(PRIVATE | FINAL, listType, attrVarName);
+                                attributeField.init(JExpr._new(listType));
 
-                                final JFieldVar attributeField = builderClass.field(PRIVATE | FINAL, simpleMapBuilder.narrow(typeParams), attrVarName);
-                                if (defaultValueExpr != null) {
-                                    attributeField.assign(defaultValueExpr);
-                                }
-                                attributeField.init(JExpr._null()); // todo fixed builder instance
-
-                                builderInterfaceSetMethod = builderInterface.method(NONE, simpleMapBuilder.narrow(typeParams), attrVarName);
-                                builderClassSetMethod = builderClass.method(PUBLIC, simpleMapBuilder.narrow(typeParams), attrVarName);
-                                builderClassSetMethod.body()._return(attributeField);
+                                builderInterfaceSetMethod = builderInterface.method(NONE, builderInterface.narrow(builderInterfaceP), "add" + name);
+                                builderInterfaceSetMethod.param(keyType, "key");
+                                builderInterfaceSetMethod.param(valueType, "value");
+                                builderClassSetMethod = builderClass.method(NONE, builderInterface.narrow(builderInterfaceP), "add" + name);
+                                final JVar keyParam = builderClassSetMethod.param(FINAL, keyType, "key");
+                                final JVar valueParam = builderClassSetMethod.param(FINAL, valueType, "value");
+                                final JBlock body = builderClassSetMethod.body();
+                                attributeField.invoke("add").arg(JExpr._new(codeModel.ref(Entry.class).narrow(keyType, valueType)).arg(keyParam).arg(valueParam));
+                                body._return(JExpr._this());
                             } else {
                                 // value is a complex (resource) type
 
+                                final String nestedBuilderTypeName = valueType.fullName() + "BuilderImpl";
+                                final JClass nestedBuilderType = codeModel._getClass(nestedBuilderTypeName);
+                                if (nestedBuilderType == null) {
+                                    messager.printMessage(ERROR, "No builder was generated for non-simple attribute type " + nestedBuilderTypeName);
+                                    return;
+                                }
+
+                                final JClass listType = codeModel.ref(ArrayList.class).narrow(codeModel.ref(Entry.class).narrow(keyType, nestedBuilderType));
+                                final JFieldVar attributeField = builderClass.field(PRIVATE | FINAL, listType, attrVarName);
+                                attributeField.init(JExpr._new(listType));
+
+                                final JClass narrowedBuilderType = nestedBuilderType.narrow(builderInterface.narrow(builderInterfaceP));
+                                builderInterfaceSetMethod = builderInterface.method(NONE, narrowedBuilderType, "add" + name);
+                                builderInterfaceSetMethod.param(keyType, "key");
+
+                                builderClassSetMethod = builderClass.method(NONE, narrowedBuilderType, "add" + name);
+                                final JVar keyParam = builderClassSetMethod.param(FINAL, keyType, "key");
+                                final JBlock body = builderClassSetMethod.body();
+                                final JVar valueVar = body.decl(nestedBuilderType, "_builder", JExpr._new(narrowedBuilderType).arg(JExpr._this()));
+                                attributeField.invoke("add").arg(JExpr._new(codeModel.ref(Entry.class).narrow(keyType, valueType)).arg(keyParam).arg(valueVar));
+                                body._return(valueVar);
                             }
                         } else {
                             // value is a simple type...
@@ -598,7 +646,7 @@ final class Generator {
                                 // Emit validation block
                                 // --------------------------------------------------
 
-                                final JVar context = body.decl(FINAL, exceptionThrowingValidationContext, "_context", JExpr._new(exceptionThrowingValidationContext));
+                                final JVar context = body.decl(FINAL, codeModel.ref(ExceptionThrowingValidationContext.class), "_context", JExpr._new(codeModel.ref(ExceptionThrowingValidationContext.class)));
                                 for (DeclaredType validator : validators) {
                                     final JClass validatorType = (JClass) CodeModelUtils.typeFor(env, codeModel, validator);
                                     // todo - cache validator instances

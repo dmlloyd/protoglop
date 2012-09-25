@@ -57,7 +57,7 @@ import javax.tools.Diagnostic;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class CodeModelUtils {
+final class CodeModelUtils {
 
     private CodeModelUtils() {
     }
@@ -160,7 +160,6 @@ public final class CodeModelUtils {
         definedClass.hide();
         // clone type parameters
         final List<? extends TypeParameterElement> typeParameters = element.getTypeParameters();
-        System.out.println("" + element + " has " + typeParameters.size() + " params: " + typeParameters);
         for (TypeParameterElement typeParameter : typeParameters) {
             final String paramName = typeParameter.getSimpleName().toString();
             final List<? extends TypeMirror> bounds = typeParameter.getBounds();

@@ -11,4 +11,11 @@
     </parent>
 
     <artifactId>jboss-mgmt-api</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jboss.msc</groupId>
+            <artifactId>jboss-msc2</artifactId>
+        </dependency>
+    </dependencies>
 </project>

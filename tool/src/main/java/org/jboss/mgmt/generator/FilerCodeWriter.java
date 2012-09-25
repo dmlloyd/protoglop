@@ -38,7 +38,7 @@ import javax.tools.StandardLocation;
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public class FilerCodeWriter extends CodeWriter {
+class FilerCodeWriter extends CodeWriter {
 
     private final Filer filer;
 

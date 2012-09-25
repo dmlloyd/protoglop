@@ -30,7 +30,7 @@ import javax.lang.model.type.DeclaredType;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class AttributeGroupBuilderImpl<P> implements AttributeGroupBuilder<P> {
+final class AttributeGroupBuilderImpl<P> implements AttributeGroupBuilder<P> {
     private final P parent;
     private final String name;
     private final DeclaredType type;

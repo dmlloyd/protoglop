@@ -24,13 +24,19 @@ package example1;
 
 import org.jboss.mgmt.annotation.AttributeGroup;
 import org.jboss.mgmt.annotation.RootResource;
-import org.jboss.mgmt.annotation.xml.XmlName;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-@RootResource(type = "model", kind = RootResource.Kind.SYSTEM, name = "standalone", version = "1.0", namespace = "jboss")
-@XmlName("standalone")
+@RootResource(
+    name = "server",
+    type = "top",
+    namespace = "jboss",
+    version = "8.0",
+    kind = RootResource.Kind.SYSTEM,
+    schemaLocation = "http://www.jboss.org/schema/jbossas/jboss_8_0.xsd",
+    compatibilityNamespaces = { "urn:jboss:domain:1.0" }
+)
 public interface StandaloneServerResource extends ServerResource {
 
     @AttributeGroup
