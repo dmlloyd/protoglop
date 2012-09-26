@@ -22,8 +22,9 @@
 
 package org.jboss.mgmt.generator;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -40,8 +41,11 @@ import org.jboss.mgmt.annotation.Attribute;
 import org.jboss.mgmt.annotation.AttributeGroup;
 import org.jboss.mgmt.annotation.AttributeType;
 import org.jboss.mgmt.annotation.Enumerated;
+import org.jboss.mgmt.annotation.Provides;
 import org.jboss.mgmt.annotation.Reference;
 import org.jboss.mgmt.annotation.Required;
+import org.jboss.mgmt.annotation.RootResource;
+import org.jboss.mgmt.annotation.Schema;
 import org.jboss.mgmt.annotation.xml.XmlName;
 import org.jboss.mgmt.annotation.xml.XmlRender;
 import org.jboss.mgmt.annotation.xml.XmlTypeName;
@@ -50,6 +54,7 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
@@ -70,6 +75,7 @@ import static org.jboss.mgmt.generator.AnnotationUtils.getAnnotationValue;
 import static org.jboss.mgmt.generator.AnnotationUtils.getAnnotationValueEnumConst;
 import static org.jboss.mgmt.generator.AnnotationUtils.getAnnotationValueString;
 import static org.jboss.mgmt.generator.AnnotationUtils.stringArrayValue;
+import static org.jboss.mgmt.generator.GeneratorUtils.buildNamespace;
 import static org.jboss.mgmt.generator.GeneratorUtils.constify;
 import static org.jboss.mgmt.generator.GeneratorUtils.def;
 import static org.jboss.mgmt.generator.GeneratorUtils.fieldify;
@@ -86,6 +92,9 @@ final class ProcessingContext {
 
     private final Map<TypeElement, AttributeTypeInfo> attributeTypeInfoMap = new IdentityHashMap<TypeElement, AttributeTypeInfo>();
     private final Map<TypeElement, AttributeGroupInfo> attributeGroupInfoMap = new IdentityHashMap<TypeElement, AttributeGroupInfo>();
+    private final Map<TypeElement, NewSchemaInfo> schemaInfoMap = new IdentityHashMap<TypeElement, NewSchemaInfo>();
+    private final Map<TypeElement, RootResourceInfo> rootResourceInfoMap = new IdentityHashMap<TypeElement, RootResourceInfo>();
+
     private final Set<TypeElement> inFlightAttributeTypes = Collections.newSetFromMap(new IdentityHashMap<TypeElement, Boolean>());
     private final Set<TypeElement> inFlightAttributeGroups = Collections.newSetFromMap(new IdentityHashMap<TypeElement, Boolean>());
 
@@ -94,7 +103,113 @@ final class ProcessingContext {
         this.roundEnv = roundEnv;
     }
 
-    AttributeValueInfo processAttributeValue(String name, ExecutableElement declaringElement) {
+    public NewSchemaInfo processSchema(final TypeElement schemaElement) {
+        if (schemaInfoMap.containsKey(schemaElement)) {
+            return schemaInfoMap.get(schemaElement); // may be {@code null}
+        }
+        final NewSchemaInfo info;
+        schemaInfoMap.put(schemaElement, info = processNewSchema(schemaElement));
+        return info;
+    }
+
+    private NewSchemaInfo processNewSchema(final TypeElement schemaAnnotation) {
+        final Messager messager = env.getMessager();
+
+        if (schemaAnnotation.getKind() != ElementKind.ANNOTATION_TYPE) {
+            messager.printMessage(ERROR, "@Schema may only be applied to an annotation type");
+            return null;
+        }
+
+        final Schema schema = schemaAnnotation.getAnnotation(Schema.class);
+        final String[] namespaces = schema.compatibilityNamespaces();
+        final Schema.Kind kind = schema.kind();
+        final String namespace = schema.namespace();
+        final String schemaLocation = schema.schemaLocation();
+        final String schemaVersion = schema.version();
+        final String xmlNamespace = buildNamespace(kind, namespace, schemaVersion);
+        final URI schemaLocationUri;
+        try {
+            schemaLocationUri = new URI(schemaLocation);
+        } catch (URISyntaxException e) {
+            messager.printMessage(ERROR, "Namespace schema location '" + schemaLocation + "' is not valid for " + xmlNamespace);
+            return null;
+        }
+        final String schemaLocationPath = schemaLocationUri.getPath();
+        if (schemaLocationPath == null) {
+            messager.printMessage(ERROR, "Namespace schema location '" + schemaLocation + "' does not have a path component for " + xmlNamespace);
+            return null;
+        }
+        final String schemaLocationFileName = schemaLocationPath.substring(schemaLocationPath.lastIndexOf('/') + 1);
+        if (! schemaLocationFileName.endsWith(".xsd")) {
+            messager.printMessage(WARNING, "Namespace schema location '" + schemaLocation + "' should specify a file name ending in \".xsd\"");
+        }
+        final ArrayList<RootResourceInfo> resourceList = new ArrayList<RootResourceInfo>();
+
+        for (Element element : roundEnv.getElementsAnnotatedWith(schemaAnnotation)) {
+            if (element.getKind() != ElementKind.INTERFACE && ! (element instanceof TypeElement)) {
+                messager.printMessage(ERROR, "Annotation for schema (" + schemaAnnotation + ") may only be applied to interfaces");
+                continue;
+            }
+            final TypeElement typeElement = (TypeElement) element;
+            if (element.getAnnotation(RootResource.class) != null) {
+                RootResourceInfo info = processRootResource(typeElement);
+                if (info != null) resourceList.add(info);
+            } else {
+                messager.printMessage(WARNING, "Ignoring " + schemaAnnotation + " annotation on interface " + typeElement.getQualifiedName(), typeElement);
+            }
+        }
+
+        final RootResourceInfo[] rootResources = resourceList.toArray(new RootResourceInfo[resourceList.size()]);
+        return new NewSchemaInfo(schemaVersion, namespace, kind, schemaLocation, schemaLocationFileName, namespaces, rootResources);
+    }
+
+    public RootResourceInfo processRootResource(TypeElement resourceInterface) {
+        if (rootResourceInfoMap.containsKey(resourceInterface)) {
+            return rootResourceInfoMap.get(resourceInterface); // may be {@code null}
+        }
+        RootResourceInfo info;
+        rootResourceInfoMap.put(resourceInterface, info = processNewRootResource(resourceInterface));
+        return info;
+    }
+
+    private RootResourceInfo processNewRootResource(final TypeElement resourceInterface) {
+        RootResource rootResource = resourceInterface.getAnnotation(RootResource.class);
+        final String simpleName = resourceInterface.getSimpleName().toString();
+        final String name = rootResource.name().isEmpty() ? xmlify(simpleName) : rootResource.name();
+        final String type = rootResource.type();
+        final Provides provides = resourceInterface.getAnnotation(Provides.class);
+        final XmlName xmlName = resourceInterface.getAnnotation(XmlName.class);
+        final ResourceInfo resourceInfo = processResource(resourceInterface);
+        if (resourceInfo == null) {
+            return null;
+        }
+        return new RootResourceInfo(name, type, provides == null ? new String[0] : provides.value(), xmlName == null ? name : xmlName.value(), resourceInfo);
+    }
+
+    public ResourceInfo processResource(final TypeElement resourceInterface) {
+        final List<ResourceMember> members = new ArrayList<ResourceMember>();
+        for (Element element : resourceInterface.getEnclosedElements()) {
+            if (element.getKind() == ElementKind.METHOD) {
+                ExecutableElement executableElement = (ExecutableElement) element;
+                if (element.getAnnotation(Attribute.class) != null) {
+                    final AttributeInfo attributeInfo = processAttribute(executableElement);
+                    if (attributeInfo != null) {
+                        members.add(attributeInfo);
+                    }
+                } else if (element.getAnnotation(AttributeGroup.class) != null) {
+                    final AttributeGroupInfo groupInfo = processAttributeGroup(executableElement.getReturnType());
+                    if (groupInfo != null) {
+                        members.add(groupInfo);
+                    }
+                } else {
+                    env.getMessager().printMessage(ERROR, "Unknown member on resource", executableElement);
+                }
+            }
+        }
+        return new ResourceInfo(resourceInterface, members.toArray(new ResourceMember[members.size()]));
+    }
+
+    public AttributeValueInfo processAttributeValue(String name, ExecutableElement declaringElement) {
         final Messager messager = getEnv().getMessager();
         final TypeMirror type = declaringElement.getReturnType();
 
@@ -165,7 +280,7 @@ final class ProcessingContext {
         }
 
         if (declaringElement.getAnnotation(AttributeGroup.class) != null) {
-            final AttributeGroupInfo attributeGroupInfo = getAttributeGroupInfo(type);
+            final AttributeGroupInfo attributeGroupInfo = processAttributeGroup(type);
             if (attributeGroupInfo == null) {
                 return null;
             }
@@ -174,7 +289,7 @@ final class ProcessingContext {
 
         // have to check the return type for @AttributeType
         if (type instanceof DeclaredType && ((DeclaredType)type).asElement().getAnnotation(AttributeType.class) != null) {
-            final AttributeTypeInfo attributeTypeInfo = getAttributeTypeInfo(type);
+            final AttributeTypeInfo attributeTypeInfo = processAttributeType(type);
             if (attributeTypeInfo == null) {
                 return null;
             }
@@ -232,16 +347,17 @@ final class ProcessingContext {
         }
     }
 
-    AttributeGroupInfo getAttributeGroupInfo(TypeMirror typeMirror) {
+    public AttributeGroupInfo processAttributeGroup(TypeMirror typeMirror) {
         final TypeElement element = (TypeElement) ((DeclaredType) typeMirror).asElement();
-        AttributeGroupInfo info = attributeGroupInfoMap.get(element);
-        if (info == null) {
-            info = processAttributeGroup(element);
+        if (attributeGroupInfoMap.containsKey(element)) {
+            return attributeGroupInfoMap.get(element); // may be {@code null}
         }
+        AttributeGroupInfo info;
+        attributeGroupInfoMap.put(element, info = processNewAttributeGroup(element));
         return info;
     }
 
-    AttributeGroupInfo processAttributeGroup(final TypeElement typeElement) {
+    private AttributeGroupInfo processNewAttributeGroup(final TypeElement typeElement) {
         final ProcessingEnvironment env = getEnv();
         final Messager messager = env.getMessager();
         if (! startAttributeGroup(typeElement)) {
@@ -276,7 +392,7 @@ final class ProcessingContext {
         }
     }
 
-    AttributeInfo processAttribute(ExecutableElement executableElement) {
+    public AttributeInfo processAttribute(ExecutableElement executableElement) {
         final String getterName = executableElement.getSimpleName().toString();
 
         String name;
@@ -315,7 +431,17 @@ final class ProcessingContext {
         return new AttributeInfo(executableElement, name, valueInfo);
     }
 
-    AttributeTypeInfo processAttributeType(TypeElement typeElement) {
+    public AttributeTypeInfo processAttributeType(final TypeMirror type) {
+        final TypeElement element = (TypeElement) ((DeclaredType) type).asElement();
+        if (attributeTypeInfoMap.containsKey(element)) {
+            return attributeTypeInfoMap.get(element); // may be {@code null}
+        }
+        AttributeTypeInfo info;
+        attributeTypeInfoMap.put(element, info = processNewAttributeType(element));
+        return info;
+    }
+
+    private AttributeTypeInfo processNewAttributeType(TypeElement typeElement) {
         final ProcessingEnvironment env = getEnv();
         final Messager messager = env.getMessager();
         if (! startAttributeType(typeElement)) {
@@ -432,14 +558,5 @@ final class ProcessingContext {
 
     TypeMirror getType(final Class<?> clazz) {
         return env.getElementUtils().getTypeElement(clazz.getName()).asType();
-    }
-
-    public AttributeTypeInfo getAttributeTypeInfo(final TypeMirror type) {
-        final TypeElement element = (TypeElement) ((DeclaredType) type).asElement();
-        AttributeTypeInfo info = attributeTypeInfoMap.get(element);
-        if (info == null) {
-            info = processAttributeType(element);
-        }
-        return info;
     }
 }

@@ -26,9 +26,5 @@ package org.jboss.mgmt;
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public interface AttributeValidator<R, T> {
-    void validate(R resource, String attributeName, T previousValue, T newValue, Context validatorContext);
-
-    interface Context {
-        void reportProblem(String problem);
-    }
+    void validate(R resource, String attributeName, T previousValue, T newValue, ValidationContext validatorContext);
 }

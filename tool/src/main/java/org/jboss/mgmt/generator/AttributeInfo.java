@@ -27,7 +27,7 @@ import javax.lang.model.element.ExecutableElement;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class AttributeInfo {
+final class AttributeInfo implements ResourceMember {
 
     private final ExecutableElement executableElement;
     private final String name;

@@ -25,25 +25,38 @@ package org.jboss.mgmt.generator;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class SubResourceBuilderImpl<P> extends GeneralResourceBuilderImpl<SubResourceBuilderImpl<P>> implements SubResourceBuilder<P> {
-    private final P parent;
-    private boolean requiresUniqueProvider;
+final class RootResourceInfo {
+    private final String name;
+    private final String type;
+    private final String[] provides;
+    private final String xmlName;
+    private final ResourceInfo resourceInfo;
 
-    SubResourceBuilderImpl(final P parent, final String type, final boolean named) {
-        super(type, null);
-        this.parent = parent;
+    RootResourceInfo(final String name, final String type, final String[] provides, final String xmlName, final ResourceInfo resourceInfo) {
+        this.name = name;
+        this.type = type;
+        this.provides = provides;
+        this.xmlName = xmlName;
+        this.resourceInfo = resourceInfo;
     }
 
-    public P end() {
-        return parent;
+    public String getName() {
+        return name;
     }
 
-    public SubResourceBuilder<P> requiresUniqueProvider(final boolean required) {
-        requiresUniqueProvider = required;
-        return _this();
+    public String getType() {
+        return type;
     }
 
-    boolean isRequiresUniqueProvider() {
-        return requiresUniqueProvider;
+    public String[] getProvides() {
+        return provides;
+    }
+
+    public String getXmlName() {
+        return xmlName;
+    }
+
+    public ResourceInfo getResourceInfo() {
+        return resourceInfo;
     }
 }

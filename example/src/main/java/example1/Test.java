@@ -28,13 +28,5 @@ package example1;
 public final class Test {
 
     public static void main(String[] args) {
-        DomainBuilder<Void> foo = new DomainBuilderImpl<Void>(null);
-        foo.properties()
-                .put("foo", "bar")
-                .put("bar", "baz")
-                .end()
-            .properties()
-                .end()
-            .end();
     }
 }

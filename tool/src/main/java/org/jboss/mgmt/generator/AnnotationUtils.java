@@ -101,11 +101,12 @@ final class AnnotationUtils {
 
     public static String enumNameValue(AnnotationValue value) {
         final VariableElement element = enumValue(value);
-        return element.getSimpleName().toString();
+        return element == null ? null : element.getSimpleName().toString();
     }
 
     public static <E extends Enum<E>> E enumConstValue(Class<E> type, AnnotationValue value) {
-        return Enum.valueOf(type, enumNameValue(value));
+        final String name = enumNameValue(value);
+        return name == null ? null : Enum.valueOf(type, name);
     }
 
     public static boolean booleanValue(AnnotationValue value, boolean defVal) {

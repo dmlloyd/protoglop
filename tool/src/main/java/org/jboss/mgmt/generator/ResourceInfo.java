@@ -22,45 +22,26 @@
 
 package org.jboss.mgmt.generator;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.lang.model.type.DeclaredType;
+import javax.lang.model.element.TypeElement;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class AttributeGroupBuilderImpl<P> implements AttributeGroupBuilder<P> {
-    private final P parent;
-    private final String name;
-    private final DeclaredType type;
-    private final List<AttributeBuilderImpl<?>> attributes = new ArrayList<AttributeBuilderImpl<?>>();
+final class ResourceInfo {
 
-    public AttributeGroupBuilderImpl(final P parent, final String name, final DeclaredType type) {
-        this.parent = parent;
-        this.name = name;
-        this.type = type;
+    private final TypeElement typeElement;
+    private final ResourceMember[] resourceMembers;
+
+    ResourceInfo(final TypeElement typeElement, final ResourceMember[] resourceMembers) {
+        this.typeElement = typeElement;
+        this.resourceMembers = resourceMembers;
     }
 
-    public AttributeBuilder<AttributeGroupBuilder<P>> attribute(final String name) {
-        final AttributeBuilderImpl<AttributeGroupBuilder<P>> attr = new AttributeBuilderImpl<AttributeGroupBuilder<P>>(this, name);
-        attributes.add(attr);
-        return attr;
+    public TypeElement getTypeElement() {
+        return typeElement;
     }
 
-    public P end() {
-        return parent;
-    }
-
-    String getName() {
-        return name;
-    }
-
-    DeclaredType getType() {
-        return type;
-    }
-
-    List<AttributeBuilderImpl<?>> getAttributes() {
-        return attributes;
+    public ResourceMember[] getResourceMembers() {
+        return resourceMembers;
     }
 }

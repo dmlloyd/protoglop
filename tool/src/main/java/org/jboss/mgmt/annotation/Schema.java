@@ -52,7 +52,7 @@ public @interface Schema {
     String namespace();
 
     /**
-     * The kind of root.  This affects generation of the XML namespace.
+     * The kind of root.  This affects generation of the XML namespace and XML and DMR parsers.
      *
      * @return the kind of root
      */
@@ -72,14 +72,7 @@ public @interface Schema {
      */
     String[] compatibilityNamespaces() default {};
 
-    /**
-     * A list of attribute type classes to import into this schema.
-     *
-     * @return the list of attribute types
-     */
-    Class<?>[] importAttributeTypes() default {};
-
-    enum Kind { // todo - centralize this
+    enum Kind {
         SYSTEM,
         EXTENSION,
     }

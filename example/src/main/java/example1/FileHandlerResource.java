@@ -31,7 +31,7 @@ import org.jboss.mgmt.annotation.xml.XmlName;
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @XmlName("file-handler")
-@Listener(value = FileHandlerListener.class, modes = { RuntimeMode.SERVER })
+@Listener(value = FileHandlerListener.class)
 public interface FileHandlerResource extends HandlerResource {
 
     @Attribute

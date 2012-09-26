@@ -20,29 +20,11 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt;
-
-import java.util.ArrayList;
-import java.util.List;
+package org.jboss.mgmt.generator;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class ExceptionThrowingValidationContext implements ValidationContext {
-    private final List<String> problems = new ArrayList<String>(0);
+interface ResourceMember {
 
-    public void reportProblem(final String problem) {
-        problems.add(problem);
-    }
-
-    public void throwProblems() throws IllegalArgumentException {
-        if (problems.isEmpty()) {
-            return;
-        }
-        final StringBuilder msg = new StringBuilder("Validation failed for the following reason(s):");
-        for (String problem : problems) {
-            msg.append("\n    ").append(problem);
-        }
-        throw new IllegalArgumentException(msg.toString());
-    }
 }

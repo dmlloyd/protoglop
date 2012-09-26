@@ -24,6 +24,7 @@ package example1;
 
 import org.jboss.mgmt.AttributeValidator;
 import org.jboss.mgmt.Resource;
+import org.jboss.mgmt.ValidationContext;
 import org.jboss.mgmt.annotation.Attribute;
 import org.jboss.mgmt.annotation.AttributeType;
 import org.jboss.mgmt.annotation.Reference;
@@ -33,7 +34,6 @@ import org.jboss.mgmt.annotation.Required;
 * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
 */
 @AttributeType(validators = FileReference.Validator.class)
-@JBoss_8_0
 public interface FileReference {
     @Attribute(name = "file-name")
     String getFileName();
@@ -47,7 +47,7 @@ public interface FileReference {
     class Validator implements AttributeValidator<Resource, FileReference> {
         public static final Validator INSTANCE = new Validator();
 
-        public void validate(final Resource resource, final String attributeName, final FileReference previousValue, final FileReference newValue, final Context validatorContext) {
+        public void validate(final Resource resource, final String attributeName, final FileReference previousValue, final FileReference newValue, final ValidationContext validatorContext) {
             final String fileName = newValue.getFileName();
             final String relativeToName = newValue.getRelativeToName();
             if (fileName.startsWith("/") && ! relativeToName.isEmpty()) {

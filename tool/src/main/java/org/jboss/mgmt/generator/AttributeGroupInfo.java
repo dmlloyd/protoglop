@@ -27,7 +27,7 @@ import javax.lang.model.element.TypeElement;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class AttributeGroupInfo {
+final class AttributeGroupInfo implements ResourceMember {
 
     private final TypeElement typeElement;
 

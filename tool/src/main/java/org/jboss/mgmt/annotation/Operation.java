@@ -20,36 +20,21 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.generator;
+package org.jboss.mgmt.annotation;
 
-import org.jboss.mgmt.annotation.Access;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-import com.sun.codemodel.ClassType;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JDocComment;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JTypeVar;
-
-import javax.annotation.processing.Messager;
-
-import static com.sun.codemodel.ClassType.*;
-import static com.sun.codemodel.JMod.*;
-import static javax.tools.Diagnostic.Kind.*;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
+ * Define an operation payload hierarchy.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class ResourceBuilderInterfaceGenerator extends AbstractClassGenerator {
-    private final GeneralResourceBuilderImpl<?> resourceBuilder;
-
-    public ResourceBuilderInterfaceGenerator(final JCodeModel codeModel, final Messager messager, final String className, final String packageName, final GeneralResourceBuilderImpl builder) {
-        super(codeModel, messager, className, packageName, INTERFACE, PUBLIC);
-        resourceBuilder = builder;
-    }
-
-    protected void populate(final JDefinedClass builderInterface) {
-        final JCodeModel codeModel = getCodeModel();
-
-    }
+@Retention(CLASS)
+@Target(TYPE)
+public @interface Operation {
+    String name();
 }

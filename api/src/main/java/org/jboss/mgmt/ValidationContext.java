@@ -20,30 +20,11 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.generator;
-
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.RoundEnvironment;
+package org.jboss.mgmt;
 
 /**
- * The big generator.
- *
- * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
- */
-public final class SessionFactory {
-
-    private SessionFactory() {
-    }
-
-    /**
-     * Start a session.
-     *
-     *
-     * @param env the environment
-     * @param roundEnv
-     * @return the session
-     */
-    public static Session openSession(final ProcessingEnvironment env, final RoundEnvironment roundEnv) {
-        return new SessionImpl(env, roundEnv);
-    }
+* @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
+*/
+public interface ValidationContext {
+    void reportProblem(String problem);
 }

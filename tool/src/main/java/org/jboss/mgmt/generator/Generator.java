@@ -100,7 +100,7 @@ import static javax.tools.Diagnostic.Kind.WARNING;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class Generator {
+final class Generator {/*
     private static final String XSD = "http://www.w3.org/2001/XMLSchema";
     private static final String GENERATOR_VERSION = "1.0";
 
@@ -576,7 +576,7 @@ final class Generator {
                                 valueType = attributeJClass.getTypeParameters().get(1);
                             }
 
-                            if (true /* todo detect value type */) {
+                            if (true) {
 
                                 // value is a simple type
 
@@ -685,9 +685,6 @@ final class Generator {
         return test == null ? def : test;
     }
 
-    /*
-      AFunnyXMLKindAThing -> a-funny-xml-kind-a-thing
-     */
     private static String xmlify(String camelHumpsName) {
         final int length = camelHumpsName.length();
         final StringBuilder builder = new StringBuilder(length + length >> 1);
@@ -717,13 +714,6 @@ final class Generator {
         }
     }
 
-    /*
-      BLAFunnyJavaKindAThing -> blaFunnyJavaKindAThing
-      FOO -> foo
-      Foo -> foo
-      foo -> foo
-      FOOBar -> fooBar
-     */
     private static String fieldify(String camelHumpsName) {
         final int length = camelHumpsName.length();
         final StringBuilder builder = new StringBuilder(length);
@@ -773,5 +763,5 @@ final class Generator {
         annotation.appendChild(documentationElement);
         documentationElement.appendChild(documentation);
     }
-
+*/
 }
