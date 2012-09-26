@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
+ * Copyright 2012, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,35 +20,22 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation;
+package org.jboss.mgmt.generator;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import org.jboss.mgmt.Resource;
-
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import com.sun.codemodel.JCodeModel;
 
 /**
- * A named reference to an external resource.
- *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-@Retention(SOURCE)
-@Target(METHOD)
-public @interface Reference {
+final class GeneratorContext {
 
-    /**
-     * The type of resource being referred to.
-     *
-     * @return the type of resource
-     */
-    Class<? extends Resource> resourceType();
+    private final JCodeModel codeModel;
 
-    /**
-     * Trigger a refresh of the attribute if the referenced resource changes.
-     *
-     * @return the monitor setting
-     */
-    boolean monitor() default false;
+    GeneratorContext(final JCodeModel model) {
+        codeModel = model;
+    }
+
+    public JCodeModel getCodeModel() {
+        return codeModel;
+    }
 }

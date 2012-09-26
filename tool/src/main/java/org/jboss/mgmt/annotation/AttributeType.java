@@ -24,17 +24,25 @@ package org.jboss.mgmt.annotation;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import org.jboss.mgmt.AttributeValidator;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Declare a class to be an attribute type.  Attribute types are read and written as one attribute.
+ * Declare a class to be an attribute type.  Attribute types are read and written as one attribute.  All methods
+ * of an attribute type are considered to be attributes, thus {@link Attribute @Attribute} is optional on methods
+ * of an attribute type.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @Retention(CLASS)
 @Target(TYPE)
 public @interface AttributeType {
-
+    /**
+     * Get the validators associated with this attribute type.
+     *
+     * @return the validators
+     */
+    Class<? extends AttributeValidator>[] validators() default {};
 }

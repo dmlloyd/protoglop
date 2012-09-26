@@ -31,11 +31,11 @@ import static java.lang.Math.min;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class ModelUtils {
+public final class VersionUtils {
 
     private static final Pattern VERSION_PATTERN = Pattern.compile("\\d+(?:\\.\\d+)*");
 
-    private ModelUtils() {
+    private VersionUtils() {
     }
 
     /**

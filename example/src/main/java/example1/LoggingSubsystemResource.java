@@ -32,18 +32,16 @@ import org.jboss.mgmt.annotation.xml.XmlName;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
+@CoreLogging_1_0
 @Provides("logging")
+@XmlName("subsystem")
 @RootResource(
     type = "subsystem",
-    name = "logging",
-    namespace = "core.logging",
-    schemaLocation = "http://www.jboss.org/schema/jbossas/jboss-core-logging_8_0.xsd",
-    version = "8.0"
+    name = "logging"
 )
-@XmlName("subsystem")
 public interface LoggingSubsystemResource extends Resource {
 
-    @SubResource(children = { FileHandlerResource.class })
+    @SubResource(children = { FileHandlerResource.class }, type = "core.logging.handler")
     List<String> getHandlerNames();
 
     HandlerResource getHandler(String name);

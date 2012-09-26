@@ -32,6 +32,7 @@ import static org.jboss.mgmt.annotation.xml.XmlRender.As.ELEMENT;
  */
 @AttributeType
 @XmlRender(as = ELEMENT)
+@JBoss_8_0
 public interface BootTimePropertyType extends PropertyType {
     String getName();
 

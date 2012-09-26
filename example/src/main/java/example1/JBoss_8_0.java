@@ -20,16 +20,28 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.generator;
+package example1;
 
-import org.jboss.mgmt.NestedBuilder;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import org.jboss.mgmt.annotation.Schema;
+
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
+ * The JBoss 8.0 schema meta-annotation.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface AttributeGroupBuilder<P> extends NestedBuilder<P> {
-
-    AttributeBuilder<AttributeGroupBuilder<P>> attribute(String name);
-
-    P end();
+@Schema(
+        schemaLocation = "http://www.jboss.org/schema/jbossas/jboss_8_0.xsd",
+        compatibilityNamespaces = { "urn:jboss:domain:1.0" },
+        kind = Schema.Kind.SYSTEM,
+        namespace = "jboss",
+        version = "8.0"
+)
+@Retention(SOURCE)
+@Target(TYPE)
+public @interface JBoss_8_0 {
 }

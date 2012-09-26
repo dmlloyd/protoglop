@@ -56,6 +56,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${version.compiler.plugin}</version>
                 <configuration>
+                    <fork>false</fork>
+                    <showWarnings>true</showWarnings>
                     <compilerArguments>
                         <!--<XprintRounds />-->
                         <!--<XprintProcessorInfo/>-->
@@ -80,6 +82,11 @@
                 <groupId>org.jboss.msc</groupId>
                 <artifactId>jboss-msc2</artifactId>
                 <version>2.0.0.Beta1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss</groupId>
+                <artifactId>jboss-dmr</artifactId>
+                <version>1.1.1.Final</version>
             </dependency>
             <dependency>
                 <groupId>xom</groupId>

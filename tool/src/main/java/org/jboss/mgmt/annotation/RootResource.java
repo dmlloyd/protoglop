@@ -48,45 +48,4 @@ public @interface RootResource {
      * @return the name
      */
     String name() default "";
-
-    /**
-     * The model version.
-     *
-     * @return the model version
-     */
-    String version();
-
-    /**
-     * The kind of root.  This affects generation of the XML namespace.
-     *
-     * @return the kind of root
-     */
-    Kind kind() default Kind.EXTENSION;
-
-    /**
-     * The base namespace, e.g. "core.logging".  Namespaces starting with "core" and "jboss" are reserved
-     * for use by JBoss.
-     *
-     * @return the namespace
-     */
-    String namespace();
-
-    /**
-     * The schema location.  This URL string will be used to determine the target filename of the generated schema.
-     *
-     * @return the URL
-     */
-    String schemaLocation();
-
-    /**
-     * Compatibility namespaces that should also be recognized (but not generated).
-     *
-     * @return the namespaces
-     */
-    String[] compatibilityNamespaces() default {};
-
-    enum Kind {
-        SYSTEM,
-        EXTENSION,
-    }
 }

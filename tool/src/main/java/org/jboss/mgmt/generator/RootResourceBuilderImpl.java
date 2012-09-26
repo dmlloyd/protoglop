@@ -22,7 +22,7 @@
 
 package org.jboss.mgmt.generator;
 
-import org.jboss.mgmt.annotation.RootResource;
+import org.jboss.mgmt.annotation.Schema;
 
 import javax.lang.model.type.DeclaredType;
 
@@ -34,7 +34,7 @@ final class RootResourceBuilderImpl extends GeneralResourceBuilderImpl<RootResou
     private String namespace;
     private String version = "1.0";
     private String schemaLocation;
-    private RootResource.Kind kind = RootResource.Kind.EXTENSION;
+    private Schema.Kind kind = Schema.Kind.EXTENSION;
 
     RootResourceBuilderImpl(final Session session, final String type, final DeclaredType resourceInterface) {
         super(type, resourceInterface);
@@ -51,7 +51,7 @@ final class RootResourceBuilderImpl extends GeneralResourceBuilderImpl<RootResou
         return this;
     }
 
-    public RootResourceBuilder kind(final RootResource.Kind kind) {
+    public RootResourceBuilder kind(final Schema.Kind kind) {
         this.kind = kind;
         return this;
     }
@@ -77,7 +77,7 @@ final class RootResourceBuilderImpl extends GeneralResourceBuilderImpl<RootResou
         return schemaLocation;
     }
 
-    RootResource.Kind getKind() {
+    Schema.Kind getKind() {
         return kind;
     }
 }

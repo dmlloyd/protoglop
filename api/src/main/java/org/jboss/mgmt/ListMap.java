@@ -20,19 +20,25 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.generator;
+package org.jboss.mgmt;
 
-import javax.lang.model.type.DeclaredType;
+import java.util.AbstractMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface Session {
-    RootResourceBuilder rootResource(String type, DeclaredType resourceInterface, String version);
+final class ListMap<K, V> extends AbstractMap<K, V> implements Map<K, V> {
+    private final List<org.jboss.mgmt.Entry<K, V>> list;
 
-    AttributeTypeBuilder attributeType(DeclaredType attributeInterface);
+    ListMap(final List<org.jboss.mgmt.Entry<K, V>> list) {
+        this.list = list;
+    }
 
-    Session addXmlNamespace(String xmlns, String version, String schemaLocation);
-
-    Session generateSource();
+    @SuppressWarnings("unchecked")
+    public Set<Entry<K, V>> entrySet() {
+        return new ListSet<Entry<K, V>>((List<Entry<K, V>>) (List) list);
+    }
 }

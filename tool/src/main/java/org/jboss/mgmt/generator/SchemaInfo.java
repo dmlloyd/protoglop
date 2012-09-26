@@ -22,30 +22,45 @@
 
 package org.jboss.mgmt.generator;
 
-import org.jboss.mgmt.annotation.RuntimeMode;
-
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.DeclaredType;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import nu.xom.Element;
+import org.jboss.mgmt.annotation.Schema;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface GeneralResourceBuilder {
-    AttributeBuilder<? extends GeneralResourceBuilder> attribute(String name);
+final class SchemaInfo {
+    private final Map<String, Element> typeDecls = new TreeMap<String, Element>();
+    private final Map<String, Element> rootElementDecls = new TreeMap<String, Element>();
+    private final Set<String> altXmlNamespaces = new HashSet<String>();
+    private final Schema schema;
+    private final String xmlNamespace;
 
-    AttributeGroupBuilder<? extends GeneralResourceBuilder> attributeGroup(String name, DeclaredType type);
+    SchemaInfo(final Schema schema) {
+        this.schema = schema;
+        xmlNamespace = GeneratorUtils.buildNamespace(schema.kind(), schema.namespace(), schema.version());
+    }
 
-    GeneralResourceBuilder type(String typeName);
+    public Map<String, Element> getTypeDecls() {
+        return typeDecls;
+    }
 
-    GeneralResourceBuilder description(String description);
+    public Map<String, Element> getRootElementDecls() {
+        return rootElementDecls;
+    }
 
-    GeneralResourceBuilder operationHook(String opName, String version, ExecutableElement method);
+    public Set<String> getAltXmlNamespaces() {
+        return altXmlNamespaces;
+    }
 
-    GeneralResourceBuilder listener(DeclaredType listener, RuntimeMode... modes);
+    public Schema getSchema() {
+        return schema;
+    }
 
-    GeneralResourceBuilder provides(String token);
-
-    GeneralResourceBuilder subResource(String name, boolean named);
-
-    GeneralResourceBuilder xmlName(String name);
+    public String getXmlNamespace() {
+        return xmlNamespace;
+    }
 }

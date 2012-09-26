@@ -51,8 +51,6 @@ public @interface Attribute {
 
     Class<? extends VirtualAttribute> virtual() default VirtualAttribute.class;
 
-    boolean required() default true;
-
     String defaultValue() default "";
 
     Class<? extends AttributeValidator>[] validators() default {};

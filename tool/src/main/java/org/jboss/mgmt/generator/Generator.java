@@ -49,6 +49,7 @@ import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.VirtualAttribute;
 import org.jboss.mgmt.annotation.Access;
 import org.jboss.mgmt.annotation.RootResource;
+import org.jboss.mgmt.annotation.Schema;
 import org.jboss.mgmt.annotation.xml.XmlRender;
 import org.jboss.mgmt.ResourceNode;
 
@@ -121,7 +122,7 @@ final class Generator {
         final Map<String, Element> rootElementDecls = new TreeMap<String, Element>();
         final Set<String> altXmlNamespaces = new HashSet<String>();
         String schemaLocation;
-        RootResource.Kind resourceNamespaceKind = RootResource.Kind.EXTENSION;
+        Schema.Kind resourceNamespaceKind = Schema.Kind.EXTENSION;
         String version;
         String namespace; // just the module part
     }
@@ -153,7 +154,7 @@ final class Generator {
             final String version = def(resource.getVersion(), "1.0");
             final String namespace = def(resource.getNamespace(), "unspecified");
             final String schemaLocation = resource.getSchemaLocation();
-            final RootResource.Kind resourceNamespaceKind = def(resource.getKind(), RootResource.Kind.EXTENSION);
+            final Schema.Kind resourceNamespaceKind = def(resource.getKind(), Schema.Kind.EXTENSION);
             final String xmlNamespace = buildNamespace(resourceNamespaceKind, namespace, version);
 
             final DocInfo docInfo;
@@ -166,7 +167,7 @@ final class Generator {
                 namespaceSchemas.put(xmlNamespace, docInfo);
             } else {
                 docInfo = namespaceSchemas.get(xmlNamespace);
-                if (! schemaLocation.equals(docInfo.schemaLocation)) {
+                if (false && ! schemaLocation.equals(docInfo.schemaLocation)) {
                     messager.printMessage(WARNING, "Namespace '" + xmlNamespace + "' declared with conflicting schema locations");
                 }
             }
@@ -191,15 +192,11 @@ final class Generator {
             schemaElement.addAttribute(new Attribute("elementFormDefault", "qualified"));
             schemaElement.addAttribute(new Attribute("attributeFormDefault", "unqualified"));
 
-            schemaElement.appendChild("\n");
-            schemaElement.appendChild(new Comment("Root elements"));
-            schemaElement.appendChild("\n");
+            schemaElement.appendChild(new Comment("\nRoot elements\n"));
             for (Map.Entry<String, Element> elementEntry : docInfo.rootElementDecls.entrySet()) {
                 schemaElement.appendChild(elementEntry.getValue());
             }
-            schemaElement.appendChild("\n");
-            schemaElement.appendChild(new Comment("Element types"));
-            schemaElement.appendChild("\n");
+            schemaElement.appendChild(new Comment("\nElement types\n"));
             for (Map.Entry<String, Element> elementEntry : docInfo.typeDecls.entrySet()) {
                 schemaElement.appendChild(elementEntry.getValue());
             }
@@ -229,7 +226,7 @@ final class Generator {
                 try {
                     stream = filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "META-INF/" + fileName).openOutputStream();
                     try {
-                        serializer = new Serializer(stream);
+                        serializer = new NiceSerializer(stream);
                         serializer.setIndent(4);
                         serializer.setLineSeparator("\n");
                         serializer.write(document);
@@ -251,6 +248,18 @@ final class Generator {
             codeModel.build(new FilerCodeWriter(filer));
         } catch (IOException e) {
             messager.printMessage(ERROR, "Failed to write source files: " + e);
+        }
+    }
+
+    static class NiceSerializer extends Serializer {
+
+        public NiceSerializer(OutputStream out) {
+            super(out);
+        }
+
+        protected void writeXMLDeclaration() throws IOException {
+            super.writeXMLDeclaration();
+            super.breakLine();
         }
     }
 
@@ -374,7 +383,7 @@ final class Generator {
             implConstructorSuperCall.arg(implConstructor.param(FINAL, codeModel.ref(String.class), "preComment"));
             implConstructorSuperCall.arg(implConstructor.param(FINAL, codeModel.ref(String.class), "postComment"));
             implConstructorSuperCall.arg(implConstructor.param(FINAL, codeModel.ref(String.class), "name"));
-            implConstructorSuperCall.arg(implConstructor.param(FINAL, codeModel.ref(Resource.class), "parent"));
+            implConstructorSuperCall.arg(implConstructor.param(FINAL, codeModel.ref(ResourceNode.class).narrow(codeModel.wildcard()), "parent"));
 
             // The core class is not instantiatable
             coreClass.constructor(PRIVATE);
@@ -575,10 +584,10 @@ final class Generator {
                                 final JFieldVar attributeField = builderClass.field(PRIVATE | FINAL, listType, attrVarName);
                                 attributeField.init(JExpr._new(listType));
 
-                                builderInterfaceSetMethod = builderInterface.method(NONE, builderInterface.narrow(builderInterfaceP), "add" + name);
+                                builderInterfaceSetMethod = builderInterface.method(NONE, builderInterface.narrow(builderInterfaceP), "add" + GeneratorUtils.singular(name));
                                 builderInterfaceSetMethod.param(keyType, "key");
                                 builderInterfaceSetMethod.param(valueType, "value");
-                                builderClassSetMethod = builderClass.method(NONE, builderInterface.narrow(builderInterfaceP), "add" + name);
+                                builderClassSetMethod = builderClass.method(PUBLIC, builderInterface.narrow(builderInterfaceP), "add" + GeneratorUtils.singular(name));
                                 final JVar keyParam = builderClassSetMethod.param(FINAL, keyType, "key");
                                 final JVar valueParam = builderClassSetMethod.param(FINAL, valueType, "value");
                                 final JBlock body = builderClassSetMethod.body();
@@ -599,10 +608,10 @@ final class Generator {
                                 attributeField.init(JExpr._new(listType));
 
                                 final JClass narrowedBuilderType = nestedBuilderType.narrow(builderInterface.narrow(builderInterfaceP));
-                                builderInterfaceSetMethod = builderInterface.method(NONE, narrowedBuilderType, "add" + name);
+                                builderInterfaceSetMethod = builderInterface.method(NONE, narrowedBuilderType, "add" + GeneratorUtils.singular(name));
                                 builderInterfaceSetMethod.param(keyType, "key");
 
-                                builderClassSetMethod = builderClass.method(NONE, narrowedBuilderType, "add" + name);
+                                builderClassSetMethod = builderClass.method(PUBLIC, narrowedBuilderType, "add" + GeneratorUtils.singular(name));
                                 final JVar keyParam = builderClassSetMethod.param(FINAL, keyType, "key");
                                 final JBlock body = builderClassSetMethod.body();
                                 final JVar valueVar = body.decl(nestedBuilderType, "_builder", JExpr._new(narrowedBuilderType).arg(JExpr._this()));
@@ -746,9 +755,9 @@ final class Generator {
         }
     }
 
-    private static String buildNamespace(final RootResource.Kind kind, final String namespace, final String version) {
+    private static String buildNamespace(final Schema.Kind kind, final String namespace, final String version) {
         StringBuilder b = new StringBuilder(64);
-        if (kind == RootResource.Kind.SYSTEM) {
+        if (kind == Schema.Kind.SYSTEM) {
             b.append("sys:");
         } else {
             b.append("ext:");

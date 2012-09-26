@@ -22,39 +22,23 @@
 
 package org.jboss.mgmt.generator;
 
-import org.jboss.mgmt.NestedBuilder;
-import org.jboss.mgmt.annotation.RootResource;
-import org.jboss.mgmt.annotation.RuntimeMode;
+import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JMethod;
 
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.DeclaredType;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface RootResourceBuilder extends GeneralResourceBuilder, NestedBuilder<Session> {
+public final class ReferenceAttributeValueInfo implements AttributeValueInfo {
 
-    AttributeBuilder<? extends RootResourceBuilder> attribute(final String name);
+    public ReferenceAttributeValueInfo(final String name, final boolean required, final DeclaredType referenceType, final boolean monitor) {
+    }
 
-    RootResourceBuilder description(String description);
+    public void emit(final GeneratorContext ctxt, final JMethod setterDecl, final JBlock setterBody) {
+    }
 
-    RootResourceBuilder operationHook(String opName, String version, ExecutableElement method);
-
-    RootResourceBuilder listener(DeclaredType listener, RuntimeMode... modes);
-
-    RootResourceBuilder provides(String token);
-
-    RootResourceBuilder schemaLocation(String location);
-
-    RootResourceBuilder version(String version);
-
-    RootResourceBuilder kind(RootResource.Kind kind);
-
-    RootResourceBuilder namespace(String namespace);
-
-    SubResourceBuilder<? extends RootResourceBuilder> subResource(String name, boolean named);
-
-    RootResourceBuilder xmlName(String name);
-
-    Session end();
+    public boolean isValidInAttributeType() {
+        return false;
+    }
 }

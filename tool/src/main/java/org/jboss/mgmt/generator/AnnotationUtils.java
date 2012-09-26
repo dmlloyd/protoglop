@@ -22,6 +22,8 @@
 
 package org.jboss.mgmt.generator;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -31,6 +33,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.PrimitiveType;
@@ -62,6 +65,10 @@ final class AnnotationUtils {
             }
         }
         return null;
+    }
+
+    public static <E extends Enum<E>> E getAnnotationValueEnumConst(AnnotationMirror mirror, String name, Class<E> type) {
+        return enumConstValue(type, getAnnotationValue(mirror, name));
     }
 
     public static String getAnnotationValueString(AnnotationMirror mirror, String name) {
@@ -145,5 +152,33 @@ final class AnnotationUtils {
             array[i++] = classNameValue(annotationValue);
         }
         return array;
+    }
+
+    static Map<String, AnnotationMirror> mirrorListToMap(List<? extends AnnotationMirror> mirrors) {
+        if (mirrors.isEmpty()) return Collections.emptyMap();
+        final LinkedHashMap<String, AnnotationMirror> map = new LinkedHashMap<String, AnnotationMirror>();
+        for (AnnotationMirror mirror : mirrors) {
+            final DeclaredType type = mirror.getAnnotationType();
+            final TypeElement annotationTypeElement = (TypeElement) type.asElement();
+            final String annotationName = annotationTypeElement.getQualifiedName().toString();
+            map.put(annotationName, mirror);
+        }
+        return map;
+    }
+
+    static Map<String, AnnotationValue> mirrorValuesToMap(AnnotationMirror mirror) {
+        final LinkedHashMap<String, AnnotationValue> map = new LinkedHashMap<String, AnnotationValue>();
+        for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : mirror.getElementValues().entrySet()) {
+            map.put(entry.getKey().getSimpleName().toString(), entry.getValue());
+        }
+        return map;
+    }
+
+    public static String getAnnotationName(final AnnotationMirror mirror) {
+        return ((TypeElement)mirror.getAnnotationType().asElement()).getQualifiedName().toString();
+    }
+
+    public static boolean annotationIs(final AnnotationMirror mirror, final Class<?> testClass) {
+        return getAnnotationName(mirror).equals(testClass.getName());
     }
 }

@@ -27,6 +27,4 @@ package org.jboss.mgmt.annotation;
  */
 public @interface Listener {
     Class<?> value();
-
-    RuntimeMode[] modes();
 }

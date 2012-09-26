@@ -22,18 +22,24 @@
 
 package org.jboss.mgmt;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Infrastructure class used by generated resource implementations.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public abstract class AbstractResourceBuilder<R extends Resource, P extends NestedBuilder<?>, THIS extends AbstractResourceBuilder<R, P, THIS>> implements NestedBuilder<P> {
-    protected final ResourceNode<R> construct(ResourceNode<?> parentNode) {
-        return null;
-    }
+    protected abstract ResourceNode<R> construct(ResourceNode<?> parentNode);
 
     @SuppressWarnings("unchecked")
     protected final THIS _this() {
         return (THIS) this;
+    }
+
+    protected static <K, V> Map<K, V> _buildMap(List<Entry<K, V>> list) {
+        return new LinkedHashMap<K, V>(new ListMap<K, V>(list));
     }
 }
