@@ -37,19 +37,19 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 @Retention(SOURCE)
 public @interface Schema {
     /**
-     * The model version.
+     * The model version.  If not given, the version will be gleaned from the class name or defaulted to "1.0".
      *
      * @return the model version
      */
-    String version();
+    String version() default "";
 
     /**
      * The base namespace, e.g. "core.logging".  Namespaces starting with "core" and "jboss" are reserved
-     * for use by JBoss.
+     * for use by JBoss.  If not given, the namespace will be gleaned from the class name.
      *
      * @return the namespace
      */
-    String namespace();
+    String namespace() default "";
 
     /**
      * The kind of root.  This affects generation of the XML namespace and XML and DMR parsers.

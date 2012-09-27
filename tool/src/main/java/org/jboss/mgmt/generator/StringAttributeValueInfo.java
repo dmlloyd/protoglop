@@ -30,7 +30,7 @@ import javax.lang.model.element.VariableElement;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class StringAttributeValueInfo implements AttributeValueInfo {
+final class StringAttributeValueInfo implements AttributeValueInfo {
 
     public StringAttributeValueInfo(final String name, final VariableElement defaultVal, final boolean required, final String[] enumerations) {
     }
@@ -39,6 +39,6 @@ public final class StringAttributeValueInfo implements AttributeValueInfo {
     }
 
     public boolean isValidInAttributeType() {
-        return false;
+        return true;
     }
 }

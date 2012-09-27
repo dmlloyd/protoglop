@@ -25,7 +25,9 @@ package org.jboss.mgmt.generator;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +36,8 @@ import java.util.NavigableSet;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jboss.mgmt.AttributeValidator;
 import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.annotation.Access;
@@ -46,6 +50,7 @@ import org.jboss.mgmt.annotation.Reference;
 import org.jboss.mgmt.annotation.Required;
 import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.Schema;
+import org.jboss.mgmt.annotation.SubResource;
 import org.jboss.mgmt.annotation.xml.XmlName;
 import org.jboss.mgmt.annotation.xml.XmlRender;
 import org.jboss.mgmt.annotation.xml.XmlTypeName;
@@ -54,6 +59,7 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -64,21 +70,26 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import javax.lang.model.util.Types;
 
 import static javax.tools.Diagnostic.Kind.ERROR;
+import static javax.tools.Diagnostic.Kind.NOTE;
 import static javax.tools.Diagnostic.Kind.WARNING;
 import static org.jboss.mgmt.generator.AnnotationUtils.annotationIs;
 import static org.jboss.mgmt.generator.AnnotationUtils.booleanValue;
 import static org.jboss.mgmt.generator.AnnotationUtils.classArrayValue;
 import static org.jboss.mgmt.generator.AnnotationUtils.classValue;
+import static org.jboss.mgmt.generator.AnnotationUtils.getAnnotation;
 import static org.jboss.mgmt.generator.AnnotationUtils.getAnnotationValue;
 import static org.jboss.mgmt.generator.AnnotationUtils.getAnnotationValueEnumConst;
 import static org.jboss.mgmt.generator.AnnotationUtils.getAnnotationValueString;
 import static org.jboss.mgmt.generator.AnnotationUtils.stringArrayValue;
+import static org.jboss.mgmt.generator.AnnotationUtils.stringValue;
 import static org.jboss.mgmt.generator.GeneratorUtils.buildNamespace;
 import static org.jboss.mgmt.generator.GeneratorUtils.constify;
 import static org.jboss.mgmt.generator.GeneratorUtils.def;
 import static org.jboss.mgmt.generator.GeneratorUtils.fieldify;
+import static org.jboss.mgmt.generator.GeneratorUtils.namespaceify;
 import static org.jboss.mgmt.generator.GeneratorUtils.singular;
 import static org.jboss.mgmt.generator.GeneratorUtils.without;
 import static org.jboss.mgmt.generator.GeneratorUtils.xmlify;
@@ -87,13 +98,20 @@ import static org.jboss.mgmt.generator.GeneratorUtils.xmlify;
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 final class ProcessingContext {
+
+    private static final String[] NO_STRINGS = new String[0];
+
     private final ProcessingEnvironment env;
     private final RoundEnvironment roundEnv;
 
     private final Map<TypeElement, AttributeTypeInfo> attributeTypeInfoMap = new IdentityHashMap<TypeElement, AttributeTypeInfo>();
+    private final Map<ExecutableElement, AttributeValueInfo> attributeValueInfoMap = new IdentityHashMap<ExecutableElement, AttributeValueInfo>();
     private final Map<TypeElement, AttributeGroupInfo> attributeGroupInfoMap = new IdentityHashMap<TypeElement, AttributeGroupInfo>();
     private final Map<TypeElement, NewSchemaInfo> schemaInfoMap = new IdentityHashMap<TypeElement, NewSchemaInfo>();
     private final Map<TypeElement, RootResourceInfo> rootResourceInfoMap = new IdentityHashMap<TypeElement, RootResourceInfo>();
+    private final Map<ExecutableElement, SubResourceInfo> subResourceInfoMap = new IdentityHashMap<ExecutableElement, SubResourceInfo>();
+    private final Set<ExecutableElement> affiliatedMethods = Collections.newSetFromMap(new IdentityHashMap<ExecutableElement, Boolean>());
+    private final Map<TypeElement, ResourceInfo> resourceInfoMap = new IdentityHashMap<TypeElement, ResourceInfo>();
 
     private final Set<TypeElement> inFlightAttributeTypes = Collections.newSetFromMap(new IdentityHashMap<TypeElement, Boolean>());
     private final Set<TypeElement> inFlightAttributeGroups = Collections.newSetFromMap(new IdentityHashMap<TypeElement, Boolean>());
@@ -112,6 +130,8 @@ final class ProcessingContext {
         return info;
     }
 
+    private static final Pattern NAME_WITH_VERSION = Pattern.compile("^([a-zA-Z_][a-zA-Z0-9_]+)_(\\d+(?:_\\d+)*)$");
+
     private NewSchemaInfo processNewSchema(final TypeElement schemaAnnotation) {
         final Messager messager = env.getMessager();
 
@@ -119,14 +139,38 @@ final class ProcessingContext {
             messager.printMessage(ERROR, "@Schema may only be applied to an annotation type");
             return null;
         }
-
+        final String simpleName = schemaAnnotation.getSimpleName().toString();
+        final Matcher matcher = NAME_WITH_VERSION.matcher(simpleName);
+        final String baseName;
+        final String baseVersion;
+        if (matcher.matches()) {
+            baseName = matcher.group(1);
+            baseVersion = matcher.group(2).replace('_', '.');
+        } else {
+            baseName = simpleName;
+            baseVersion = null;
+        }
         final Schema schema = schemaAnnotation.getAnnotation(Schema.class);
         final String[] namespaces = schema.compatibilityNamespaces();
         final Schema.Kind kind = schema.kind();
-        final String namespace = schema.namespace();
+        final String namespace;
+        final String version;
+        if (schema.namespace().isEmpty()) {
+            namespace = namespaceify(baseName);
+        } else {
+            namespace = schema.namespace();
+        }
+        if (schema.version().isEmpty()) {
+            if (baseVersion == null) {
+                version = "1.0";
+            } else {
+                version = baseVersion;
+            }
+        } else {
+            version = schema.version();
+        }
         final String schemaLocation = schema.schemaLocation();
-        final String schemaVersion = schema.version();
-        final String xmlNamespace = buildNamespace(kind, namespace, schemaVersion);
+        final String xmlNamespace = buildNamespace(kind, namespace, version);
         final URI schemaLocationUri;
         try {
             schemaLocationUri = new URI(schemaLocation);
@@ -160,7 +204,7 @@ final class ProcessingContext {
         }
 
         final RootResourceInfo[] rootResources = resourceList.toArray(new RootResourceInfo[resourceList.size()]);
-        return new NewSchemaInfo(schemaVersion, namespace, kind, schemaLocation, schemaLocationFileName, namespaces, rootResources);
+        return new NewSchemaInfo(version, namespace, kind, schemaLocation, schemaLocationFileName, namespaces, rootResources);
     }
 
     public RootResourceInfo processRootResource(TypeElement resourceInterface) {
@@ -183,40 +227,203 @@ final class ProcessingContext {
         if (resourceInfo == null) {
             return null;
         }
-        return new RootResourceInfo(name, type, provides == null ? new String[0] : provides.value(), xmlName == null ? name : xmlName.value(), resourceInfo);
+        return new RootResourceInfo(name, type, provides == null ? NO_STRINGS : provides.value(), xmlName == null ? name : xmlName.value(), resourceInfo);
     }
 
     public ResourceInfo processResource(final TypeElement resourceInterface) {
+        if (resourceInfoMap.containsKey(resourceInterface)) {
+            return resourceInfoMap.get(resourceInterface);
+        }
+        ResourceInfo info;
+        resourceInfoMap.put(resourceInterface, info = processNewResource(resourceInterface));
+        return info;
+    }
+
+    private static Set<String> skipMemberClassNames = new HashSet<String>(Arrays.asList(Object.class.getName(), Resource.class.getName()));
+
+    private ResourceMember processResourceMember(final ExecutableElement element) {
+        if (skipMemberClassNames.contains(((TypeElement) element.getEnclosingElement()).getQualifiedName().toString())) {
+            return null;
+        }
+        if (element.getAnnotation(Attribute.class) != null) {
+            return processAttribute(element);
+        } else if (element.getAnnotation(AttributeGroup.class) != null) {
+            return processAttributeGroup(element.getReturnType());
+        } else if (getAnnotation(env.getElementUtils(), element, SubResource.class.getName()) != null) {
+            return processSubResource(element);
+        } else if (affiliatedMethods.contains(element)) {
+            // it's OK to skip
+            return null;
+        } else {
+            env.getMessager().printMessage(ERROR, "Unknown member '" + element + "' on resource " + element.getEnclosingElement(), element);
+            return null;
+        }
+    }
+
+    private ResourceInfo processNewResource(final TypeElement resourceInterface) {
         final List<ResourceMember> members = new ArrayList<ResourceMember>();
-        for (Element element : resourceInterface.getEnclosedElements()) {
+        for (Element element : env.getElementUtils().getAllMembers(resourceInterface)) {
             if (element.getKind() == ElementKind.METHOD) {
-                ExecutableElement executableElement = (ExecutableElement) element;
-                if (element.getAnnotation(Attribute.class) != null) {
-                    final AttributeInfo attributeInfo = processAttribute(executableElement);
-                    if (attributeInfo != null) {
-                        members.add(attributeInfo);
-                    }
-                } else if (element.getAnnotation(AttributeGroup.class) != null) {
-                    final AttributeGroupInfo groupInfo = processAttributeGroup(executableElement.getReturnType());
-                    if (groupInfo != null) {
-                        members.add(groupInfo);
-                    }
-                } else {
-                    env.getMessager().printMessage(ERROR, "Unknown member on resource", executableElement);
+                final ResourceMember member = processResourceMember((ExecutableElement) element);
+                if (member != null) {
+                    members.add(member);
                 }
             }
         }
         return new ResourceInfo(resourceInterface, members.toArray(new ResourceMember[members.size()]));
     }
 
+    public SubResourceInfo processSubResource(final ExecutableElement executableElement) {
+        if (((TypeElement) executableElement.getEnclosingElement()).getQualifiedName().toString().equals(Object.class.getName())) {
+            return null;
+        }
+        if (subResourceInfoMap.containsKey(executableElement)) {
+            return subResourceInfoMap.get(executableElement);
+        }
+        SubResourceInfo info;
+        subResourceInfoMap.put(executableElement, info = processNewSubResource(executableElement));
+        return info;
+    }
+
+    private SubResourceInfo processNewSubResource(final ExecutableElement executableElement) {
+        final Messager messager = env.getMessager();
+        final String methodName = executableElement.getSimpleName().toString();
+        final ExecutableElement collector;
+        final ExecutableElement fetcher;
+        final String propertyName;
+        final TypeMirror returnType = executableElement.getReturnType();
+        final TypeMirror resourceType;
+        if (! methodName.startsWith("get")) {
+            messager.printMessage(ERROR, "SubResource reference method must be a getter", executableElement);
+            return null;
+        }
+        if (methodName.endsWith("Names")) {
+            // looks like the reference collector
+            final TypeMirror returnTypeErasure = env.getTypeUtils().erasure(returnType);
+            if (!isSameType(env.getTypeUtils().erasure(getType(List.class)), returnTypeErasure)) {
+                messager.printMessage(ERROR, "SubResource reference list getter must return a java.util.List (found " + returnTypeErasure + ")", executableElement);
+                return null;
+            }
+            collector = executableElement;
+            final List<? extends TypeMirror> typeArgs = ((DeclaredType) returnType).getTypeArguments();
+            if (typeArgs.size() != 1) {
+                messager.printMessage(ERROR, "SubResource reference list must have exactly one type argument", executableElement);
+                return null;
+            }
+            if (! executableElement.getParameters().isEmpty()) {
+                messager.printMessage(ERROR, "SubResource reference list getter must not accept any arguments", executableElement);
+                return null;
+            }
+            if (! isSameType(String.class, typeArgs.get(0))) {
+                messager.printMessage(ERROR, "SubResource reference list getter must return a list of Strings", executableElement);
+                return null;
+            }
+            propertyName = methodName.substring(3, methodName.length() - 5);
+            final String fetcherName = "get" + propertyName;
+
+            ExecutableElement prospect = null;
+            for (ExecutableElement otherMethod : ElementFilter.methodsIn(env.getElementUtils().getAllMembers((TypeElement) executableElement.getEnclosingElement()))) {
+                if (skipMemberClassNames.contains(((TypeElement)otherMethod.getEnclosingElement()).getQualifiedName().toString())) {
+                    continue;
+                }
+                final List<? extends VariableElement> parameters = otherMethod.getParameters();
+                final String prospectiveName = otherMethod.getSimpleName().toString();
+                if (prospectiveName.equals(fetcherName) && isAssignable(otherMethod.getReturnType(), Resource.class) && parameters.size() == 1 && isSameType(String.class, parameters.get(0).asType())) {
+                    prospect = otherMethod;
+                    break;
+                }
+            }
+            if (prospect == null) {
+                messager.printMessage(ERROR, "SubReference must have a corresponding resource getter method which accepts a String and returns a valid resource type", executableElement);
+                return null;
+            }
+            fetcher = prospect;
+            resourceType = prospect.getReturnType();
+        } else {
+            // looks like the reference fetcher
+            if (! isAssignable(returnType, Resource.class)) {
+                messager.printMessage(ERROR, "SubResource must refer to a resource type", executableElement);
+                return null;
+            }
+            fetcher = executableElement;
+            resourceType = executableElement.getReturnType();
+
+            final List<? extends VariableElement> fetcherParameters = executableElement.getParameters();
+            if (fetcherParameters.size() != 1 || ! isSameType(String.class, fetcherParameters.get(0).asType())) {
+                messager.printMessage(ERROR, "SubReference resource getter method must accept a String and return a " + resourceType, executableElement);
+                return null;
+            }
+
+            propertyName = methodName.substring(3);
+            final String collectorName = "get" + propertyName + "Names";
+
+            ExecutableElement prospect = null;
+            for (ExecutableElement otherMethod : ElementFilter.methodsIn(env.getElementUtils().getAllMembers((TypeElement) executableElement.getEnclosingElement()))) {
+                final List<? extends VariableElement> parameters = otherMethod.getParameters();
+                if (otherMethod.getSimpleName().toString().equals(collectorName) && isSameType(List.class, env.getTypeUtils().erasure(otherMethod.getReturnType())) && parameters.size() == 0) {
+                    final DeclaredType listType = (DeclaredType) otherMethod.getReturnType();
+                    final List<? extends TypeMirror> typeArguments = listType.getTypeArguments();
+                    if (typeArguments.size() != 1 || ! isSameType(String.class, typeArguments.get(0))) {
+                        messager.printMessage(ERROR, "SubResource reference list getter must return a java.util.List<String>", executableElement);
+                        return null;
+                    }
+                    prospect = otherMethod;
+                }
+            }
+            if (prospect == null) {
+                messager.printMessage(ERROR, "SubReference must have a corresponding resource getter method which accepts a String and returns a valid resource type", executableElement);
+                return null;
+            }
+            collector = prospect;
+        }
+        final AnnotationMirror subResourceAnnotation = getAnnotation(env.getElementUtils(), executableElement, SubResource.class.getName());
+        final String type = stringValue(getAnnotationValue(subResourceAnnotation, "type"));
+        final String name = def(stringValue(getAnnotationValue(subResourceAnnotation, "name")), xmlify(xmlify(propertyName)));
+        final boolean requiresUnique = booleanValue(getAnnotationValue(subResourceAnnotation, "requiresUniqueProvider"), false);
+        final AnnotationValue childrenValue = getAnnotationValue(subResourceAnnotation, "children");
+        final TypeMirror[] children = classArrayValue(childrenValue);
+        final List<ResourceInfo> childResources = new ArrayList<ResourceInfo>();
+        affiliatedMethods.add(collector);
+        affiliatedMethods.add(fetcher);
+        if (children != null) {
+            for (TypeMirror child : children) {
+                if (! (child instanceof DeclaredType && ((DeclaredType)child).asElement().getKind() == ElementKind.INTERFACE)) {
+                    messager.printMessage(ERROR, "SubResource children must be interfaces", executableElement, subResourceAnnotation, childrenValue);
+                } else {
+                    final ResourceInfo info = processResource((TypeElement) ((DeclaredType) child).asElement());
+                    if (info != null) {
+                        childResources.add(info);
+                    }
+                }
+            }
+        }
+        return new SubResourceInfo(collector, fetcher, resourceType, type, name, requiresUnique, childResources.toArray(new ResourceInfo[childResources.size()]));
+    }
+
     public AttributeValueInfo processAttributeValue(String name, ExecutableElement declaringElement) {
+        if (skipMemberClassNames.contains(((TypeElement) declaringElement.getEnclosingElement()).getQualifiedName().toString())) {
+            return null;
+        }
+        if (attributeValueInfoMap.containsKey(declaringElement)) {
+            return attributeValueInfoMap.get(declaringElement);
+        }
+        final AttributeValueInfo info = processNewAttributeValue(name, declaringElement);
+        attributeValueInfoMap.put(declaringElement, info);
+        return info;
+    }
+
+    private AttributeValueInfo processNewAttributeValue(String name, ExecutableElement declaringElement) {
+
         final Messager messager = getEnv().getMessager();
         final TypeMirror type = declaringElement.getReturnType();
 
         if (type.getKind() == TypeKind.VOID || type.getKind() == TypeKind.NONE) {
-            messager.printMessage(ERROR, "Attribute methods must have a non-void return value", declaringElement);
+            messager.printMessage(ERROR, "Attribute methods must have a non-void return value on " + declaringElement, declaringElement);
             return null;
         }
+
+        String simpleName = declaringElement.getSimpleName().toString();
+        boolean getter = simpleName.startsWith("get");
 
         String defaultVarName = constify(name) + "_DEFAULT";
         VariableElement defaultVal = null;
@@ -233,12 +440,24 @@ final class ProcessingContext {
             } else if (annotationIs(annotationMirror, Required.class)) {
                 required = booleanValue(getAnnotationValue(annotationMirror, "value"), true);
             } else if (annotationIs(annotationMirror, Reference.class)) {
-                referenceType = (DeclaredType) classValue(getAnnotationValue(annotationMirror, "referenceType"));
+                final AnnotationValue referenceTypeAnnotationValue = getAnnotationValue(annotationMirror, "referenceType");
+                TypeMirror expectedReferenceType = classValue(referenceTypeAnnotationValue);
+                if (expectedReferenceType == null) {
+                    expectedReferenceType = declaringElement.getReturnType();
+                }
+                if (! (expectedReferenceType instanceof DeclaredType && ((DeclaredType)expectedReferenceType).asElement().getKind() == ElementKind.INTERFACE)) {
+                    messager.printMessage(ERROR, "Reference types must refer to Resource interfaces", declaringElement, annotationMirror, referenceTypeAnnotationValue);
+                    return null;
+                }
+                referenceType = (DeclaredType) expectedReferenceType;
+                messager.printMessage(NOTE, "Found a reference -> " + annotationMirror + " => " + referenceType, declaringElement, annotationMirror);
                 monitor = booleanValue(getAnnotationValue(annotationMirror, "monitor"), false);
             }
         }
 
-        for (VariableElement fieldElement : ElementFilter.fieldsIn(declaringElement.getEnclosingElement().getEnclosedElements())) {
+        final TypeElement enclosingElement = (TypeElement) declaringElement.getEnclosingElement();
+
+        for (VariableElement fieldElement : ElementFilter.fieldsIn(env.getElementUtils().getAllMembers(enclosingElement))) {
             if (defaultVarName.equals(fieldElement.getSimpleName().toString())) {
                 if (! isAssignable(fieldElement.asType(), type)) {
                     messager.printMessage(ERROR, "Cannot assign default property value to property of type " + type, fieldElement);
@@ -249,22 +468,40 @@ final class ProcessingContext {
             }
         }
 
-        if (isAssignable(type, String.class)) {
-            if (referenceType != null) {
-                if (enumerations != null) {
-                    messager.printMessage(WARNING, "Enumerations will not be used for attribute of type " + type, declaringElement);
-                }
-                if (defaultVal != null) {
-                    messager.printMessage(WARNING, "Default value will not be used for attribute group of type " + type, defaultVal);
-                }
-                return new ReferenceAttributeValueInfo(name, required, referenceType, monitor);
+        if (referenceType != null) {
+            if (enumerations != null) {
+                messager.printMessage(WARNING, "Enumerations will not be used for attribute of type " + type, declaringElement);
             }
-            return new StringAttributeValueInfo(name, defaultVal, required, enumerations);
+            if (defaultVal != null) {
+                messager.printMessage(WARNING, "Default value will not be used for attribute group of type " + type, defaultVal);
+            }
+            if (! getter) {
+                messager.printMessage(ERROR, "Reference attribute must be a getter method", declaringElement);
+                return null;
+            }
+            // find getXXXName method...
+            ExecutableElement getNameMethod = null;
+            for (ExecutableElement executableElement : ElementFilter.methodsIn(env.getElementUtils().getAllMembers(enclosingElement))) {
+                if (executableElement.getSimpleName().toString().equals(simpleName + "Name")) {
+                    if (executableElement.getParameters().size() > 0) {
+                        continue;
+                    }
+                    if (! isSameType(String.class, executableElement.getReturnType())) {
+                        messager.printMessage(ERROR, "getXXXName method must return a String", executableElement);
+                        return null;
+                    }
+                    getNameMethod = executableElement;
+                    break;
+                }
+            }
+            if (getNameMethod == null) {
+                messager.printMessage(WARNING, "No getXXXName method for reference attribute", declaringElement);
+            }
+            return new ReferenceAttributeValueInfo(name, declaringElement, getNameMethod, required, referenceType, monitor);
         }
 
-        if (referenceType != null) {
-            messager.printMessage(ERROR, "Reference types must have a string value", declaringElement);
-            return null;
+        if (isAssignable(type, String.class)) {
+            return new StringAttributeValueInfo(name, defaultVal, required, enumerations);
         }
 
         if (enumerations != null) {
@@ -370,21 +607,20 @@ final class ProcessingContext {
                 return null;
             }
             if (typeElement.getSimpleName().toString().endsWith("Resource") || isAssignable(typeElement.asType(), Resource.class)) {
-                messager.printMessage(ERROR, "Attribute group must not be a resource");
+                messager.printMessage(ERROR, "Attribute group must not be a resource", typeElement);
                 return null;
             }
 
-            final ArrayList<AttributeInfo> attributeInfoList = new ArrayList<AttributeInfo>();
+            final ArrayList<ResourceMember> resourceMembers = new ArrayList<ResourceMember>();
 
-            // all methods of an attribute type are attributes; they do not need @Attribute
             for (ExecutableElement executableElement : ElementFilter.methodsIn(env.getElementUtils().getAllMembers(typeElement))) {
-                final AttributeInfo info = processAttribute(executableElement);
-                if (! info.getValueInfo().isValidInAttributeType()) {
-                    messager.printMessage(ERROR, "Attribute with this type cannot be used in an AttributeType", executableElement);
-                } else if (info != null) attributeInfoList.add(info);
+                final ResourceMember member = processResourceMember(executableElement);
+                if (member != null) {
+                    resourceMembers.add(member);
+                }
             }
 
-            final AttributeGroupInfo info = new AttributeGroupInfo(typeElement, attributeInfoList.toArray(new AttributeInfo[attributeInfoList.size()]));
+            final AttributeGroupInfo info = new AttributeGroupInfo(typeElement, resourceMembers.toArray(new ResourceMember[resourceMembers.size()]));
             addAttributeGroupInfo(info);
             return info;
         } finally {
@@ -393,6 +629,9 @@ final class ProcessingContext {
     }
 
     public AttributeInfo processAttribute(ExecutableElement executableElement) {
+        if (((TypeElement) executableElement.getEnclosingElement()).getQualifiedName().toString().equals(Object.class.getName())) {
+            return null;
+        }
         final String getterName = executableElement.getSimpleName().toString();
 
         String name;
@@ -477,10 +716,10 @@ final class ProcessingContext {
             for (TypeMirror mirror : classArrayValue(getAnnotationValue(attributeTypeMirror, "validators"))) {
                 if (mirror instanceof DeclaredType) {
                     final DeclaredType validatorType = (DeclaredType) mirror;
-                    if (env.getTypeUtils().isAssignable(validatorType, env.getElementUtils().getTypeElement(AttributeValidator.class.getName()).asType())) {
+                    if (isAssignable(validatorType, AttributeValidator.class)) {
                         validatorsList.add(validatorType);
                     } else {
-                        messager.printMessage(ERROR, "Validator types must implement " + AttributeValidator.class, typeElement, attributeTypeMirror);
+                        messager.printMessage(ERROR, "Validator type " + validatorType + " does not implement " + AttributeValidator.class, typeElement, attributeTypeMirror);
                     }
                 } else {
                     messager.printMessage(ERROR, "Validator types must be non-primitive", typeElement, attributeTypeMirror);
@@ -495,9 +734,14 @@ final class ProcessingContext {
             // all methods of an attribute type are attributes; they do not need @Attribute
             for (ExecutableElement executableElement : ElementFilter.methodsIn(env.getElementUtils().getAllMembers(typeElement))) {
                 final AttributeInfo info = processAttribute(executableElement);
-                if (! info.getValueInfo().isValidInAttributeType()) {
-                    messager.printMessage(ERROR, "Attribute with this type cannot be used in an AttributeType", executableElement);
-                } else if (info != null) attributeInfoList.add(info);
+                if (info != null) {
+                    final AttributeValueInfo valueInfo = info.getValueInfo();
+                    if (! valueInfo.isValidInAttributeType()) {
+                        messager.printMessage(ERROR, "Attribute with this type cannot be used in an AttributeType", executableElement);
+                    } else {
+                        attributeInfoList.add(info);
+                    }
+                }
             }
 
             final AttributeTypeInfo info = new AttributeTypeInfo(typeElement, implClassName, xmlTypeName, renderAs, wrapperElement, validators, attributeInfoList.toArray(new AttributeInfo[attributeInfoList.size()]));
@@ -509,7 +753,12 @@ final class ProcessingContext {
     }
 
     boolean isSameType(final Class<?> type1, final TypeMirror type2) {
-        return env.getTypeUtils().isSameType(getType(type1), type2);
+        final Types types = env.getTypeUtils();
+        return types.isSameType(types.erasure(getType(type1)), types.erasure(type2));
+    }
+
+    boolean isSameType(final TypeMirror type1, final TypeMirror type2) {
+        return env.getTypeUtils().isSameType(type1, type2);
     }
 
     boolean isAssignable(final TypeMirror source, final TypeMirror target) {
@@ -517,11 +766,13 @@ final class ProcessingContext {
     }
 
     boolean isAssignable(final Class<?> source, final TypeMirror target) {
-        return isAssignable(getType(source), target);
+        final Types types = env.getTypeUtils();
+        return isAssignable(types.erasure(getType(source)), types.erasure(target));
     }
 
     boolean isAssignable(final TypeMirror source, final Class<?> target) {
-        return isAssignable(source, getType(target));
+        final Types types = env.getTypeUtils();
+        return isAssignable(types.erasure(source), types.erasure(getType(target)));
     }
 
     public ProcessingEnvironment getEnv() {

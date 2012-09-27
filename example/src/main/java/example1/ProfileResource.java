@@ -22,17 +22,10 @@
 
 package example1;
 
-import java.util.List;
 import org.jboss.mgmt.Resource;
-import org.jboss.mgmt.annotation.SubResource;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface ProfileResource extends Resource {
-
-    @SubResource(requiresUniqueProvider = true)
-    List<String> getSubsystemNames();
-
-    LoggingSubsystemResource getSubsystem(String name);
+public interface ProfileResource extends Profile, Resource {
 }

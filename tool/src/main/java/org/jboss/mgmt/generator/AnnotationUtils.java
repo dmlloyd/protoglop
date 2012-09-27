@@ -49,8 +49,11 @@ final class AnnotationUtils {
     }
 
     public static AnnotationMirror getAnnotation(Elements elements, Element annotatedElement, String annotationName) {
+        if (annotatedElement == null) {
+            return null;
+        }
         for (AnnotationMirror mirror : elements.getAllAnnotationMirrors(annotatedElement)) {
-            if (mirror.getAnnotationType().asElement().getSimpleName().toString().equals(annotationName)) {
+            if (((TypeElement)mirror.getAnnotationType().asElement()).getQualifiedName().toString().equals(annotationName)) {
                 return mirror;
             }
         }
@@ -58,6 +61,9 @@ final class AnnotationUtils {
     }
 
     public static AnnotationValue getAnnotationValue(AnnotationMirror mirror, String name) {
+        if (mirror == null) {
+            return null;
+        }
         final Set<? extends Map.Entry<? extends ExecutableElement,? extends AnnotationValue>> entries = mirror.getElementValues().entrySet();
         for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : entries) {
             if (entry.getKey().getSimpleName().toString().equals(name)) {

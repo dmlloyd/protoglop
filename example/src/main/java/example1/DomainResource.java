@@ -54,35 +54,35 @@ public interface DomainResource extends Resource {
     @SubResource
     List<String> getInterfaceNames();
 
-    // InterfaceResource getInterface(String name);
+    InterfaceResource getInterface(String name);
 
     @SubResource
     List<String> getSocketBindingGroupNames();
 
-    // SocketBindingGroupResource getSocketBindingGroup(String name);
+    SocketBindingGroupResource getSocketBindingGroup(String name);
 
     @SubResource
     List<String> getDeploymentNames();
 
-    // DomainDeployment getDeployment(String name);
+    DomainDeploymentResource getDeployment(String name);
 
     @SubResource
     List<String> getServerGroupNames();
 
-    // ServerGroup getServerGroup(String name);
+    ServerGroupResource getServerGroup(String name);
 
     @SubResource
     List<String> getManagementClientContextNames();
 
-    // ManagementClientContext getManagementClientContext(String name);
+    ManagementClientContextResource getManagementClientContext(String name);
 
     @SubResource
     List<String> getJvmNames();
 
-    // Jvm getJvm(String name);
+    JvmResource getJvm(String name);
 
     @SubResource
-    List<String> getServers();
+    List<String> getServerNames();
 
     DomainServerResource getServer(String name);
 }

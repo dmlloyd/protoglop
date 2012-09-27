@@ -28,7 +28,7 @@ import com.sun.codemodel.JMethod;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class AttributeTypeValueInfo implements AttributeValueInfo {
+final class AttributeTypeValueInfo implements AttributeValueInfo {
 
     public AttributeTypeValueInfo(final String name, final AttributeTypeInfo attributeTypeInfo, final boolean required) {
     }
@@ -37,6 +37,6 @@ public final class AttributeTypeValueInfo implements AttributeValueInfo {
     }
 
     public boolean isValidInAttributeType() {
-        return false;
+        return true;
     }
 }

@@ -31,7 +31,7 @@ import javax.lang.model.type.TypeMirror;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class CollectionAttributeValueInfo implements AttributeValueInfo {
+final class CollectionAttributeValueInfo implements AttributeValueInfo {
 
     public CollectionAttributeValueInfo(final String name, final String singular, final DeclaredType valueType, final boolean required, final DeclaredType collectionType) {
     }

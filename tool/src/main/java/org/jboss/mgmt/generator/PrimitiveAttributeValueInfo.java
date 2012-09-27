@@ -36,7 +36,7 @@ import static com.sun.codemodel.JMod.FINAL;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class PrimitiveAttributeValueInfo implements AttributeValueInfo {
+final class PrimitiveAttributeValueInfo implements AttributeValueInfo {
 
     private final TypeKind kind;
     private final String name;

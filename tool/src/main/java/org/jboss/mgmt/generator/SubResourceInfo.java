@@ -22,21 +22,14 @@
 
 package org.jboss.mgmt.generator;
 
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JMethod;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.type.TypeMirror;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class AttributeGroupValueInfo implements AttributeValueInfo {
+final class SubResourceInfo implements ResourceMember {
 
-    public AttributeGroupValueInfo(final String name, final AttributeGroupInfo attributeGroupInfo, final boolean required) {
-    }
-
-    public void emit(final GeneratorContext ctxt, final JMethod setterDecl, final JBlock setterBody) {
-    }
-
-    public boolean isValidInAttributeType() {
-        return false;
+    public SubResourceInfo(final ExecutableElement collector, final ExecutableElement fetcher, final TypeMirror type, final String type1, final String name, final boolean unique, final ResourceInfo[] infos) {
     }
 }

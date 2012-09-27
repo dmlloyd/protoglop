@@ -27,6 +27,7 @@ import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.ValidationContext;
 import org.jboss.mgmt.annotation.Attribute;
 import org.jboss.mgmt.annotation.AttributeType;
+import org.jboss.mgmt.annotation.Enumerated;
 import org.jboss.mgmt.annotation.Reference;
 import org.jboss.mgmt.annotation.Required;
 
@@ -39,6 +40,7 @@ public interface FileReference {
     String getFileName();
 
     @Required(false)
+    @Enumerated("Foo")
     @Reference(resourceType = PathResource.class, monitor = true)
     PathResource getRelativeTo();
 

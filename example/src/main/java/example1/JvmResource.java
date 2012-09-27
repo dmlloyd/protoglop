@@ -20,23 +20,13 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.generator;
+package example1;
 
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JMethod;
+import org.jboss.mgmt.Resource;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class AttributeGroupValueInfo implements AttributeValueInfo {
+public interface JvmResource extends Resource {
 
-    public AttributeGroupValueInfo(final String name, final AttributeGroupInfo attributeGroupInfo, final boolean required) {
-    }
-
-    public void emit(final GeneratorContext ctxt, final JMethod setterDecl, final JBlock setterBody) {
-    }
-
-    public boolean isValidInAttributeType() {
-        return false;
-    }
 }

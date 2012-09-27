@@ -112,6 +112,38 @@ final class GeneratorUtils {
     }
 
     /*
+      AFunnyXMLKindAThing -> a.funny.xml.kind.a.thing
+     */
+    static String namespaceify(String camelHumpsName) {
+        final int length = camelHumpsName.length();
+        final StringBuilder builder = new StringBuilder(length + length >> 1);
+        int idx = 0;
+        int c = camelHumpsName.codePointAt(idx), n;
+        boolean wordDone = false;
+        for (;;) {
+            idx = camelHumpsName.offsetByCodePoints(idx, 1);
+            if (idx < length) {
+                n = camelHumpsName.codePointAt(idx);
+                if (Character.isLowerCase(c) && Character.isUpperCase(n)) {
+                    builder.appendCodePoint(c);
+                    wordDone = true;
+                } else if (builder.length() > 0 && Character.isUpperCase(c) && Character.isLowerCase(n) || wordDone) {
+                    builder.append('.');
+                    builder.appendCodePoint(Character.toLowerCase(c));
+                    wordDone = false;
+                } else {
+                    builder.appendCodePoint(Character.toLowerCase(c));
+                }
+                c = n;
+                continue;
+            } else {
+                builder.appendCodePoint(Character.toLowerCase(c));
+                return builder.toString();
+            }
+        }
+    }
+
+    /*
       AFunnyXMLKindAThing -> A_FUNNY_XML_KIND_A_THING
      */
     static String constify(String camelHumpsName) {

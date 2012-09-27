@@ -30,12 +30,18 @@ import javax.lang.model.element.TypeElement;
 final class AttributeGroupInfo implements ResourceMember {
 
     private final TypeElement typeElement;
+    private final ResourceMember[] members;
 
-    public AttributeGroupInfo(final TypeElement typeElement, final AttributeInfo[] attributeInfos) {
+    public AttributeGroupInfo(final TypeElement typeElement, final ResourceMember[] members) {
         this.typeElement = typeElement;
+        this.members = members;
     }
 
     public TypeElement getTypeElement() {
         return typeElement;
+    }
+
+    public ResourceMember[] getMembers() {
+        return members;
     }
 }

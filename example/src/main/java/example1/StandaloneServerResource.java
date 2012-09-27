@@ -36,6 +36,6 @@ import org.jboss.mgmt.annotation.RootResource;
 public interface StandaloneServerResource extends ServerResource {
 
     @AttributeGroup
-    ProfileResource getProfile();
+    Profile getProfile();
 
 }
