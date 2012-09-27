@@ -450,7 +450,6 @@ final class ProcessingContext {
                     return null;
                 }
                 referenceType = (DeclaredType) expectedReferenceType;
-                messager.printMessage(NOTE, "Found a reference -> " + annotationMirror + " => " + referenceType, declaringElement, annotationMirror);
                 monitor = booleanValue(getAnnotationValue(annotationMirror, "monitor"), false);
             }
         }
