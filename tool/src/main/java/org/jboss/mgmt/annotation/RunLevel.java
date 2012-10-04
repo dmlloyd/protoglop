@@ -26,8 +26,17 @@ package org.jboss.mgmt.annotation;
  *
  */
 public enum RunLevel {
+    /**
+     * No services running; model only.  This is the lowest level.
+     */
     STOPPED,
+    /**
+     * Services are running at a management level only.
+     */
     MANAGEMENT,
+    /**
+     * Services are running at an "available" level.
+     */
     RUNNING,
     ;
 }

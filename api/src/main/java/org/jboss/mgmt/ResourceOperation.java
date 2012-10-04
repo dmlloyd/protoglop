@@ -20,15 +20,14 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation;
+package org.jboss.mgmt;
 
 /**
+ * @param <R> the affected resource type
+ * @param <P> the payload type
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public @interface OperationHook {
-    String operationName();
-
-    RunLevel runLevel() default RunLevel.RUNNING;
-
-    Class<?> implClass();
+public interface ResourceOperation<R extends Resource, P> {
+    void execute(ResourceOperationContext context, R resource, P payload);
 }

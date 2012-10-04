@@ -73,7 +73,6 @@ import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Types;
 
 import static javax.tools.Diagnostic.Kind.ERROR;
-import static javax.tools.Diagnostic.Kind.NOTE;
 import static javax.tools.Diagnostic.Kind.WARNING;
 import static org.jboss.mgmt.generator.AnnotationUtils.annotationIs;
 import static org.jboss.mgmt.generator.AnnotationUtils.booleanValue;
@@ -85,14 +84,14 @@ import static org.jboss.mgmt.generator.AnnotationUtils.getAnnotationValueEnumCon
 import static org.jboss.mgmt.generator.AnnotationUtils.getAnnotationValueString;
 import static org.jboss.mgmt.generator.AnnotationUtils.stringArrayValue;
 import static org.jboss.mgmt.generator.AnnotationUtils.stringValue;
-import static org.jboss.mgmt.generator.GeneratorUtils.buildNamespace;
-import static org.jboss.mgmt.generator.GeneratorUtils.constify;
+import static org.jboss.mgmt.generator.NameUtils.buildNamespace;
+import static org.jboss.mgmt.generator.NameUtils.constify;
 import static org.jboss.mgmt.generator.GeneratorUtils.def;
-import static org.jboss.mgmt.generator.GeneratorUtils.fieldify;
-import static org.jboss.mgmt.generator.GeneratorUtils.namespaceify;
-import static org.jboss.mgmt.generator.GeneratorUtils.singular;
-import static org.jboss.mgmt.generator.GeneratorUtils.without;
-import static org.jboss.mgmt.generator.GeneratorUtils.xmlify;
+import static org.jboss.mgmt.generator.NameUtils.fieldify;
+import static org.jboss.mgmt.generator.NameUtils.namespaceify;
+import static org.jboss.mgmt.generator.NameUtils.singular;
+import static org.jboss.mgmt.generator.NameUtils.without;
+import static org.jboss.mgmt.generator.NameUtils.xmlify;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>

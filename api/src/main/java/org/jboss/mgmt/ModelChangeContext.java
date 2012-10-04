@@ -22,11 +22,10 @@
 
 package org.jboss.mgmt;
 
+import org.jboss.msc.txn.ExecutionContext;
+
 /**
  *
  */
-public interface ModelChangeContext {
-    void completed();
-
-    void failed(Exception cause);
+public interface ModelChangeContext extends ExecutionContext<Void> {
 }

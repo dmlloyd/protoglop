@@ -22,13 +22,19 @@
 
 package org.jboss.mgmt.annotation;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.CLASS;
+
 /**
+ * A collection of resource services.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public @interface OperationHook {
-    String operationName();
-
-    RunLevel runLevel() default RunLevel.RUNNING;
-
-    Class<?> implClass();
+@Retention(CLASS)
+@Target(TYPE)
+public @interface ResourceServices {
+    ResourceService[] value();
 }

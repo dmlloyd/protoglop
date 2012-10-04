@@ -22,13 +22,41 @@
 
 package org.jboss.mgmt.annotation;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import org.jboss.mgmt.AttributeValidator;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.CLASS;
+
 /**
+ * A validation specification for an attribute.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public @interface OperationHook {
-    String operationName();
+@Retention(CLASS)
+@Target(METHOD)
+public @interface ValidatedAttribute {
 
+    /**
+     * The attribute validator type.
+     *
+     * @return the attribute validator type
+     */
+    Class<? extends AttributeValidator> value();
+
+    /**
+     * The run level at which this validation may apply.
+     *
+     * @return the run level
+     */
     RunLevel runLevel() default RunLevel.RUNNING;
 
-    Class<?> implClass();
+    /**
+     * Set this attribute validation to happen immediately upon changes, as opposed to waiting until
+     * the validation phase.
+     *
+     * @return {@code true} to validate immediately, {@code false} to await validation phase
+     */
+    boolean immediate() default true;
 }

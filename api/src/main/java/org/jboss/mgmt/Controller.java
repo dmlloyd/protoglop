@@ -20,15 +20,20 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation;
+package org.jboss.mgmt;
+
+import java.util.concurrent.Future;
 
 /**
+ * A controller for a resource.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public @interface OperationHook {
-    String operationName();
+public interface Controller<R extends Resource> {
 
-    RunLevel runLevel() default RunLevel.RUNNING;
+    Future<R> read();
 
-    Class<?> implClass();
+    Future<Void> remove();
+
+    <B extends NestedBuilder<Future<R>>> B writeAttributes(BuilderFactory<Future<R>, B> factory);
 }

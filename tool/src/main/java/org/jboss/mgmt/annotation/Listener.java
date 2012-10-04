@@ -22,9 +22,41 @@
 
 package org.jboss.mgmt.annotation;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import org.jboss.mgmt.Resource;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.CLASS;
+
 /**
- *
+ * A listener on an attribute or resource.
  */
+@Retention(CLASS)
+@Target({TYPE, METHOD})
 public @interface Listener {
+
+    /**
+     * The listener type.
+     *
+     * @return the listener type
+     */
     Class<?> value();
+
+    /**
+     * The run level at which the listener applies.  In order to transition between run levels, all
+     * matching listeners must be invoked successfully.
+     *
+     * @return the run level
+     */
+    RunLevel runLevel() default RunLevel.RUNNING;
+
+    /**
+     * The resource root under which this listener applies.  This listener will
+     * not execute under any other root.
+     *
+     * @return the resource root
+     */
+    Class<? extends Resource> root() default Resource.class;
 }

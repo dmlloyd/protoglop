@@ -23,12 +23,38 @@
 package org.jboss.mgmt.annotation;
 
 /**
+ * Declare that this resource depends on a specific {@link Provides} from a specific {@link ResourceType}.
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public @interface OperationHook {
-    String operationName();
+public @interface Dependency {
 
-    RunLevel runLevel() default RunLevel.RUNNING;
+    /**
+     * The resource type required.
+     *
+     * @return the resource type
+     */
+    Class<?> type();
 
-    Class<?> implClass();
+    /**
+     * The names required.
+     *
+     * @return the names
+     */
+    String[] names();
+
+    /**
+     * Dependency is optional ({@code true}) or required ({@code false}).
+     *
+     * @return {@code true} for optional, {@code false} for required
+     */
+    boolean optional() default false;
+
+    /**
+     * The maximum run level that must be used to modify this dependency.
+     *
+     * @return the run level
+     */
+    RunLevel runLevel() default RunLevel.STOPPED;
+
+
 }

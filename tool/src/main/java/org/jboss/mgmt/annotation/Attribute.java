@@ -47,7 +47,27 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 public @interface Attribute {
     String name() default "";
 
+    /**
+     * The accessibility of the value of this attribute.
+     *
+     * @return the accessibility
+     */
     Access access() default Access.READ_WRITE;
+
+    /**
+     * The maximum run level at which this attribute can be mutated.
+     *
+     * @return the run level
+     */
+    RunLevel changeRunLevel() default RunLevel.RUNNING;
+
+    /**
+     * The minimum run level at which this attribute can be observed.  Only applies to
+     * virtual attributes.  The visibility run level must be less than the change run level.
+     *
+     * @return the visibility run level
+     */
+    RunLevel visibleRunLevel() default RunLevel.STOPPED;
 
     Class<? extends VirtualAttribute> virtual() default VirtualAttribute.class;
 

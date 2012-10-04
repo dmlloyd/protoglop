@@ -23,6 +23,7 @@
 package example1;
 
 import java.util.List;
+import org.jboss.mgmt.annotation.RunLevel;
 import org.jboss.mgmt.annotation.SubResource;
 
 /**
@@ -30,7 +31,7 @@ import org.jboss.mgmt.annotation.SubResource;
  */
 public interface Profile {
 
-    @SubResource(requiresUniqueProvider = true, type = "subsystem")
+    @SubResource(requiresUniqueProvider = true, type = "subsystem", addLevel = RunLevel.MANAGEMENT, removeLevel = RunLevel.MANAGEMENT)
     List<String> getSubsystemNames();
 
     LoggingSubsystemResource getSubsystem(String name);

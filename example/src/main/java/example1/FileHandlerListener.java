@@ -35,4 +35,7 @@ public final class FileHandlerListener implements ResourceListener<FileHandlerRe
 
     public void resourceAdded(final ModelChangeContext context, final FileHandlerResource resource) {
     }
+
+    public void resourceChanged(final ModelChangeContext context, final FileHandlerResource original, final FileHandlerResource updated) {
+    }
 }

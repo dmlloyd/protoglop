@@ -24,37 +24,62 @@ package org.jboss.mgmt.annotation;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import org.jboss.mgmt.Resource;
-import org.jboss.mgmt.ResourceOperation;
+import org.jboss.msc.service.Service;
+import org.jboss.msc.service.ServiceMode;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Define an operation on a resource and its subtypes.
+ * Declare an associated service for a resource.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @Retention(CLASS)
 @Target(TYPE)
-public @interface Operation {
-    String name() default "";
-
-    Class<? extends ResourceOperation<?, ?>> value();
+public @interface ResourceService {
 
     /**
-     * The run level of this operation.  Below this run level, the operation is not
-     * available.
+     * The service name within this resource's associated container.
+     *
+     * @return the service name
+     */
+    String name();
+
+    /**
+     * The minimum run level at which this service may be installed.  Must not be {@link RunLevel#STOPPED}.
      *
      * @return the run level
      */
-    RunLevel runLevel() default RunLevel.MANAGEMENT;
+    RunLevel installed() default RunLevel.RUNNING;
 
     /**
-     * The resource root under which this operation applies.  This operation will
-     * not be available under any other root.
+     * The service mode to apply to installed, but not active, resource services.
      *
-     * @return the resource root
+     * @return the install mode
      */
-    Class<? extends Resource> root() default Resource.class;
+    ServiceMode installMode() default ServiceMode.ON_DEMAND;
+
+    /**
+     * The minimum run level at which this service may be active.  If given, must be greater than or equal to
+     * the {@link #installed()} run level.  By default, all installed services are immediately active.
+     *
+     * @return the run level
+     */
+    RunLevel active() default RunLevel.RUNNING;
+
+    /**
+     * The service mode to apply to active resource services.
+     *
+     * @return the active mode
+     */
+    ServiceMode activeMode() default ServiceMode.ACTIVE;
+
+    /**
+     * The service type to instantiate.  The service type may include a constructor which accepts a
+     * {@link org.jboss.msc.value.ReadableValue} of this resource type as its single argument.
+     *
+     * @return the service type
+     */
+    Class<? extends Service> type();
 }

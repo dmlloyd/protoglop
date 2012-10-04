@@ -20,15 +20,15 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation;
+package org.jboss.mgmt;
 
 /**
+ * The run level of a managed node.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public @interface OperationHook {
-    String operationName();
-
-    RunLevel runLevel() default RunLevel.RUNNING;
-
-    Class<?> implClass();
+public enum RunLevel {
+    STOPPED,
+    MANAGEMENT,
+    RUNNING,
 }

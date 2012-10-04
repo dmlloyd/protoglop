@@ -41,7 +41,7 @@ final class SchemaInfo {
 
     SchemaInfo(final Schema schema) {
         this.schema = schema;
-        xmlNamespace = GeneratorUtils.buildNamespace(schema.kind(), schema.namespace(), schema.version());
+        xmlNamespace = NameUtils.buildNamespace(schema.kind(), schema.namespace(), schema.version());
     }
 
     public Map<String, Element> getTypeDecls() {

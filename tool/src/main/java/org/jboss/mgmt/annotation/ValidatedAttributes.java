@@ -22,13 +22,19 @@
 
 package org.jboss.mgmt.annotation;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.CLASS;
+
 /**
+ * A collection to hold multiple {@link ValidatedAttribute} values.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public @interface OperationHook {
-    String operationName();
-
-    RunLevel runLevel() default RunLevel.RUNNING;
-
-    Class<?> implClass();
+@Retention(CLASS)
+@Target(METHOD)
+public @interface ValidatedAttributes {
+    ValidatedAttribute[] value();
 }

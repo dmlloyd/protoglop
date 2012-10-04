@@ -20,15 +20,14 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation;
+package example1;
+
+import org.jboss.mgmt.annotation.ResourceType;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public @interface OperationHook {
-    String operationName();
+@ResourceType(name = "subsystem")
+public interface SubsystemResource {
 
-    RunLevel runLevel() default RunLevel.RUNNING;
-
-    Class<?> implClass();
 }

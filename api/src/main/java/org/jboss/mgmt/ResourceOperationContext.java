@@ -20,15 +20,16 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation;
+package org.jboss.mgmt;
+
+import org.jboss.msc.txn.ExecutionContext;
 
 /**
+ * A resource operation context.
+ *
+ * @param <T> the operation result type
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public @interface OperationHook {
-    String operationName();
+public interface ResourceOperationContext<T> extends ExecutionContext<T> {
 
-    RunLevel runLevel() default RunLevel.RUNNING;
-
-    Class<?> implClass();
 }

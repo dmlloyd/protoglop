@@ -22,13 +22,34 @@
 
 package org.jboss.mgmt.annotation;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import org.jboss.mgmt.ResourceValidator;
+
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.CLASS;
+
 /**
+ * A validation specification for a resource.  Resource validations always happen during
+ * the validation phase.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public @interface OperationHook {
-    String operationName();
+@Retention(CLASS)
+@Target(TYPE)
+public @interface ValidatedResource {
 
+    /**
+     * The resource validator type.
+     *
+     * @return the resource validator type
+     */
+    Class<? extends ResourceValidator> value();
+
+    /**
+     * The run level at which this validation may apply.
+     *
+     * @return the run level
+     */
     RunLevel runLevel() default RunLevel.RUNNING;
-
-    Class<?> implClass();
 }

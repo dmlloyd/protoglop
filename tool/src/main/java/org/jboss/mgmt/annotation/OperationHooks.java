@@ -29,12 +29,12 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
- * Define operation hook classes.  The class methods will be examined for the actual hooks.
+ * A collection of operation hooks.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @Retention(SOURCE)
 @Target(TYPE)
 public @interface OperationHooks {
-    Class<?>[] value();
+    OperationHook[] value();
 }

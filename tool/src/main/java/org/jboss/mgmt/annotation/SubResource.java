@@ -58,4 +58,18 @@ public @interface SubResource {
      * @return the non-root children
      */
     Class<?>[] children() default {};
+
+    /**
+     * The maximum level at which sub-resources may be added.
+     *
+     * @return the level
+     */
+    RunLevel addLevel() default RunLevel.RUNNING;
+
+    /**
+     * The maximum level at which sub-resources may be removed.
+     *
+     * @return the level
+     */
+    RunLevel removeLevel() default RunLevel.RUNNING;
 }

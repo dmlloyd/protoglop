@@ -22,13 +22,20 @@
 
 package org.jboss.mgmt.annotation;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 /**
+ * A collection of listeners to apply to a resource or attribute.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public @interface OperationHook {
-    String operationName();
-
-    RunLevel runLevel() default RunLevel.RUNNING;
-
-    Class<?> implClass();
+@Retention(SOURCE)
+@Target({TYPE, METHOD})
+public @interface Listeners {
+    Listener[] value();
 }

@@ -30,4 +30,6 @@ public interface ResourceListener<R> {
     void resourceRemoved(ModelChangeContext context, R resource);
 
     void resourceAdded(ModelChangeContext context, R resource);
+
+    void resourceChanged(ModelChangeContext context, R original, R updated);
 }
