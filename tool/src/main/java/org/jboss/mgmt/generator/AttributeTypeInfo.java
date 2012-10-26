@@ -22,7 +22,7 @@
 
 package org.jboss.mgmt.generator;
 
-import org.jboss.mgmt.annotation.xml.XmlRender;
+import org.jboss.mgmt.annotation.XmlRender;
 
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;

@@ -23,9 +23,9 @@
 package example1;
 
 import org.jboss.mgmt.annotation.AttributeType;
-import org.jboss.mgmt.annotation.xml.XmlRender;
+import org.jboss.mgmt.annotation.XmlRender;
 
-import static org.jboss.mgmt.annotation.xml.XmlRender.As.ELEMENT;
+import static org.jboss.mgmt.annotation.XmlRender.As.ELEMENT;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>

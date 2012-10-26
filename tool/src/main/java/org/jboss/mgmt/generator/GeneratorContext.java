@@ -23,13 +23,25 @@
 package org.jboss.mgmt.generator;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.Set;
+import nu.xom.Document;
+import nu.xom.Serializer;
 
 import com.sun.codemodel.JCodeModel;
 
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
+
 import javax.tools.Diagnostic;
+import javax.tools.StandardLocation;
+
+import static javax.tools.Diagnostic.Kind.ERROR;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
@@ -39,7 +51,8 @@ final class GeneratorContext {
     private final ProcessingContext ctxt;
     private final JCodeModel codeModel = new JCodeModel();
 
-    private final Set<NewSchemaInfo> generatedScheams = identityHashSet();
+    private final Set<NewSchemaInfo> generatedSchemas = identityHashSet();
+    private final Map<NewSchemaInfo, Document> documents = new IdentityHashMap<NewSchemaInfo, Document>();
 
     private static <E> Set<E> identityHashSet() {
         return Collections.newSetFromMap(new IdentityHashMap<E, Boolean>());
@@ -53,19 +66,74 @@ final class GeneratorContext {
         return codeModel;
     }
 
-    public void finish() {
-        if (! ctxt.getRoundEnv().errorRaised()) {
+    public boolean addDocument(NewSchemaInfo info, Document document) {
+        return ! documents.containsKey(info) && documents.put(info, document) == null;
+    }
+
+    public void generate() {
+        final RoundEnvironment roundEnv = ctxt.getRoundEnv();
+        final Messager messager = ctxt.getEnv().getMessager();
+        final Filer filer = ctxt.getEnv().getFiler();
+        for (NewSchemaInfo schema : generatedSchemas) {
+            schema.generate(this);
+        }
+        if (! roundEnv.errorRaised()) {
             try {
-                codeModel.build(new FilerCodeWriter(ctxt.getEnv().getFiler()));
+                codeModel.build(new FilerCodeWriter(filer));
             } catch (IOException e) {
-                ctxt.getEnv().getMessager().printMessage(Diagnostic.Kind.ERROR, "Failed to generate code model: " + e);
+                messager.printMessage(Diagnostic.Kind.ERROR, "Failed to generate code model: " + e);
+            }
+        }
+        for (Map.Entry<NewSchemaInfo, Document> entry : documents.entrySet()) {
+            if (! roundEnv.errorRaised()) {
+                final NewSchemaInfo schemaInfo = entry.getKey();
+                final Document document = entry.getValue();
+                final Serializer serializer;
+                final OutputStream stream;
+                final String fileName = schemaInfo.getSchemaFileName();
+                final String schemaLocation = schemaInfo.getSchemaLocation();
+                final String xmlNamespace = schemaInfo.getXmlNamespace();
+                try {
+                    stream = filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "META-INF/" + fileName).openOutputStream();
+                    try {
+                        serializer = new NiceSerializer(stream);
+                        serializer.setIndent(4);
+                        serializer.setLineSeparator("\n");
+                        serializer.write(document);
+                        serializer.flush();
+                    } finally {
+                        try {
+                            stream.close();
+                        } catch (IOException e) {
+                            messager.printMessage(ERROR, "Failed to close XSD stream for '" + schemaLocation + "' of " + xmlNamespace + ": " + e);
+                        }
+                    }
+                } catch (IOException e) {
+                    messager.printMessage(ERROR, "Failed to write XSD for '" + schemaLocation + "' of " + xmlNamespace + ": " + e);
+                }
+            } else {
+                break;
             }
         }
     }
 
-    public void generateSchema(final NewSchemaInfo schemaInfo) {
-        if (generatedScheams.add(schemaInfo)) {
+    public ProcessingEnvironment getEnv() {
+        return ctxt.getEnv();
+    }
 
+    public boolean doGenerate(final NewSchemaInfo newSchemaInfo) {
+        return generatedSchemas.add(newSchemaInfo);
+    }
+
+    static class NiceSerializer extends Serializer {
+
+        public NiceSerializer(OutputStream out) {
+            super(out);
+        }
+
+        protected void writeXMLDeclaration() throws IOException {
+            super.writeXMLDeclaration();
+            super.breakLine();
         }
     }
 }

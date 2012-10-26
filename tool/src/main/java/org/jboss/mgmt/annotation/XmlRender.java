@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation.xml;
+package org.jboss.mgmt.annotation;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -33,6 +33,14 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  */
 @Target({TYPE, METHOD})
 @Retention(CLASS)
-public @interface XmlName {
-    String value();
+public @interface XmlRender {
+    enum As {
+        ELEMENT,
+        ATTRIBUTE,
+        ;
+    }
+
+    As as();
+
+    boolean wrapperElement() default true;
 }

@@ -51,9 +51,9 @@ import org.jboss.mgmt.annotation.Required;
 import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.Schema;
 import org.jboss.mgmt.annotation.SubResource;
-import org.jboss.mgmt.annotation.xml.XmlName;
-import org.jboss.mgmt.annotation.xml.XmlRender;
-import org.jboss.mgmt.annotation.xml.XmlTypeName;
+import org.jboss.mgmt.annotation.XmlName;
+import org.jboss.mgmt.annotation.XmlRender;
+import org.jboss.mgmt.annotation.XmlTypeName;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -78,6 +78,7 @@ import static org.jboss.mgmt.generator.AnnotationUtils.annotationIs;
 import static org.jboss.mgmt.generator.AnnotationUtils.booleanValue;
 import static org.jboss.mgmt.generator.AnnotationUtils.classArrayValue;
 import static org.jboss.mgmt.generator.AnnotationUtils.classValue;
+import static org.jboss.mgmt.generator.AnnotationUtils.enumConstValue;
 import static org.jboss.mgmt.generator.AnnotationUtils.getAnnotation;
 import static org.jboss.mgmt.generator.AnnotationUtils.getAnnotationValue;
 import static org.jboss.mgmt.generator.AnnotationUtils.getAnnotationValueEnumConst;
@@ -203,7 +204,7 @@ final class ProcessingContext {
         }
 
         final RootResourceInfo[] rootResources = resourceList.toArray(new RootResourceInfo[resourceList.size()]);
-        return new NewSchemaInfo(version, namespace, kind, schemaLocation, schemaLocationFileName, namespaces, rootResources);
+        return new NewSchemaInfo(version, namespace, kind, schemaLocation, schemaLocationFileName, namespaces, rootResources, AnnotationUtils.isLocalSource(this, schemaAnnotation), xmlNamespace);
     }
 
     public RootResourceInfo processRootResource(TypeElement resourceInterface) {
@@ -644,6 +645,8 @@ final class ProcessingContext {
         Access access = null;
         TypeMirror virtual = null;
         boolean required = true;
+        boolean wrapperElement = true;
+        XmlRender.As renderAs = XmlRender.As.ELEMENT;
         VariableElement defaultVal = null;
         TypeMirror[] validators = null;
         String xmlName = xmlify(name);
@@ -658,6 +661,9 @@ final class ProcessingContext {
                 xmlName = getAnnotationValueString(annotationMirror, "value");
             } else if (annotationIs(annotationMirror, Required.class)) {
                 required = booleanValue(getAnnotationValue(annotationMirror, "value"), true);
+            } else if (annotationIs(annotationMirror, XmlRender.class)) {
+                wrapperElement = booleanValue(getAnnotationValue(annotationMirror, "wrapperElement"), true);
+                renderAs = enumConstValue(XmlRender.As.class, getAnnotationValue(annotationMirror, "as"));
             }
         }
 
@@ -665,7 +671,7 @@ final class ProcessingContext {
         if (valueInfo == null) {
             return null;
         }
-        return new AttributeInfo(executableElement, name, valueInfo);
+        return new AttributeInfo(executableElement, name, valueInfo, access, virtual, required, defaultVal, validators, xmlName, wrapperElement, renderAs);
     }
 
     public AttributeTypeInfo processAttributeType(final TypeMirror type) {

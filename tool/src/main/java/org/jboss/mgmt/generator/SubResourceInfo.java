@@ -30,6 +30,28 @@ import javax.lang.model.type.TypeMirror;
  */
 final class SubResourceInfo implements ResourceMember {
 
-    public SubResourceInfo(final ExecutableElement collector, final ExecutableElement fetcher, final TypeMirror type, final String type1, final String name, final boolean unique, final ResourceInfo[] infos) {
+    private final ExecutableElement collector;
+    private final ExecutableElement fetcher;
+    private final TypeMirror resourceType;
+    private final String type;
+    private final String name;
+    private final boolean requiresUnique;
+    private final ResourceInfo[] knownChildren;
+
+    public SubResourceInfo(final ExecutableElement collector, final ExecutableElement fetcher, final TypeMirror resourceType, final String type, final String name, final boolean requiresUnique, final ResourceInfo[] knownChildren) {
+        this.collector = collector;
+        this.fetcher = fetcher;
+        this.type = type;
+        this.name = name;
+        this.requiresUnique = requiresUnique;
+        this.knownChildren = knownChildren;
+        this.resourceType = resourceType;
+    }
+
+    public void generate(final ResourceGeneratorContext resourceGeneratorContext) {
+        final ResourceGeneratorContext childContext = new ResourceGeneratorContext(resourceGeneratorContext.getContext(), resourceGeneratorContext.getResourceInfo(), resourceGeneratorContext);
+        for (ResourceInfo resourceInfo : knownChildren) {
+            resourceInfo.generate(childContext);
+        }
     }
 }

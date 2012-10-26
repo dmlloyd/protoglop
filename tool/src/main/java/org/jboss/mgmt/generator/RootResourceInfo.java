@@ -22,6 +22,12 @@
 
 package org.jboss.mgmt.generator;
 
+import java.util.Collection;
+import nu.xom.Attribute;
+import nu.xom.Element;
+
+import static org.jboss.mgmt.generator.GeneratorUtils.XSD;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
@@ -58,5 +64,24 @@ final class RootResourceInfo {
 
     public ResourceInfo getResourceInfo() {
         return resourceInfo;
+    }
+
+    public void generate(final SchemaGeneratorContext ctxt) {
+        final Element rootElementDefinition = new Element("xs:element", XSD);
+        rootElementDefinition.addAttribute(new Attribute("name", xmlName));
+        GeneratorUtils.addDocumentation(rootElementDefinition, "*** DOCUMENTATION HERE ***");
+        ctxt.addRootElement(name, rootElementDefinition);
+        final ResourceGeneratorContext resourceGeneratorContext = new ResourceGeneratorContext(ctxt, this);
+        resourceInfo.generate(resourceGeneratorContext);
+        final Element type = new Element("xs:complexType", XSD);
+        final Element seq = new Element("xs:sequence", XSD);
+        for (Element nestedElement : resourceGeneratorContext.getNestedElements()) {
+            seq.appendChild(nestedElement);
+        }
+        type.appendChild(seq);
+        for (Element xmlAttributeDefinition : resourceGeneratorContext.getXmlAttributeDefinitions()) {
+            type.appendChild(xmlAttributeDefinition);
+        }
+        rootElementDefinition.appendChild(type);
     }
 }

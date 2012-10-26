@@ -27,7 +27,7 @@ import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.Provides;
 import org.jboss.mgmt.annotation.SubResource;
-import org.jboss.mgmt.annotation.xml.XmlName;
+import org.jboss.mgmt.annotation.XmlName;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>

@@ -50,7 +50,7 @@ import org.jboss.mgmt.VirtualAttribute;
 import org.jboss.mgmt.annotation.Access;
 import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.Schema;
-import org.jboss.mgmt.annotation.xml.XmlRender;
+import org.jboss.mgmt.annotation.XmlRender;
 import org.jboss.mgmt.ResourceNode;
 
 import com.sun.codemodel.JArray;
@@ -96,12 +96,12 @@ import static com.sun.codemodel.JMod.PUBLIC;
 import static com.sun.codemodel.JMod.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
 import static javax.tools.Diagnostic.Kind.WARNING;
+import static org.jboss.mgmt.generator.NameUtils.fieldify;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class Generator {/*
-    private static final String XSD = "http://www.w3.org/2001/XMLSchema";
+final class Generator {
     private static final String GENERATOR_VERSION = "1.0";
 
     private final ProcessingEnvironment env;
@@ -179,88 +179,6 @@ final class Generator {/*
         // Emit results (if no error)
         // --------------------------------------------------
 
-        for (Map.Entry<String, DocInfo> entry : namespaceSchemas.entrySet()) {
-            final Element schemaElement = new Element("xs:schema", XSD);
-            final Document document = new Document(schemaElement);
-            final String xmlNamespace = entry.getKey();
-            final DocInfo docInfo = entry.getValue();
-
-            schemaElement.addNamespaceDeclaration("", xmlNamespace);
-            schemaElement.addNamespaceDeclaration("xs", XSD);
-
-            schemaElement.addAttribute(new Attribute("targetNamespace", xmlNamespace));
-            schemaElement.addAttribute(new Attribute("elementFormDefault", "qualified"));
-            schemaElement.addAttribute(new Attribute("attributeFormDefault", "unqualified"));
-
-            schemaElement.appendChild(new Comment("\nRoot elements\n"));
-            for (Map.Entry<String, Element> elementEntry : docInfo.rootElementDecls.entrySet()) {
-                schemaElement.appendChild(elementEntry.getValue());
-            }
-            schemaElement.appendChild(new Comment("\nElement types\n"));
-            for (Map.Entry<String, Element> elementEntry : docInfo.typeDecls.entrySet()) {
-                schemaElement.appendChild(elementEntry.getValue());
-            }
-            if (docInfo.schemaLocation == null) {
-                messager.printMessage(ERROR, "No namespace location for schema " + xmlNamespace);
-                continue;
-            }
-            final URI uri;
-            try {
-                uri = new URI(docInfo.schemaLocation);
-            } catch (URISyntaxException e) {
-                messager.printMessage(ERROR, "Namespace schema location '" + docInfo.schemaLocation + "' is not valid for " + xmlNamespace);
-                continue;
-            }
-            final String path = uri.getPath();
-            if (path == null) {
-                messager.printMessage(ERROR, "Namespace schema location '" + docInfo.schemaLocation + "' does not have a path component for " + xmlNamespace);
-                continue;
-            }
-            final String fileName = path.substring(path.lastIndexOf('/') + 1);
-            if (! fileName.endsWith(".xsd")) {
-                messager.printMessage(WARNING, "Namespace schema location '" + docInfo.schemaLocation + "' should specify a file name ending in \".xsd\"");
-            }
-            if (! roundEnv.errorRaised()) {
-                final Serializer serializer;
-                final OutputStream stream;
-                try {
-                    stream = filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "META-INF/" + fileName).openOutputStream();
-                    try {
-                        serializer = new NiceSerializer(stream);
-                        serializer.setIndent(4);
-                        serializer.setLineSeparator("\n");
-                        serializer.write(document);
-                        serializer.flush();
-                    } finally {
-                        try {
-                            stream.close();
-                        } catch (IOException e) {
-                            messager.printMessage(ERROR, "Failed to close XSD stream for '" + docInfo.schemaLocation + "' of " + xmlNamespace + ": " + e);
-                        }
-                    }
-                } catch (IOException e) {
-                    messager.printMessage(ERROR, "Failed to write XSD for '" + docInfo.schemaLocation + "' of " + xmlNamespace + ": " + e);
-                }
-            }
-        }
-
-        if (! roundEnv.errorRaised()) try {
-            codeModel.build(new FilerCodeWriter(filer));
-        } catch (IOException e) {
-            messager.printMessage(ERROR, "Failed to write source files: " + e);
-        }
-    }
-
-    static class NiceSerializer extends Serializer {
-
-        public NiceSerializer(OutputStream out) {
-            super(out);
-        }
-
-        protected void writeXMLDeclaration() throws IOException {
-            super.writeXMLDeclaration();
-            super.breakLine();
-        }
     }
 
     class ResourceWriter {
@@ -763,5 +681,5 @@ final class Generator {/*
         annotation.appendChild(documentationElement);
         documentationElement.appendChild(documentation);
     }
-*/
+
 }

@@ -44,4 +44,10 @@ final class ResourceInfo {
     public ResourceMember[] getResourceMembers() {
         return resourceMembers;
     }
+
+    public void generate(final ResourceGeneratorContext context) {
+        for (ResourceMember member : resourceMembers) {
+            member.generate(context);
+        }
+    }
 }

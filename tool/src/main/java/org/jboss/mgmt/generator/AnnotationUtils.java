@@ -22,6 +22,7 @@
 
 package org.jboss.mgmt.generator;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,9 +30,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -40,12 +43,37 @@ import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 
+import javax.tools.Diagnostic;
+import javax.tools.StandardLocation;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 final class AnnotationUtils {
 
     private AnnotationUtils() {
+    }
+
+    public static boolean isLocalSource(ProcessingContext processingContext, TypeElement element) {
+        final ProcessingEnvironment env = processingContext.getEnv();
+        final Elements elements = env.getElementUtils();
+        final Element enclosingElement = element.getEnclosingElement();
+        if (enclosingElement == null) {
+            // it's a package or type param
+            return false;
+        }
+        final ElementKind enclosingKind = enclosingElement.getKind();
+        if (enclosingKind != ElementKind.PACKAGE) {
+            return isLocalSource(processingContext, (TypeElement) enclosingElement);
+        } else try {
+            env.getFiler().getResource(StandardLocation.SOURCE_PATH, elements.getPackageOf(element).getQualifiedName().toString(), element.getSimpleName().toString() + ".java");
+            return true;
+        } catch (IOException e) {
+            return false;
+        } catch (Exception e) {
+            env.getMessager().printMessage(Diagnostic.Kind.ERROR, "Problem locating source element '" + element + "'", element);
+            return false;
+        }
     }
 
     public static AnnotationMirror getAnnotation(Elements elements, Element annotatedElement, String annotationName) {

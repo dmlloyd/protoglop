@@ -22,7 +22,32 @@
 
 package org.jboss.mgmt.generator;
 
+import nu.xom.Attribute;
+import nu.xom.Element;
+import org.jboss.mgmt.AbstractResource;
+import org.jboss.mgmt.VirtualAttribute;
+import org.jboss.mgmt.annotation.Access;
+import org.jboss.mgmt.annotation.XmlRender;
+
+import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JClass;
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JType;
+
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
+
+import static com.sun.codemodel.JMod.FINAL;
+import static com.sun.codemodel.JMod.PRIVATE;
+import static com.sun.codemodel.JMod.PUBLIC;
+import static org.jboss.mgmt.generator.GeneratorUtils.XSD;
+import static org.jboss.mgmt.generator.NameUtils.fieldify;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
@@ -32,11 +57,27 @@ final class AttributeInfo implements ResourceMember {
     private final ExecutableElement executableElement;
     private final String name;
     private final AttributeValueInfo valueInfo;
+    private final Access access;
+    private final TypeMirror virtual;
+    private final boolean required;
+    private final VariableElement defaultVal;
+    private final TypeMirror[] validators;
+    private final String xmlName;
+    private final boolean wrapperElement;
+    private final XmlRender.As renderAs;
 
-    public AttributeInfo(final ExecutableElement executableElement, final String name, final AttributeValueInfo valueInfo) {
+    public AttributeInfo(final ExecutableElement executableElement, final String name, final AttributeValueInfo valueInfo, final Access access, final TypeMirror virtual, final boolean required, final VariableElement defaultVal, final TypeMirror[] validators, final String xmlName, final boolean wrapperElement, final XmlRender.As renderAs) {
         this.executableElement = executableElement;
         this.name = name;
         this.valueInfo = valueInfo;
+        this.access = access;
+        this.virtual = virtual;
+        this.required = required;
+        this.defaultVal = defaultVal;
+        this.validators = validators;
+        this.xmlName = xmlName;
+        this.wrapperElement = wrapperElement;
+        this.renderAs = renderAs;
     }
 
     public ExecutableElement getExecutableElement() {
@@ -49,5 +90,119 @@ final class AttributeInfo implements ResourceMember {
 
     public AttributeValueInfo getValueInfo() {
         return valueInfo;
+    }
+
+    public Access getAccess() {
+        return access;
+    }
+
+    public TypeMirror getVirtual() {
+        return virtual;
+    }
+
+    public boolean isRequired() {
+        return required;
+    }
+
+    public VariableElement getDefaultVal() {
+        return defaultVal;
+    }
+
+    public TypeMirror[] getValidators() {
+        return validators;
+    }
+
+    public String getXmlName() {
+        return xmlName;
+    }
+
+    public boolean isWrapperElement() {
+        return wrapperElement;
+    }
+
+    public XmlRender.As getRenderAs() {
+        return renderAs;
+    }
+
+    public void generate(final ResourceGeneratorContext resourceGeneratorContext) {
+        final ProcessingEnvironment env = resourceGeneratorContext.getContext().getContext().getEnv();
+
+        // ---------------------------
+        // Resource interface stuff
+        // ---------------------------
+
+        final JCodeModel codeModel = resourceGeneratorContext.getContext().getContext().getCodeModel();
+
+        final JClass resourceInterface = resourceGeneratorContext.getResourceInterface();
+        final JType attributeJType = CodeModelUtils.typeFor(env, codeModel, executableElement.getReturnType());
+        final String getterName = executableElement.getSimpleName().toString();
+        final String attrVarName = fieldify(name);
+
+        final JDefinedClass resourceImplClass = resourceGeneratorContext.getResourceImplClass();
+        final JMethod resourceImplConstructor = resourceGeneratorContext.getResourceImplConstructor();
+        final JBlock resourceImplConstructorInitBlock = resourceGeneratorContext.getResourceImplConstructorInitBlock();
+
+        final JMethod getterMethod = resourceImplClass.method(PUBLIC, attributeJType, getterName);
+        final JBlock getterMethodBody = getterMethod.body();
+        if (access.isReadable()) {
+            if (virtual != null) {
+                // TODO - migrate this to services!
+                // todo - cache virtual instances
+                getterMethodBody._return(JExpr.invoke(JExpr._new(codeModel.ref(VirtualAttribute.class).erasure().narrow(attributeJType)), "getValue"));
+            } else {
+                final JFieldVar field = resourceImplClass.field(PRIVATE | FINAL, attributeJType, attrVarName);
+                resourceImplConstructorInitBlock.assign(JExpr._this().ref(field), resourceImplConstructor.param(FINAL, attributeJType, attrVarName));
+                getterMethodBody._return(field);
+            }
+        } else {
+            getterMethodBody._throw(codeModel.ref(AbstractResource.class).staticInvoke("notReadable"));
+        }
+
+        // ---------------------------
+        // Builder class stuff
+        // ---------------------------
+
+        final JMethod setterDecl;
+        final JBlock setterBody;
+
+        // ---------------------------
+        // XML schema stuff
+        // ---------------------------
+
+        // Generate our entry in the enclosing complexType::sequence
+        valueInfo.generate(new AttributeGeneratorContext(this, resourceGeneratorContext));
+        final String xmlType;
+        if (renderAs == XmlRender.As.ATTRIBUTE) {
+            xmlType = "xs:string"; // TODO
+            final Element definition = new Element("xs:attribute", XSD);
+            definition.addAttribute(new Attribute("name", xmlName));
+            definition.addAttribute(new Attribute("type", xmlType));
+            definition.addAttribute(new Attribute("use", required ? "required" : "optional"));
+            GeneratorUtils.addDocumentation(definition, "*** DOCS HERE ***");
+            resourceGeneratorContext.addXmlAttribute(name, definition);
+        } else {
+            xmlType = xmlName + "Type"; // TODO
+            final Element definition = new Element("xs:element", XSD);
+            definition.addAttribute(new Attribute("name", xmlName));
+            definition.addAttribute(new Attribute("type", xmlType));
+            definition.addAttribute(new Attribute("minOccurs", required ? "1" : "0"));
+            if (false /* isCollection */) {
+                if (wrapperElement) {
+                    definition.addAttribute(new Attribute("maxOccurs", "1"));
+                } else {
+                    definition.addAttribute(new Attribute("maxOccurs", "unbounded"));
+                }
+            } else {
+                definition.addAttribute(new Attribute("maxOccurs", "1"));
+            }
+        }
+
+        // ---------------------------
+        // XML parser stuff
+        // ---------------------------
+
+        // ---------------------------
+        // XML deparser stuff
+        // ---------------------------
     }
 }

@@ -32,5 +32,7 @@ interface AttributeValueInfo {
 
     void emit(GeneratorContext ctxt, JMethod setterDecl, JBlock setterBody);
 
+    void generate(AttributeGeneratorContext attributeGeneratorContext);
+
     boolean isValidInAttributeType();
 }

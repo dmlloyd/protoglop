@@ -72,8 +72,17 @@ public @interface Schema {
      */
     String[] compatibilityNamespaces() default {};
 
+    /**
+     * The namespace kind.
+     */
     enum Kind {
+        /**
+         * A system namespace.
+         */
         SYSTEM,
+        /**
+         * An extension namespace.
+         */
         EXTENSION,
     }
 }

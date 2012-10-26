@@ -27,4 +27,5 @@ package org.jboss.mgmt.generator;
  */
 interface ResourceMember {
 
+    void generate(ResourceGeneratorContext resourceGeneratorContext);
 }

@@ -20,20 +20,26 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation.xml;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.CLASS;
+package org.jboss.mgmt.generator;
 
 /**
- * The name of the XML type to assign to a resource, attribute type, or attribute group.
+ * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-@Target({TYPE, METHOD})
-@Retention(CLASS)
-public @interface XmlTypeName {
-    String value();
+final class AttributeGeneratorContext {
+
+    private final AttributeInfo attributeInfo;
+    private final ResourceGeneratorContext resourceGeneratorContext;
+
+    public AttributeGeneratorContext(final AttributeInfo attributeInfo, final ResourceGeneratorContext resourceGeneratorContext) {
+        this.attributeInfo = attributeInfo;
+        this.resourceGeneratorContext = resourceGeneratorContext;
+    }
+
+    public AttributeInfo getAttributeInfo() {
+        return attributeInfo;
+    }
+
+    public ResourceGeneratorContext getResourceGeneratorContext() {
+        return resourceGeneratorContext;
+    }
 }
