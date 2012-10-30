@@ -24,10 +24,10 @@ package example1;
 
 import org.jboss.mgmt.AttributeValidator;
 import org.jboss.mgmt.Resource;
+import org.jboss.mgmt.ResourceRef;
 import org.jboss.mgmt.ValidationContext;
 import org.jboss.mgmt.annotation.Attribute;
 import org.jboss.mgmt.annotation.AttributeType;
-import org.jboss.mgmt.annotation.Enumerated;
 import org.jboss.mgmt.annotation.Reference;
 import org.jboss.mgmt.annotation.Required;
 
@@ -40,18 +40,15 @@ public interface FileReference {
     String getFileName();
 
     @Required(false)
-    @Enumerated("Foo")
-    @Reference(resourceType = PathResource.class, monitor = true)
-    PathResource getRelativeTo();
-
-    String getRelativeToName();
+    @Reference(monitor = true)
+    ResourceRef<PathResource> getRelativeTo();
 
     class Validator implements AttributeValidator<Resource, FileReference> {
         public static final Validator INSTANCE = new Validator();
 
         public void validate(final Resource resource, final String attributeName, final FileReference previousValue, final FileReference newValue, final ValidationContext validatorContext) {
             final String fileName = newValue.getFileName();
-            final String relativeToName = newValue.getRelativeToName();
+            final String relativeToName = newValue.getRelativeTo().getName();
             if (fileName.startsWith("/") && ! relativeToName.isEmpty()) {
                 validatorContext.reportProblem("File name may not be absolute if relative-to is given");
             } else if (! fileName.startsWith("/") && relativeToName.isEmpty()) {

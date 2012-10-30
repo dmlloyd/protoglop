@@ -24,7 +24,6 @@ package example1;
 
 import org.jboss.mgmt.annotation.Attribute;
 import org.jboss.mgmt.annotation.Listener;
-import org.jboss.mgmt.annotation.RuntimeMode;
 import org.jboss.mgmt.annotation.XmlName;
 
 /**
@@ -39,6 +38,4 @@ public interface FileHandlerResource extends HandlerResource {
 
     @Attribute
     boolean isAppend();
-
-
 }

@@ -44,4 +44,7 @@ final class AttributeGroupInfo implements ResourceMember {
     public ResourceMember[] getMembers() {
         return members;
     }
+
+    public void generate(final ResourceGeneratorContext resourceGeneratorContext) {
+    }
 }

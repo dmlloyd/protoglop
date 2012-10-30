@@ -22,10 +22,10 @@
 
 package org.jboss.mgmt;
 
-import org.jboss.msc.txn.ExecutionContext;
+import org.jboss.msc.txn.ExecuteContext;
 
 /**
  *
  */
-public interface ModelChangeContext extends ExecutionContext<Void> {
+public interface ModelChangeContext extends ExecuteContext<Void> {
 }

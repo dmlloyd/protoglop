@@ -22,8 +22,10 @@
 
 package example1;
 
+import org.jboss.mgmt.ResourceRef;
 import org.jboss.mgmt.annotation.Access;
 import org.jboss.mgmt.annotation.Attribute;
+import org.jboss.mgmt.annotation.Reference;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
@@ -31,7 +33,6 @@ import org.jboss.mgmt.annotation.Attribute;
 public interface DomainServerResource extends ServerResource {
 
     @Attribute(access = Access.READ_ONLY)
-    String getProfileName();
-
-    ProfileResource getProfile();
+    @Reference
+    ResourceRef<ProfileResource> getProfile();
 }

@@ -22,10 +22,20 @@
 
 package org.jboss.mgmt.generator;
 
-import java.util.Collection;
 import nu.xom.Attribute;
 import nu.xom.Element;
+import org.jboss.mgmt.BuilderFactory;
 
+import com.sun.codemodel.JClassAlreadyExistsException;
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JTypeVar;
+
+import javax.tools.Diagnostic;
+
+import static com.sun.codemodel.ClassType.CLASS;
+import static com.sun.codemodel.JMod.FINAL;
+import static com.sun.codemodel.JMod.PUBLIC;
 import static org.jboss.mgmt.generator.GeneratorUtils.XSD;
 
 /**
@@ -67,11 +77,25 @@ final class RootResourceInfo {
     }
 
     public void generate(final SchemaGeneratorContext ctxt) {
+        final JCodeModel codeModel = ctxt.getContext().getCodeModel();
+
+        final String interfaceName = resourceInfo.getTypeElement().getQualifiedName().toString();
+
+        final JDefinedClass builderFactoryClass;
+        try {
+            builderFactoryClass = codeModel._class(PUBLIC | FINAL, interfaceName + "BuilderFactory", CLASS);
+        } catch (JClassAlreadyExistsException e) {
+            ctxt.getContext().getEnv().getMessager().printMessage(Diagnostic.Kind.ERROR, "Builder factory class already exists for " + interfaceName, resourceInfo.getTypeElement());
+            return;
+        }
+        final JTypeVar builderFactoryP = builderFactoryClass.generify("P");
+        builderFactoryClass._implements(codeModel.ref(BuilderFactory.class).erasure().narrow(builderFactoryP, codeModel.ref(interfaceName + "Builder").narrow(builderFactoryP)));
+
         final Element rootElementDefinition = new Element("xs:element", XSD);
         rootElementDefinition.addAttribute(new Attribute("name", xmlName));
         GeneratorUtils.addDocumentation(rootElementDefinition, "*** DOCUMENTATION HERE ***");
         ctxt.addRootElement(name, rootElementDefinition);
-        final ResourceGeneratorContext resourceGeneratorContext = new ResourceGeneratorContext(ctxt, this);
+        final ResourceGeneratorContext resourceGeneratorContext = ResourceGeneratorContext.create(ctxt, this, null);
         resourceInfo.generate(resourceGeneratorContext);
         final Element type = new Element("xs:complexType", XSD);
         final Element seq = new Element("xs:sequence", XSD);

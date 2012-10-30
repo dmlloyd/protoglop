@@ -22,10 +22,6 @@
 
 package org.jboss.mgmt.generator;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,26 +30,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import nu.xom.Attribute;
-import nu.xom.Comment;
-import nu.xom.Document;
 import nu.xom.Element;
-import nu.xom.Serializer;
 import org.jboss.mgmt.AbstractResource;
-import org.jboss.mgmt.BuilderFactory;
 import org.jboss.mgmt.Entry;
 import org.jboss.mgmt.ExceptionThrowingValidationContext;
-import org.jboss.mgmt.ModelNodeDeparser;
-import org.jboss.mgmt.ModelNodeParser;
-import org.jboss.mgmt.NestedBuilder;
 import org.jboss.mgmt.Resource;
-import org.jboss.mgmt.VirtualAttribute;
 import org.jboss.mgmt.annotation.Access;
-import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.Schema;
 import org.jboss.mgmt.annotation.XmlRender;
 import org.jboss.mgmt.ResourceNode;
 
-import com.sun.codemodel.JArray;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
@@ -85,8 +71,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
-import javax.tools.StandardLocation;
-
 import static com.sun.codemodel.ClassType.CLASS;
 import static com.sun.codemodel.ClassType.INTERFACE;
 import static com.sun.codemodel.JMod.FINAL;
@@ -96,12 +80,11 @@ import static com.sun.codemodel.JMod.PUBLIC;
 import static com.sun.codemodel.JMod.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
 import static javax.tools.Diagnostic.Kind.WARNING;
-import static org.jboss.mgmt.generator.NameUtils.fieldify;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class Generator {
+final class Generator {/*
     private static final String GENERATOR_VERSION = "1.0";
 
     private final ProcessingEnvironment env;
@@ -276,24 +259,6 @@ final class Generator {
             resourceNodeClass.annotate(Generated.class).paramArray("value").param(Generator.class.getName()).param(GENERATOR_VERSION);
             if (parentType == null) coreClass.annotate(Generated.class).paramArray("value").param(Generator.class.getName()).param(GENERATOR_VERSION);
 
-            final JTypeVar builderInterfaceP = builderInterface.generify("P");
-            builderInterface._extends(codeModel.ref(NestedBuilder.class).erasure().erasure().narrow(builderInterfaceP));
-
-            builderInterface.javadoc().add("A builder for " + resource.getName() + " resources.  This interface was automatically generated.");
-
-            final JTypeVar builderClassP = builderClass.generify("P");
-            builderClass._implements(builderInterface.narrow(builderClassP));
-
-            parserClass._implements(codeModel.ref(ModelNodeParser.class).erasure().narrow(builderInterface.narrow(codeModel.wildcard())));
-            deparserClass._implements(codeModel.ref(ModelNodeDeparser.class).erasure().narrow(resourceInterface));
-
-            implementationClass._extends(codeModel.ref(AbstractResource.class));
-            implementationClass._implements(resourceInterface);
-
-            resourceNodeClass._extends(codeModel.ref(ResourceNode.class).erasure().narrow(resourceInterface));
-
-            final JTypeVar builderFactoryP = builderFactoryClass.generify("P");
-            builderFactoryClass._implements(codeModel.ref(BuilderFactory.class).erasure().narrow(builderFactoryP, builderInterface.erasure().narrow(builderFactoryP)));
 
             final JMethod implConstructor = implementationClass.constructor(PUBLIC);
             final JBlock implConstructorBody = implConstructor.body();
@@ -682,4 +647,4 @@ final class Generator {
         documentationElement.appendChild(documentation);
     }
 
-}
+*/}

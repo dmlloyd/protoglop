@@ -25,7 +25,6 @@ package org.jboss.mgmt.generator;
 import nu.xom.Attribute;
 import nu.xom.Element;
 import org.jboss.mgmt.AbstractResource;
-import org.jboss.mgmt.VirtualAttribute;
 import org.jboss.mgmt.annotation.Access;
 import org.jboss.mgmt.annotation.XmlRender;
 
@@ -126,14 +125,14 @@ final class AttributeInfo implements ResourceMember {
 
     public void generate(final ResourceGeneratorContext resourceGeneratorContext) {
         final ProcessingEnvironment env = resourceGeneratorContext.getContext().getContext().getEnv();
+        final JCodeModel codeModel = resourceGeneratorContext.getContext().getContext().getCodeModel();
 
         // ---------------------------
         // Resource interface stuff
         // ---------------------------
 
-        final JCodeModel codeModel = resourceGeneratorContext.getContext().getContext().getCodeModel();
-
         final JClass resourceInterface = resourceGeneratorContext.getResourceInterface();
+
         final JType attributeJType = CodeModelUtils.typeFor(env, codeModel, executableElement.getReturnType());
         final String getterName = executableElement.getSimpleName().toString();
         final String attrVarName = fieldify(name);
@@ -145,15 +144,7 @@ final class AttributeInfo implements ResourceMember {
         final JMethod getterMethod = resourceImplClass.method(PUBLIC, attributeJType, getterName);
         final JBlock getterMethodBody = getterMethod.body();
         if (access.isReadable()) {
-            if (virtual != null) {
-                // TODO - migrate this to services!
-                // todo - cache virtual instances
-                getterMethodBody._return(JExpr.invoke(JExpr._new(codeModel.ref(VirtualAttribute.class).erasure().narrow(attributeJType)), "getValue"));
-            } else {
-                final JFieldVar field = resourceImplClass.field(PRIVATE | FINAL, attributeJType, attrVarName);
-                resourceImplConstructorInitBlock.assign(JExpr._this().ref(field), resourceImplConstructor.param(FINAL, attributeJType, attrVarName));
-                getterMethodBody._return(field);
-            }
+
         } else {
             getterMethodBody._throw(codeModel.ref(AbstractResource.class).staticInvoke("notReadable"));
         }

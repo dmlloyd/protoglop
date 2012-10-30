@@ -23,19 +23,64 @@
 package org.jboss.mgmt.generator;
 
 import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JFieldRef;
 import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JType;
 
 import javax.lang.model.element.VariableElement;
+
+import static com.sun.codemodel.JMod.FINAL;
+import static com.sun.codemodel.JMod.PRIVATE;
+import static com.sun.codemodel.JMod.PUBLIC;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class StringAttributeValueInfo implements AttributeValueInfo {
+final class StringAttributeValueInfo extends AttributeValueInfo {
+
+    private final String name;
+    private final VariableElement defaultVal;
+    private final boolean required;
+    private final String[] enumerations;
 
     public StringAttributeValueInfo(final String name, final VariableElement defaultVal, final boolean required, final String[] enumerations) {
+        this.name = name;
+        this.defaultVal = defaultVal;
+        this.required = required;
+        this.enumerations = enumerations;
     }
 
-    public void emit(final GeneratorContext ctxt, final JMethod setterDecl, final JBlock setterBody) {
+    public String getName() {
+        return name;
+    }
+
+    public VariableElement getDefaultVal() {
+        return defaultVal;
+    }
+
+    public boolean isRequired() {
+        return required;
+    }
+
+    public String[] getEnumerations() {
+        return enumerations;
+    }
+
+    public void generate(final AttributeGeneratorContext attributeGeneratorContext) {
+        final ResourceGeneratorContext resourceGeneratorContext = attributeGeneratorContext.getResourceGeneratorContext();
+        final JDefinedClass resourceImplClass = resourceGeneratorContext.getResourceImplClass();
+        final JMethod implConstructor = resourceGeneratorContext.getResourceImplConstructor();
+        final JBlock implInitBlock = resourceGeneratorContext.getResourceImplConstructorInitBlock();
+        final JType attributeType = attributeGeneratorContext.getAttributeType();
+        final String attributeName = attributeGeneratorContext.getAttributeInfo().getName();
+        // init
+        final JFieldRef implField = JExpr.ref(JExpr._this(), resourceImplClass.field(PRIVATE | FINAL, attributeType, attributeName));
+        implInitBlock.assign(implField, implConstructor.param(FINAL, attributeType, attributeName));
+        // getter
+        final JMethod getterMethod = resourceImplClass.method(PUBLIC, attributeType, attributeGeneratorContext.getGetterName());
+        getterMethod.body()._return(implField);
     }
 
     public boolean isValidInAttributeType() {

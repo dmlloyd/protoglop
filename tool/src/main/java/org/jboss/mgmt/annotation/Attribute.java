@@ -25,7 +25,6 @@ package org.jboss.mgmt.annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import org.jboss.mgmt.AttributeValidator;
-import org.jboss.mgmt.VirtualAttribute;
 
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
@@ -60,16 +59,6 @@ public @interface Attribute {
      * @return the run level
      */
     RunLevel changeRunLevel() default RunLevel.RUNNING;
-
-    /**
-     * The minimum run level at which this attribute can be observed.  Only applies to
-     * virtual attributes.  The visibility run level must be less than the change run level.
-     *
-     * @return the visibility run level
-     */
-    RunLevel visibleRunLevel() default RunLevel.STOPPED;
-
-    Class<? extends VirtualAttribute> virtual() default VirtualAttribute.class;
 
     String defaultValue() default "";
 

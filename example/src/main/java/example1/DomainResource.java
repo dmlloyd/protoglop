@@ -22,7 +22,6 @@
 
 package example1;
 
-import java.util.List;
 import java.util.Map;
 import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.annotation.Attribute;
@@ -42,47 +41,29 @@ public interface DomainResource extends Resource {
     Map<String, BootTimePropertyType> getProperties();
 
     @SubResource
-    List<String> getPathNames();
-
-    PathResource getPath(String name);
+    Map<String, PathResource> getPaths();
 
     @SubResource
-    List<String> getProfileNames();
-
-    ProfileResource getProfile(String name);
+    Map<String, ProfileResource> getProfiles();
 
     @SubResource
-    List<String> getInterfaceNames();
-
-    InterfaceResource getInterface(String name);
+    Map<String, InterfaceResource> getInterfaces();
 
     @SubResource
-    List<String> getSocketBindingGroupNames();
-
-    SocketBindingGroupResource getSocketBindingGroup(String name);
+    Map<String, SocketBindingGroupResource> getSocketBindingGroups();
 
     @SubResource
-    List<String> getDeploymentNames();
-
-    DomainDeploymentResource getDeployment(String name);
+    Map<String, DomainDeploymentResource> getDeployments();
 
     @SubResource
-    List<String> getServerGroupNames();
-
-    ServerGroupResource getServerGroup(String name);
+    Map<String, ServerGroupResource> getServerGroups();
 
     @SubResource
-    List<String> getManagementClientContextNames();
-
-    ManagementClientContextResource getManagementClientContext(String name);
+    Map<String, ManagementClientContextResource> getManagementClientContexts();
 
     @SubResource
-    List<String> getJvmNames();
-
-    JvmResource getJvm(String name);
+    Map<String, JvmResource> getJvms();
 
     @SubResource
-    List<String> getServerNames();
-
-    DomainServerResource getServer(String name);
+    Map<String, DomainServerResource> getServers();
 }

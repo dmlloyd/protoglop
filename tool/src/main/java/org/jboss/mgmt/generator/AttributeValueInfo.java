@@ -22,17 +22,16 @@
 
 package org.jboss.mgmt.generator;
 
-import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JVar;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-interface AttributeValueInfo {
+abstract class AttributeValueInfo {
 
-    void emit(GeneratorContext ctxt, JMethod setterDecl, JBlock setterBody);
+    public abstract void generate(AttributeGeneratorContext attributeGeneratorContext);
 
-    void generate(AttributeGeneratorContext attributeGeneratorContext);
-
-    boolean isValidInAttributeType();
+    public abstract boolean isValidInAttributeType();
 }

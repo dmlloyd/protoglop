@@ -22,18 +22,15 @@
 
 package org.jboss.mgmt.generator;
 
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JMethod;
-
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class AttributeGroupValueInfo implements AttributeValueInfo {
+final class AttributeGroupValueInfo extends AttributeValueInfo {
 
     public AttributeGroupValueInfo(final String name, final AttributeGroupInfo attributeGroupInfo, final boolean required) {
     }
 
-    public void emit(final GeneratorContext ctxt, final JMethod setterDecl, final JBlock setterBody) {
+    public void generate(final AttributeGeneratorContext attributeGeneratorContext) {
     }
 
     public boolean isValidInAttributeType() {

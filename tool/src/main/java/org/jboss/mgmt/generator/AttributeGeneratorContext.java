@@ -22,6 +22,10 @@
 
 package org.jboss.mgmt.generator;
 
+import com.sun.codemodel.JType;
+
+import javax.lang.model.type.TypeKind;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
@@ -29,10 +33,19 @@ final class AttributeGeneratorContext {
 
     private final AttributeInfo attributeInfo;
     private final ResourceGeneratorContext resourceGeneratorContext;
+    private final JType attributeType;
+    private final String getterName;
 
     public AttributeGeneratorContext(final AttributeInfo attributeInfo, final ResourceGeneratorContext resourceGeneratorContext) {
         this.attributeInfo = attributeInfo;
         this.resourceGeneratorContext = resourceGeneratorContext;
+        final GeneratorContext generatorContext = resourceGeneratorContext.getContext().getContext();
+        attributeType = CodeModelUtils.typeFor(generatorContext.getEnv(), generatorContext.getCodeModel(), attributeInfo.getExecutableElement().getReturnType());
+        if (attributeType.equals(resourceGeneratorContext.getContext().getContext().getEnv().getTypeUtils().getPrimitiveType(TypeKind.BOOLEAN))) {
+            getterName = "is" + attributeInfo.getName();
+        } else {
+            getterName = "get" + attributeInfo.getName();
+        }
     }
 
     public AttributeInfo getAttributeInfo() {
@@ -41,5 +54,13 @@ final class AttributeGeneratorContext {
 
     public ResourceGeneratorContext getResourceGeneratorContext() {
         return resourceGeneratorContext;
+    }
+
+    public JType getAttributeType() {
+        return attributeType;
+    }
+
+    public String getGetterName() {
+        return getterName;
     }
 }

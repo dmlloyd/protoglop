@@ -22,21 +22,18 @@
 
 package org.jboss.mgmt.generator;
 
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JMethod;
-
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.DeclaredType;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class ReferenceAttributeValueInfo implements AttributeValueInfo {
+final class ReferenceAttributeValueInfo extends AttributeValueInfo {
 
     public ReferenceAttributeValueInfo(final String name, final ExecutableElement declaringElement, final ExecutableElement getNameMethod, final boolean required, final DeclaredType referenceType, final boolean monitor) {
     }
 
-    public void emit(final GeneratorContext ctxt, final JMethod setterDecl, final JBlock setterBody) {
+    public void generate(final AttributeGeneratorContext attributeGeneratorContext) {
     }
 
     public boolean isValidInAttributeType() {

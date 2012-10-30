@@ -49,9 +49,10 @@ final class SubResourceInfo implements ResourceMember {
     }
 
     public void generate(final ResourceGeneratorContext resourceGeneratorContext) {
-        final ResourceGeneratorContext childContext = new ResourceGeneratorContext(resourceGeneratorContext.getContext(), resourceGeneratorContext.getResourceInfo(), resourceGeneratorContext);
+        final ResourceGeneratorContext childContext = ResourceGeneratorContext.create(resourceGeneratorContext.getContext(), resourceGeneratorContext.getResourceInfo(), resourceGeneratorContext);
         for (ResourceInfo resourceInfo : knownChildren) {
             resourceInfo.generate(childContext);
         }
+
     }
 }

@@ -22,7 +22,7 @@
 
 package org.jboss.mgmt;
 
-import org.jboss.msc.txn.ExecutionContext;
+import org.jboss.msc.txn.ExecuteContext;
 
 /**
  * A resource operation context.
@@ -30,6 +30,6 @@ import org.jboss.msc.txn.ExecutionContext;
  * @param <T> the operation result type
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface ResourceOperationContext<T> extends ExecutionContext<T> {
+public interface ResourceOperationContext<T> extends ExecuteContext<T> {
 
 }

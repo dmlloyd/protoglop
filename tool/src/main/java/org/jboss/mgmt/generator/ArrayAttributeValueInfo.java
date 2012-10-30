@@ -22,20 +22,17 @@
 
 package org.jboss.mgmt.generator;
 
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JMethod;
-
 import javax.lang.model.type.TypeMirror;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class ArrayAttributeValueInfo implements AttributeValueInfo {
+final class ArrayAttributeValueInfo extends AttributeValueInfo {
 
     ArrayAttributeValueInfo(final String name, final String singular, final TypeMirror valueType, final boolean required) {
     }
 
-    public void emit(final GeneratorContext ctxt, final JMethod setterDecl, final JBlock setterBody) {
+    public void generate(final AttributeGeneratorContext attributeGeneratorContext) {
     }
 
     public boolean isValidInAttributeType() {

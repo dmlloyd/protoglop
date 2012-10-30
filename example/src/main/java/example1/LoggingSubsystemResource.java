@@ -22,7 +22,7 @@
 
 package example1;
 
-import java.util.List;
+import java.util.Map;
 import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.Provides;
@@ -42,12 +42,8 @@ import org.jboss.mgmt.annotation.XmlName;
 public interface LoggingSubsystemResource extends Resource {
 
     @SubResource(children = { FileHandlerResource.class }, type = "core.logging.handler")
-    List<String> getHandlerNames();
-
-    HandlerResource getHandler(String name);
+    Map<String, HandlerResource> getHandlers();
 
     @SubResource
-    List<String> getLoggerNames();
-
-    LoggerResource getLogger(String name);
+    Map<String, LoggerResource> getLoggerNames();
 }

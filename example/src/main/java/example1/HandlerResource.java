@@ -24,6 +24,7 @@ package example1;
 
 import java.util.List;
 import org.jboss.mgmt.Resource;
+import org.jboss.mgmt.ResourceRef;
 import org.jboss.mgmt.annotation.Attribute;
 import org.jboss.mgmt.annotation.Enumerated;
 import org.jboss.mgmt.annotation.Reference;
@@ -36,7 +37,7 @@ import org.jboss.mgmt.annotation.ResourceType;
 public interface HandlerResource extends Resource {
     @Attribute
     @Reference(resourceType = HandlerResource.class)
-    List<String> getHandlerNames();
+    List<ResourceRef<? extends HandlerResource>> getHandlers();
 
     @Attribute(validators = { /* FilterStringValidator.class */ })
     String getFilterSpec();

@@ -38,9 +38,14 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 public @interface Listener {
 
     /**
-     * The listener type.
+     * The listener type.  Should implement one or more of the four MSC task traits.
      *
      * @return the listener type
+     *
+     * @see org.jboss.msc.txn.Executable
+     * @see org.jboss.msc.txn.Validatable
+     * @see org.jboss.msc.txn.Revertible
+     * @see org.jboss.msc.txn.Committable
      */
     Class<?> value();
 

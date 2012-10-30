@@ -20,30 +20,26 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.model;
-
-import org.jboss.mgmt.annotation.Access;
-
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.TypeMirror;
+package org.jboss.mgmt;
 
 /**
+ * A reference to another resource.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class Attribute {
-    private String name;
-    private String camelHumpsName;
+public interface ResourceRef<R extends Resource> {
 
-    private AnnotationMirror annotationMirror;
-    private Access access;
-    private boolean required;
-    private String defaultValueString;
-    private TypeMirror virtual;
-    private TypeMirror[] validators;
+    /**
+     * Get the resource name.
+     *
+     * @return the resource name
+     */
+    String getName();
 
-    private ExecutableElement primaryMethodElement;
-    private ExecutableElement linkMethodElement;
-
-
+    /**
+     * Get the resource.
+     *
+     * @return the resource instance
+     */
+    R get();
 }

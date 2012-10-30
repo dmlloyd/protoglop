@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
+ * Copyright 2012, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -24,31 +24,35 @@ package org.jboss.mgmt.annotation;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import org.jboss.mgmt.Resource;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.*;
 
 /**
- * A named reference to an external resource.
+ * A virtual attribute or resource derived from a service on this resource.  The property is only available if
+ * the container run level is sufficient to start the service.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-@Retention(SOURCE)
-@Target(METHOD)
-public @interface Reference {
+@Target({ TYPE, METHOD })
+@Retention(CLASS)
+public @interface Virtual {
 
     /**
-     * The type of resource being referred to.
+     * The service name.  If not given, the service name is inherited from the resource to attributes.  If
+     * no service name is given on the resource (or the resource is not virtual), a compile error will result.
+     * The resource or attribute will be present when the service's run level is met.
      *
-     * @return the type of resource
+     * @return the service name
      */
-    Class<? extends Resource> resourceType() default Resource.class;
+    String service() default "";
 
     /**
-     * Trigger a refresh of the attribute if the referenced resource changes.
+     * The property of the service.  If omitted, the value of the service itself is used and the virtual attribute
+     * must be read-only, otherwise accessor methods are expected to be present for the defined access type of this
+     * attribute (else a compile error will result).  May only be applied to attributes.
      *
-     * @return the monitor setting
+     * @return the property
      */
-    boolean monitor() default false;
+    String property() default "";
 }

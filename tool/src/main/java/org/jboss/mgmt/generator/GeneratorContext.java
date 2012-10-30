@@ -75,7 +75,7 @@ final class GeneratorContext {
         final Messager messager = ctxt.getEnv().getMessager();
         final Filer filer = ctxt.getEnv().getFiler();
         for (NewSchemaInfo schema : generatedSchemas) {
-            schema.generate(this);
+            if (schema.isLocalSource()) schema.generate(this);
         }
         if (! roundEnv.errorRaised()) {
             try {
@@ -119,10 +119,6 @@ final class GeneratorContext {
 
     public ProcessingEnvironment getEnv() {
         return ctxt.getEnv();
-    }
-
-    public boolean doGenerate(final NewSchemaInfo newSchemaInfo) {
-        return generatedSchemas.add(newSchemaInfo);
     }
 
     static class NiceSerializer extends Serializer {

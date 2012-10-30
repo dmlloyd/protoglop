@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import org.jboss.mgmt.annotation.AttributeGroup;
 import org.jboss.mgmt.annotation.AttributeType;
 import org.jboss.mgmt.annotation.ResourceType;
 import org.jboss.mgmt.annotation.RootResource;
@@ -59,8 +58,7 @@ public final class Processor implements javax.annotation.processing.Processor {
             Schema.class.getName(),
             AttributeType.class.getName(),
             ResourceType.class.getName(),
-            RootResource.class.getName(),
-            AttributeGroup.class.getName()
+            RootResource.class.getName()
         ));
     }
 
@@ -75,14 +73,10 @@ public final class Processor implements javax.annotation.processing.Processor {
     public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
         final ProcessingContext ctxt = new ProcessingContext(env, roundEnv);
         final GeneratorContext genCtxt = new GeneratorContext(ctxt);
-        final Set<NewSchemaInfo> schemas = new HashSet<NewSchemaInfo>();
 
         for (TypeElement typeElement : ElementFilter.typesIn(roundEnv.getElementsAnnotatedWith(Schema.class))) {
             if (typeElement.getKind() == ElementKind.ANNOTATION_TYPE) {
-                final NewSchemaInfo schemaInfo = ctxt.processSchema(typeElement);
-                if (schemaInfo.isLocalSource()) {
-                    genCtxt.doGenerate(schemaInfo);
-                }
+                ctxt.processSchema(typeElement);
             }
         }
 

@@ -36,7 +36,7 @@ import static com.sun.codemodel.JMod.FINAL;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class PrimitiveAttributeValueInfo implements AttributeValueInfo {
+final class PrimitiveAttributeValueInfo extends AttributeValueInfo {
 
     private final TypeKind kind;
     private final String name;
@@ -48,7 +48,9 @@ final class PrimitiveAttributeValueInfo implements AttributeValueInfo {
         this.defaultVal = defaultVal;
     }
 
-    public void emit(final GeneratorContext ctxt, final JMethod setterDecl, final JBlock setterBody) {
+    public void generate(final AttributeGeneratorContext attributeGeneratorContext) {
+        JMethod setterDecl = null;
+        JBlock setterBody = null;
         final JVar param;
         switch (kind) {
             case BOOLEAN: param = setterDecl.param(FINAL, boolean.class, name); break;

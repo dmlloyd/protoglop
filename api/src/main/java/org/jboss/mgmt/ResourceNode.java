@@ -24,7 +24,7 @@ package org.jboss.mgmt;
 
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import org.jboss.msc.txn.WorkContext;
+import org.jboss.msc.txn.Transaction;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -99,7 +99,7 @@ public abstract class ResourceNode<R extends Resource> implements Resource {
         return null;
     }
 
-    protected abstract R writeAttribute(WorkContext workContext, String name, Object value);
+    protected abstract R writeAttribute(Transaction transaction, String name, Object value);
 
     protected abstract void persist(XMLStreamWriter writer) throws XMLStreamException;
 
