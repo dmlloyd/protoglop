@@ -22,7 +22,7 @@
 
 package org.jboss.mgmt.generator;
 
-import com.sun.codemodel.JType;
+import org.jboss.jdeparser.JType;
 
 import javax.lang.model.type.TypeKind;
 
@@ -40,7 +40,7 @@ final class AttributeGeneratorContext {
         this.attributeInfo = attributeInfo;
         this.resourceGeneratorContext = resourceGeneratorContext;
         final GeneratorContext generatorContext = resourceGeneratorContext.getContext().getContext();
-        attributeType = CodeModelUtils.typeFor(generatorContext.getEnv(), generatorContext.getCodeModel(), attributeInfo.getExecutableElement().getReturnType());
+        attributeType = JDeparserUtils.typeFor(generatorContext.getEnv(), generatorContext.getDeparser(), attributeInfo.getExecutableElement().getReturnType());
         if (attributeType.equals(resourceGeneratorContext.getContext().getContext().getEnv().getTypeUtils().getPrimitiveType(TypeKind.BOOLEAN))) {
             getterName = "is" + attributeInfo.getName();
         } else {

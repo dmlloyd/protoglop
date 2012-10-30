@@ -31,7 +31,7 @@ import java.util.Set;
 import nu.xom.Document;
 import nu.xom.Serializer;
 
-import com.sun.codemodel.JCodeModel;
+import org.jboss.jdeparser.JDeparser;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
@@ -49,7 +49,7 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 final class GeneratorContext {
 
     private final ProcessingContext ctxt;
-    private final JCodeModel codeModel = new JCodeModel();
+    private final JDeparser deparser = new JDeparser();
 
     private final Set<NewSchemaInfo> generatedSchemas = identityHashSet();
     private final Map<NewSchemaInfo, Document> documents = new IdentityHashMap<NewSchemaInfo, Document>();
@@ -62,8 +62,8 @@ final class GeneratorContext {
         this.ctxt = ctxt;
     }
 
-    public JCodeModel getCodeModel() {
-        return codeModel;
+    public JDeparser getDeparser() {
+        return deparser;
     }
 
     public boolean addDocument(NewSchemaInfo info, Document document) {
@@ -79,7 +79,7 @@ final class GeneratorContext {
         }
         if (! roundEnv.errorRaised()) {
             try {
-                codeModel.build(new FilerCodeWriter(filer));
+                deparser.build(new FilerCodeWriter(filer));
             } catch (IOException e) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "Failed to generate code model: " + e);
             }

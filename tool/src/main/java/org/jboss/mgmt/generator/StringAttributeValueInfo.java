@@ -22,18 +22,18 @@
 
 package org.jboss.mgmt.generator;
 
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JFieldRef;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JType;
+import org.jboss.jdeparser.JBlock;
+import org.jboss.jdeparser.JDefinedClass;
+import org.jboss.jdeparser.JExpr;
+import org.jboss.jdeparser.JFieldRef;
+import org.jboss.jdeparser.JMethod;
+import org.jboss.jdeparser.JType;
 
 import javax.lang.model.element.VariableElement;
 
-import static com.sun.codemodel.JMod.FINAL;
-import static com.sun.codemodel.JMod.PRIVATE;
-import static com.sun.codemodel.JMod.PUBLIC;
+import static org.jboss.jdeparser.JMod.FINAL;
+import static org.jboss.jdeparser.JMod.PRIVATE;
+import static org.jboss.jdeparser.JMod.PUBLIC;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>

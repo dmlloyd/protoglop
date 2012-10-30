@@ -28,27 +28,26 @@ import java.util.Map;
 import java.util.TreeMap;
 import nu.xom.Element;
 import org.jboss.mgmt.AbstractResource;
-import org.jboss.mgmt.BuilderFactory;
 import org.jboss.mgmt.ModelNodeDeparser;
 import org.jboss.mgmt.ModelNodeParser;
 import org.jboss.mgmt.NestedBuilder;
 import org.jboss.mgmt.ResourceNode;
 
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JClassAlreadyExistsException;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JInvocation;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JTypeVar;
+import org.jboss.jdeparser.JBlock;
+import org.jboss.jdeparser.JClass;
+import org.jboss.jdeparser.JClassAlreadyExistsException;
+import org.jboss.jdeparser.JDeparser;
+import org.jboss.jdeparser.JDefinedClass;
+import org.jboss.jdeparser.JInvocation;
+import org.jboss.jdeparser.JMethod;
+import org.jboss.jdeparser.JTypeVar;
 
 import javax.tools.Diagnostic;
 
-import static com.sun.codemodel.ClassType.CLASS;
-import static com.sun.codemodel.ClassType.INTERFACE;
-import static com.sun.codemodel.JMod.FINAL;
-import static com.sun.codemodel.JMod.PUBLIC;
+import static org.jboss.jdeparser.ClassType.CLASS;
+import static org.jboss.jdeparser.ClassType.INTERFACE;
+import static org.jboss.jdeparser.JMod.FINAL;
+import static org.jboss.jdeparser.JMod.PUBLIC;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
@@ -83,31 +82,31 @@ final class ResourceGeneratorContext {
         this.builderClass = builderClass;
         this.resourceNodeClass = resourceNodeClass;
 
-        final JCodeModel codeModel = context.getContext().getCodeModel();
+        final JDeparser deparser = context.getContext().getDeparser();
 
         final JMethod resourceImplConstructor = resourceImplClass.constructor(PUBLIC);
         final JBlock implConstructorBody = resourceImplConstructor.body();
         final JInvocation implConstructorSuperCall = implConstructorBody.invoke("super");
-        implConstructorSuperCall.arg(resourceImplConstructor.param(FINAL, codeModel.ref(String.class), "preComment"));
-        implConstructorSuperCall.arg(resourceImplConstructor.param(FINAL, codeModel.ref(String.class), "postComment"));
-        implConstructorSuperCall.arg(resourceImplConstructor.param(FINAL, codeModel.ref(String.class), "name"));
-        implConstructorSuperCall.arg(resourceImplConstructor.param(FINAL, codeModel.ref(ResourceNode.class).narrow(codeModel.wildcard()), "parent"));
+        implConstructorSuperCall.arg(resourceImplConstructor.param(FINAL, deparser.ref(String.class), "preComment"));
+        implConstructorSuperCall.arg(resourceImplConstructor.param(FINAL, deparser.ref(String.class), "postComment"));
+        implConstructorSuperCall.arg(resourceImplConstructor.param(FINAL, deparser.ref(String.class), "name"));
+        implConstructorSuperCall.arg(resourceImplConstructor.param(FINAL, deparser.ref(ResourceNode.class).narrow(deparser.wildcard()), "parent"));
         final JBlock resourceImplConstructorInitBlock = implConstructorBody.block();
         final JBlock resourceImplConstructorPostConstructBlock = implConstructorBody.block();
 
         final JTypeVar builderInterfaceP = builderInterface.generify("P");
-        builderInterface._extends(codeModel.ref(NestedBuilder.class).erasure().erasure().narrow(builderInterfaceP));
+        builderInterface._extends(deparser.ref(NestedBuilder.class).erasure().erasure().narrow(builderInterfaceP));
 
         final JTypeVar builderClassP = builderClass.generify("P");
         builderClass._implements(builderInterface.narrow(builderClassP));
 
-        parserClass._implements(codeModel.ref(ModelNodeParser.class).erasure().narrow(builderInterface.narrow(codeModel.wildcard())));
-        deparserClass._implements(codeModel.ref(ModelNodeDeparser.class).erasure().narrow(resourceInterface));
+        parserClass._implements(deparser.ref(ModelNodeParser.class).erasure().narrow(builderInterface.narrow(deparser.wildcard())));
+        deparserClass._implements(deparser.ref(ModelNodeDeparser.class).erasure().narrow(resourceInterface));
 
-        resourceImplClass._extends(codeModel.ref(AbstractResource.class));
+        resourceImplClass._extends(deparser.ref(AbstractResource.class));
         resourceImplClass._implements(resourceInterface);
 
-        resourceNodeClass._extends(codeModel.ref(ResourceNode.class).erasure().narrow(resourceInterface));
+        resourceNodeClass._extends(deparser.ref(ResourceNode.class).erasure().narrow(resourceInterface));
 
         this.resourceImplConstructor = resourceImplConstructor;
         this.resourceImplConstructorInitBlock = resourceImplConstructorInitBlock;
@@ -115,16 +114,16 @@ final class ResourceGeneratorContext {
     }
 
     public static ResourceGeneratorContext create(final SchemaGeneratorContext context, final RootResourceInfo resourceInfo, final ResourceGeneratorContext parent) {
-        final JCodeModel codeModel = context.getContext().getCodeModel();
+        final JDeparser deparser = context.getContext().getDeparser();
         final String interfaceName = resourceInfo.getResourceInfo().getTypeElement().getQualifiedName().toString();
-        JClass resourceInterface = codeModel._getClass(interfaceName);
+        JClass resourceInterface = deparser._getClass(interfaceName);
         try {
-            JDefinedClass resourceImplClass = codeModel._class(PUBLIC | FINAL, interfaceName + "ResourceImpl", CLASS);
-            JDefinedClass parserClass = codeModel._class(PUBLIC | FINAL, interfaceName + "ParserImpl", CLASS);
-            JDefinedClass deparserClass = codeModel._class(PUBLIC | FINAL, interfaceName + "DeparserImpl", CLASS);
-            JDefinedClass builderInterface = codeModel._class(PUBLIC, interfaceName + "Builder", INTERFACE);
-            JDefinedClass builderClass = codeModel._class(PUBLIC | FINAL, interfaceName + "BuilderImpl", CLASS);
-            JDefinedClass resourceNodeClass = codeModel._class(PUBLIC | FINAL, interfaceName + "NodeImpl", CLASS);
+            JDefinedClass resourceImplClass = deparser._class(PUBLIC | FINAL, interfaceName + "ResourceImpl", CLASS);
+            JDefinedClass parserClass = deparser._class(PUBLIC | FINAL, interfaceName + "ParserImpl", CLASS);
+            JDefinedClass deparserClass = deparser._class(PUBLIC | FINAL, interfaceName + "DeparserImpl", CLASS);
+            JDefinedClass builderInterface = deparser._class(PUBLIC, interfaceName + "Builder", INTERFACE);
+            JDefinedClass builderClass = deparser._class(PUBLIC | FINAL, interfaceName + "BuilderImpl", CLASS);
+            JDefinedClass resourceNodeClass = deparser._class(PUBLIC | FINAL, interfaceName + "NodeImpl", CLASS);
 
             return new ResourceGeneratorContext(context, resourceInfo, parent, resourceInterface, resourceImplClass, parserClass, deparserClass, builderInterface, builderClass, resourceNodeClass);
         } catch (JClassAlreadyExistsException e) {

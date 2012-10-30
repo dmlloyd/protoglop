@@ -22,30 +22,30 @@
 
 package org.jboss.mgmt.generator;
 
-import com.sun.codemodel.ClassType;
-import com.sun.codemodel.JClassAlreadyExistsException;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JDefinedClass;
+import org.jboss.jdeparser.ClassType;
+import org.jboss.jdeparser.JClassAlreadyExistsException;
+import org.jboss.jdeparser.JDeparser;
+import org.jboss.jdeparser.JDefinedClass;
 
 import javax.annotation.processing.Messager;
 
-import static com.sun.codemodel.ClassType.*;
-import static com.sun.codemodel.JMod.*;
+import static org.jboss.jdeparser.ClassType.*;
+import static org.jboss.jdeparser.JMod.*;
 import static javax.tools.Diagnostic.Kind.*;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 abstract class AbstractClassGenerator {
-    private final JCodeModel codeModel;
+    private final JDeparser deparser;
     private final Messager messager;
     private final String packageName;
     private final ClassType classType;
     private final String className;
     private final int modifiers;
 
-    protected AbstractClassGenerator(final JCodeModel codeModel, final Messager messager, final String className, final String packageName, final ClassType classType, final int modifiers) {
-        this.codeModel = codeModel;
+    protected AbstractClassGenerator(final JDeparser deparser, final Messager messager, final String className, final String packageName, final ClassType classType, final int modifiers) {
+        this.deparser = deparser;
         this.messager = messager;
         this.className = className;
         this.packageName = packageName;
@@ -53,15 +53,15 @@ abstract class AbstractClassGenerator {
         this.modifiers = modifiers;
     }
 
-    public JCodeModel getCodeModel() {
-        return codeModel;
+    public JDeparser getDeparser() {
+        return deparser;
     }
 
     public void generate() {
         final JDefinedClass definedClass;
         final String fqcn = packageName + "." + className;
         try {
-            definedClass = codeModel._class(modifiers, fqcn, classType);
+            definedClass = deparser._class(modifiers, fqcn, classType);
         } catch (JClassAlreadyExistsException e) {
             messager.printMessage(ERROR, "Duplicate class generation for " + fqcn);
             return;

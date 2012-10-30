@@ -28,23 +28,19 @@ import org.jboss.mgmt.AbstractResource;
 import org.jboss.mgmt.annotation.Access;
 import org.jboss.mgmt.annotation.XmlRender;
 
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JType;
+import org.jboss.jdeparser.JBlock;
+import org.jboss.jdeparser.JClass;
+import org.jboss.jdeparser.JDeparser;
+import org.jboss.jdeparser.JDefinedClass;
+import org.jboss.jdeparser.JMethod;
+import org.jboss.jdeparser.JType;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
-import static com.sun.codemodel.JMod.FINAL;
-import static com.sun.codemodel.JMod.PRIVATE;
-import static com.sun.codemodel.JMod.PUBLIC;
+import static org.jboss.jdeparser.JMod.PUBLIC;
 import static org.jboss.mgmt.generator.GeneratorUtils.XSD;
 import static org.jboss.mgmt.generator.NameUtils.fieldify;
 
@@ -125,7 +121,7 @@ final class AttributeInfo implements ResourceMember {
 
     public void generate(final ResourceGeneratorContext resourceGeneratorContext) {
         final ProcessingEnvironment env = resourceGeneratorContext.getContext().getContext().getEnv();
-        final JCodeModel codeModel = resourceGeneratorContext.getContext().getContext().getCodeModel();
+        final JDeparser deparser = resourceGeneratorContext.getContext().getContext().getDeparser();
 
         // ---------------------------
         // Resource interface stuff
@@ -133,7 +129,7 @@ final class AttributeInfo implements ResourceMember {
 
         final JClass resourceInterface = resourceGeneratorContext.getResourceInterface();
 
-        final JType attributeJType = CodeModelUtils.typeFor(env, codeModel, executableElement.getReturnType());
+        final JType attributeJType = JDeparserUtils.typeFor(env, deparser, executableElement.getReturnType());
         final String getterName = executableElement.getSimpleName().toString();
         final String attrVarName = fieldify(name);
 
@@ -146,7 +142,7 @@ final class AttributeInfo implements ResourceMember {
         if (access.isReadable()) {
 
         } else {
-            getterMethodBody._throw(codeModel.ref(AbstractResource.class).staticInvoke("notReadable"));
+            getterMethodBody._throw(deparser.ref(AbstractResource.class).staticInvoke("notReadable"));
         }
 
         // ---------------------------

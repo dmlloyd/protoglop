@@ -40,20 +40,20 @@ import org.jboss.mgmt.annotation.Schema;
 import org.jboss.mgmt.annotation.XmlRender;
 import org.jboss.mgmt.ResourceNode;
 
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JClassAlreadyExistsException;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JDocComment;
-import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JInvocation;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JType;
-import com.sun.codemodel.JTypeVar;
-import com.sun.codemodel.JVar;
+import org.jboss.jdeparser.JBlock;
+import org.jboss.jdeparser.JClass;
+import org.jboss.jdeparser.JClassAlreadyExistsException;
+import org.jboss.jdeparser.JDeparser;
+import org.jboss.jdeparser.JDefinedClass;
+import org.jboss.jdeparser.JDocComment;
+import org.jboss.jdeparser.JExpr;
+import org.jboss.jdeparser.JExpression;
+import org.jboss.jdeparser.JFieldVar;
+import org.jboss.jdeparser.JInvocation;
+import org.jboss.jdeparser.JMethod;
+import org.jboss.jdeparser.JType;
+import org.jboss.jdeparser.JTypeVar;
+import org.jboss.jdeparser.JVar;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -71,13 +71,13 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
-import static com.sun.codemodel.ClassType.CLASS;
-import static com.sun.codemodel.ClassType.INTERFACE;
-import static com.sun.codemodel.JMod.FINAL;
-import static com.sun.codemodel.JMod.NONE;
-import static com.sun.codemodel.JMod.PRIVATE;
-import static com.sun.codemodel.JMod.PUBLIC;
-import static com.sun.codemodel.JMod.STATIC;
+import static org.jboss.jdeparser.ClassType.CLASS;
+import static org.jboss.jdeparser.ClassType.INTERFACE;
+import static org.jboss.jdeparser.JMod.FINAL;
+import static org.jboss.jdeparser.JMod.NONE;
+import static org.jboss.jdeparser.JMod.PRIVATE;
+import static org.jboss.jdeparser.JMod.PUBLIC;
+import static org.jboss.jdeparser.JMod.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
 import static javax.tools.Diagnostic.Kind.WARNING;
 
@@ -94,7 +94,7 @@ final class Generator {/*
     private final Types types;
     private final Elements elements;
     private final SessionImpl session;
-    private final JCodeModel codeModel = new JCodeModel();
+    private final JDeparser deparser = new JDeparser();
 
     // --------------------------------------------------
     // Accumulated output
@@ -231,17 +231,17 @@ final class Generator {/*
             final JDefinedClass resourceNodeClass;
             final JDefinedClass coreClass;
 
-            final JClass resourceInterface = (JClass) CodeModelUtils.typeFor(env, codeModel, resource.getResourceInterface());
+            final JClass resourceInterface = (JClass) CodeModelUtils.typeFor(env, deparser, resource.getResourceInterface());
 
             try {
-                parserClass = codeModel._class(PUBLIC | FINAL, fqcn + "ParserImpl", CLASS);
-                deparserClass = codeModel._class(PUBLIC | FINAL, fqcn + "DeparserImpl", CLASS);
-                builderInterface = codeModel._class(PUBLIC, fqcn + "Builder", INTERFACE);
-                builderClass = codeModel._class(PUBLIC | FINAL, fqcn + "BuilderImpl", CLASS);
-                implementationClass = codeModel._class(PUBLIC | FINAL, fqcn + "ResourceImpl", CLASS);
-                resourceNodeClass = codeModel._class(PUBLIC | FINAL, fqcn + "NodeImpl", CLASS);
-                coreClass = parentType == null ? codeModel._class(PUBLIC | FINAL, fqcn, CLASS) : null;
-                builderFactoryClass = codeModel._class(PUBLIC | FINAL, fqcn + "BuilderFactory", CLASS);
+                parserClass = deparser._class(PUBLIC | FINAL, fqcn + "ParserImpl", CLASS);
+                deparserClass = deparser._class(PUBLIC | FINAL, fqcn + "DeparserImpl", CLASS);
+                builderInterface = deparser._class(PUBLIC, fqcn + "Builder", INTERFACE);
+                builderClass = deparser._class(PUBLIC | FINAL, fqcn + "BuilderImpl", CLASS);
+                implementationClass = deparser._class(PUBLIC | FINAL, fqcn + "ResourceImpl", CLASS);
+                resourceNodeClass = deparser._class(PUBLIC | FINAL, fqcn + "NodeImpl", CLASS);
+                coreClass = parentType == null ? deparser._class(PUBLIC | FINAL, fqcn, CLASS) : null;
+                builderFactoryClass = deparser._class(PUBLIC | FINAL, fqcn + "BuilderFactory", CLASS);
             } catch (JClassAlreadyExistsException e) {
                 messager.printMessage(ERROR, "Duplicate class generation for " + fqcn);
                 return;
@@ -263,10 +263,10 @@ final class Generator {/*
             final JMethod implConstructor = implementationClass.constructor(PUBLIC);
             final JBlock implConstructorBody = implConstructor.body();
             final JInvocation implConstructorSuperCall = implConstructorBody.invoke("super");
-            implConstructorSuperCall.arg(implConstructor.param(FINAL, codeModel.ref(String.class), "preComment"));
-            implConstructorSuperCall.arg(implConstructor.param(FINAL, codeModel.ref(String.class), "postComment"));
-            implConstructorSuperCall.arg(implConstructor.param(FINAL, codeModel.ref(String.class), "name"));
-            implConstructorSuperCall.arg(implConstructor.param(FINAL, codeModel.ref(ResourceNode.class).narrow(codeModel.wildcard()), "parent"));
+            implConstructorSuperCall.arg(implConstructor.param(FINAL, deparser.ref(String.class), "preComment"));
+            implConstructorSuperCall.arg(implConstructor.param(FINAL, deparser.ref(String.class), "postComment"));
+            implConstructorSuperCall.arg(implConstructor.param(FINAL, deparser.ref(String.class), "name"));
+            implConstructorSuperCall.arg(implConstructor.param(FINAL, deparser.ref(ResourceNode.class).narrow(deparser.wildcard()), "parent"));
 
             // The core class is not instantiatable
             coreClass.constructor(PRIVATE);
@@ -307,19 +307,19 @@ final class Generator {/*
             // Resource parse/deparse methods
             // --------------------------------------------------
 
-            final JMethod parseMethod = parserClass.method(PUBLIC, codeModel.VOID, "parse");
-            parseMethod._throws(codeModel.ref(XMLStreamException.class));
-            final JVar parseMethodStreamReader = parseMethod.param(codeModel.ref(XMLStreamReader.class), "streamReader");
-            final JVar parseMethodBuilder = parseMethod.param(builderInterface.narrow(codeModel.wildcard()), "builder");
+            final JMethod parseMethod = parserClass.method(PUBLIC, deparser.VOID, "parse");
+            parseMethod._throws(deparser.ref(XMLStreamException.class));
+            final JVar parseMethodStreamReader = parseMethod.param(deparser.ref(XMLStreamReader.class), "streamReader");
+            final JVar parseMethodBuilder = parseMethod.param(builderInterface.narrow(deparser.wildcard()), "builder");
             final JBlock parseMethodBody = parseMethod.body();
 
-            final JMethod deparseMethod = deparserClass.method(PUBLIC, codeModel.VOID, "deparse");
-            deparseMethod._throws(codeModel.ref(XMLStreamException.class));
-            final JVar deparseMethodStreamWriter = deparseMethod.param(codeModel.ref(XMLStreamWriter.class), "streamWriter");
+            final JMethod deparseMethod = deparserClass.method(PUBLIC, deparser.VOID, "deparse");
+            deparseMethod._throws(deparser.ref(XMLStreamException.class));
+            final JVar deparseMethodStreamWriter = deparseMethod.param(deparser.ref(XMLStreamWriter.class), "streamWriter");
             final JVar deparseMethodResource = deparseMethod.param(resourceInterface, "resource");
             final JBlock deparseMethodBody = deparseMethod.body();
-            final JVar deparsePreComment = deparseMethodBody.decl(FINAL, codeModel.ref(String.class), "preComment", JExpr.invoke(deparseMethodResource, "getPreComment"));
-            final JVar deparsePostComment = deparseMethodBody.decl(FINAL, codeModel.ref(String.class), "postComment", JExpr.invoke(deparseMethodResource, "getPostComment"));
+            final JVar deparsePreComment = deparseMethodBody.decl(FINAL, deparser.ref(String.class), "preComment", JExpr.invoke(deparseMethodResource, "getPreComment"));
+            final JVar deparsePostComment = deparseMethodBody.decl(FINAL, deparser.ref(String.class), "postComment", JExpr.invoke(deparseMethodResource, "getPostComment"));
             deparseMethodBody._if(deparsePreComment.ne(JExpr._null()))._then().invoke(deparseMethodStreamWriter, "writeComment").arg(deparsePreComment);
             deparseMethodBody.invoke(deparseMethodStreamWriter, "writeStartElement").arg(xmlNamespace).arg(xmlName);
             final JBlock deparseMethodAttributesBlock = deparseMethodBody.block();
@@ -365,7 +365,7 @@ final class Generator {/*
                     final String attrXmlName = def(attributeBuilder.getXmlName(), xmlify(name));
 
                     final TypeMirror attributeType = attributeBuilder.getType();
-                    final JType attributeJType = CodeModelUtils.typeFor(env, codeModel, attributeType);
+                    final JType attributeJType = CodeModelUtils.typeFor(env, deparser, attributeType);
 
                     final JExpression defaultValueExpr = defaultValue == null ? null : JExpr._null(); // todo convert defaultValue
 
@@ -401,7 +401,7 @@ final class Generator {/*
                     // Parser / Deparser
                     // --------------------------------------------------
 
-                    if (codeModel.ref(VirtualAttribute.class).erasure() == null) {
+                    if (deparser.ref(VirtualAttribute.class).erasure() == null) {
                         // ----------------------------------------------
                         // Deparser
                         // ----------------------------------------------
@@ -429,14 +429,14 @@ final class Generator {/*
                     if (access.isReadable()) {
                         if (virtual != null) {
                             // todo - cache virtual instances
-                            getterMethodBody._return(JExpr.invoke(JExpr._new(codeModel.ref(VirtualAttribute.class).erasure().narrow(attributeJType)), "getValue"));
+                            getterMethodBody._return(JExpr.invoke(JExpr._new(deparser.ref(VirtualAttribute.class).erasure().narrow(attributeJType)), "getValue"));
                         } else {
                             final JFieldVar field = implementationClass.field(PRIVATE | FINAL, attributeJType, attrVarName);
                             implConstructorBody.assign(JExpr._this().ref(field), implConstructor.param(FINAL, attributeJType, attrVarName));
                             getterMethodBody._return(field);
                         }
                     } else {
-                        getterMethodBody._throw(codeModel.ref(AbstractResource.class).staticInvoke("notReadable"));
+                        getterMethodBody._throw(deparser.ref(AbstractResource.class).staticInvoke("notReadable"));
                     }
 
                     // --------------------------------------------------
@@ -453,7 +453,7 @@ final class Generator {/*
                             final JClass keyType;
                             final JClass valueType;
                             if (attributeJClass.getTypeParameters().size() != 2) {
-                                keyType = valueType = codeModel.ref(Object.class);
+                                keyType = valueType = deparser.ref(Object.class);
                             } else {
                                 keyType = attributeJClass.getTypeParameters().get(0);
                                 valueType = attributeJClass.getTypeParameters().get(1);
@@ -463,7 +463,7 @@ final class Generator {/*
 
                                 // value is a simple type
 
-                                final JClass listType = codeModel.ref(ArrayList.class).narrow(codeModel.ref(Entry.class).narrow(keyType, valueType));
+                                final JClass listType = deparser.ref(ArrayList.class).narrow(deparser.ref(Entry.class).narrow(keyType, valueType));
                                 final JFieldVar attributeField = builderClass.field(PRIVATE | FINAL, listType, attrVarName);
                                 attributeField.init(JExpr._new(listType));
 
@@ -474,19 +474,19 @@ final class Generator {/*
                                 final JVar keyParam = builderClassSetMethod.param(FINAL, keyType, "key");
                                 final JVar valueParam = builderClassSetMethod.param(FINAL, valueType, "value");
                                 final JBlock body = builderClassSetMethod.body();
-                                attributeField.invoke("add").arg(JExpr._new(codeModel.ref(Entry.class).narrow(keyType, valueType)).arg(keyParam).arg(valueParam));
+                                attributeField.invoke("add").arg(JExpr._new(deparser.ref(Entry.class).narrow(keyType, valueType)).arg(keyParam).arg(valueParam));
                                 body._return(JExpr._this());
                             } else {
                                 // value is a complex (resource) type
 
                                 final String nestedBuilderTypeName = valueType.fullName() + "BuilderImpl";
-                                final JClass nestedBuilderType = codeModel._getClass(nestedBuilderTypeName);
+                                final JClass nestedBuilderType = deparser._getClass(nestedBuilderTypeName);
                                 if (nestedBuilderType == null) {
                                     messager.printMessage(ERROR, "No builder was generated for non-simple attribute type " + nestedBuilderTypeName);
                                     return;
                                 }
 
-                                final JClass listType = codeModel.ref(ArrayList.class).narrow(codeModel.ref(Entry.class).narrow(keyType, nestedBuilderType));
+                                final JClass listType = deparser.ref(ArrayList.class).narrow(deparser.ref(Entry.class).narrow(keyType, nestedBuilderType));
                                 final JFieldVar attributeField = builderClass.field(PRIVATE | FINAL, listType, attrVarName);
                                 attributeField.init(JExpr._new(listType));
 
@@ -498,7 +498,7 @@ final class Generator {/*
                                 final JVar keyParam = builderClassSetMethod.param(FINAL, keyType, "key");
                                 final JBlock body = builderClassSetMethod.body();
                                 final JVar valueVar = body.decl(nestedBuilderType, "_builder", JExpr._new(narrowedBuilderType).arg(JExpr._this()));
-                                attributeField.invoke("add").arg(JExpr._new(codeModel.ref(Entry.class).narrow(keyType, valueType)).arg(keyParam).arg(valueVar));
+                                attributeField.invoke("add").arg(JExpr._new(deparser.ref(Entry.class).narrow(keyType, valueType)).arg(keyParam).arg(valueVar));
                                 body._return(valueVar);
                             }
                         } else {
@@ -538,9 +538,9 @@ final class Generator {/*
                                 // Emit validation block
                                 // --------------------------------------------------
 
-                                final JVar context = body.decl(FINAL, codeModel.ref(ExceptionThrowingValidationContext.class), "_context", JExpr._new(codeModel.ref(ExceptionThrowingValidationContext.class)));
+                                final JVar context = body.decl(FINAL, deparser.ref(ExceptionThrowingValidationContext.class), "_context", JExpr._new(deparser.ref(ExceptionThrowingValidationContext.class)));
                                 for (DeclaredType validator : validators) {
-                                    final JClass validatorType = (JClass) CodeModelUtils.typeFor(env, codeModel, validator);
+                                    final JClass validatorType = (JClass) CodeModelUtils.typeFor(env, deparser, validator);
                                     // todo - cache validator instances
                                     final JInvocation inv = body.invoke(JExpr._new(validatorType.erasure().narrow(resourceInterface, attributeJType.boxify())), "validate");
                                     inv.arg(JExpr._null()); // TODO - no resource yet...?

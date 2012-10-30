@@ -26,16 +26,16 @@ import nu.xom.Attribute;
 import nu.xom.Element;
 import org.jboss.mgmt.BuilderFactory;
 
-import com.sun.codemodel.JClassAlreadyExistsException;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JTypeVar;
+import org.jboss.jdeparser.JClassAlreadyExistsException;
+import org.jboss.jdeparser.JDeparser;
+import org.jboss.jdeparser.JDefinedClass;
+import org.jboss.jdeparser.JTypeVar;
 
 import javax.tools.Diagnostic;
 
-import static com.sun.codemodel.ClassType.CLASS;
-import static com.sun.codemodel.JMod.FINAL;
-import static com.sun.codemodel.JMod.PUBLIC;
+import static org.jboss.jdeparser.ClassType.CLASS;
+import static org.jboss.jdeparser.JMod.FINAL;
+import static org.jboss.jdeparser.JMod.PUBLIC;
 import static org.jboss.mgmt.generator.GeneratorUtils.XSD;
 
 /**
@@ -77,19 +77,19 @@ final class RootResourceInfo {
     }
 
     public void generate(final SchemaGeneratorContext ctxt) {
-        final JCodeModel codeModel = ctxt.getContext().getCodeModel();
+        final JDeparser deparser = ctxt.getContext().getDeparser();
 
         final String interfaceName = resourceInfo.getTypeElement().getQualifiedName().toString();
 
         final JDefinedClass builderFactoryClass;
         try {
-            builderFactoryClass = codeModel._class(PUBLIC | FINAL, interfaceName + "BuilderFactory", CLASS);
+            builderFactoryClass = deparser._class(PUBLIC | FINAL, interfaceName + "BuilderFactory", CLASS);
         } catch (JClassAlreadyExistsException e) {
             ctxt.getContext().getEnv().getMessager().printMessage(Diagnostic.Kind.ERROR, "Builder factory class already exists for " + interfaceName, resourceInfo.getTypeElement());
             return;
         }
         final JTypeVar builderFactoryP = builderFactoryClass.generify("P");
-        builderFactoryClass._implements(codeModel.ref(BuilderFactory.class).erasure().narrow(builderFactoryP, codeModel.ref(interfaceName + "Builder").narrow(builderFactoryP)));
+        builderFactoryClass._implements(deparser.ref(BuilderFactory.class).erasure().narrow(builderFactoryP, deparser.ref(interfaceName + "Builder").narrow(builderFactoryP)));
 
         final Element rootElementDefinition = new Element("xs:element", XSD);
         rootElementDefinition.addAttribute(new Attribute("name", xmlName));

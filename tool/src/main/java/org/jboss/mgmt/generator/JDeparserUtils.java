@@ -26,14 +26,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.sun.codemodel.ClassType;
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JClassAlreadyExistsException;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JMod;
-import com.sun.codemodel.JType;
-import com.sun.codemodel.JTypeVar;
+import org.jboss.jdeparser.ClassType;
+import org.jboss.jdeparser.JClass;
+import org.jboss.jdeparser.JClassAlreadyExistsException;
+import org.jboss.jdeparser.JDeparser;
+import org.jboss.jdeparser.JDefinedClass;
+import org.jboss.jdeparser.JMod;
+import org.jboss.jdeparser.JType;
+import org.jboss.jdeparser.JTypeVar;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -57,9 +57,9 @@ import javax.tools.Diagnostic;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class CodeModelUtils {
+final class JDeparserUtils {
 
-    private CodeModelUtils() {
+    private JDeparserUtils() {
     }
 
     private static int translateModifiers(final Element element) {
@@ -123,14 +123,14 @@ final class CodeModelUtils {
         return variableElement.asType();
     }
 
-    private static JDefinedClass mirror(ProcessingEnvironment env, JCodeModel codeModel, TypeElement element) {
+    private static JDefinedClass mirror(ProcessingEnvironment env, JDeparser deparser, TypeElement element) {
         final String classQualifiedName = element.getQualifiedName().toString();
         final String classSimpleName = element.getSimpleName().toString();
         final Messager messager = env.getMessager();
         final Element enclosingElement = element.getEnclosingElement();
         JDefinedClass definedClass;
         if (enclosingElement instanceof TypeElement) {
-            final JDefinedClass enclosing = mirror(env, codeModel, (TypeElement) enclosingElement);
+            final JDefinedClass enclosing = mirror(env, deparser, (TypeElement) enclosingElement);
             final Iterator<JDefinedClass> iterator = enclosing.classes();
             while (iterator.hasNext()) {
                 final JDefinedClass nested = iterator.next();
@@ -145,12 +145,12 @@ final class CodeModelUtils {
                 throw new IllegalStateException(e);
             }
         } else {
-            definedClass = codeModel._getClass(classQualifiedName);
+            definedClass = deparser._getClass(classQualifiedName);
             if (definedClass != null) {
                 return definedClass;
             }
             try {
-                definedClass = codeModel._class(translateModifiers(element), classQualifiedName, translateElementType(messager, element));
+                definedClass = deparser._class(translateModifiers(element), classQualifiedName, translateElementType(messager, element));
             } catch (JClassAlreadyExistsException e) {
                 // should be impossible!
                 throw new IllegalStateException(e);
@@ -168,7 +168,7 @@ final class CodeModelUtils {
                 if (bound instanceof DeclaredType) {
                     final Element boundElement = ((DeclaredType) bound).asElement();
                     if (boundElement instanceof TypeElement) {
-                        typeVar.bound(mirror(env, codeModel, (TypeElement) boundElement));
+                        typeVar.bound(mirror(env, deparser, (TypeElement) boundElement));
                     } else {
                         messager.printMessage(Diagnostic.Kind.ERROR, "Expected element to be type element but it was a " + boundElement, boundElement);
                     }
@@ -185,7 +185,7 @@ final class CodeModelUtils {
                 if (superclass instanceof DeclaredType) {
                     final Element superclassElement = ((DeclaredType) superclass).asElement();
                     if (superclassElement instanceof TypeElement) {
-                        definedClass._extends(mirror(env, codeModel, (TypeElement) superclassElement));
+                        definedClass._extends(mirror(env, deparser, (TypeElement) superclassElement));
                     } else {
                         messager.printMessage(Diagnostic.Kind.ERROR, "Expected superclass to be type element but it was a " + superclassElement, superclassElement);
                     }
@@ -198,7 +198,7 @@ final class CodeModelUtils {
             if (interf instanceof DeclaredType) {
                 final Element interfElement = ((DeclaredType) interf).asElement();
                 if (interfElement instanceof TypeElement) {
-                    definedClass._implements(mirror(env, codeModel, (TypeElement) interfElement));
+                    definedClass._implements(mirror(env, deparser, (TypeElement) interfElement));
                 } else {
                     messager.printMessage(Diagnostic.Kind.ERROR, "Expected interface to be type element but it was a " + interfElement, interfElement);
                 }
@@ -227,36 +227,36 @@ final class CodeModelUtils {
         return ClassType.CLASS;
     }
 
-    public static JType typeFor(ProcessingEnvironment env, JCodeModel codeModel, TypeMirror typeMirror) {
+    public static JType typeFor(ProcessingEnvironment env, JDeparser deparser, TypeMirror typeMirror) {
         final Messager messager = env.getMessager();
         final TypeKind kind = typeMirror.getKind();
         switch (kind) {
             case BOOLEAN:
-                return codeModel.BOOLEAN;
+                return deparser.BOOLEAN;
             case BYTE:
-                return codeModel.BYTE;
+                return deparser.BYTE;
             case SHORT:
-                return codeModel.SHORT;
+                return deparser.SHORT;
             case INT:
-                return codeModel.INT;
+                return deparser.INT;
             case LONG:
-                return codeModel.LONG;
+                return deparser.LONG;
             case CHAR:
-                return codeModel.CHAR;
+                return deparser.CHAR;
             case FLOAT:
-                return codeModel.FLOAT;
+                return deparser.FLOAT;
             case DOUBLE:
-                return codeModel.DOUBLE;
+                return deparser.DOUBLE;
             case VOID:
-                return codeModel.VOID;
+                return deparser.VOID;
             case NULL:
-                return codeModel.NULL;
+                return deparser.NULL;
             case ARRAY:
-                return typeFor(env, codeModel, ((ArrayType) typeMirror).getComponentType()).array();
+                return typeFor(env, deparser, ((ArrayType) typeMirror).getComponentType()).array();
             case DECLARED:
             case ERROR:
                 final DeclaredType declaredType = (DeclaredType) typeMirror;
-                final JDefinedClass mirrored = mirror(env, codeModel, (TypeElement) declaredType.asElement());
+                final JDefinedClass mirrored = mirror(env, deparser, (TypeElement) declaredType.asElement());
                 final List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
                 final int argCount = typeArguments.size();
                 if (argCount == 0) {
@@ -265,7 +265,7 @@ final class CodeModelUtils {
                 final JClass[] arguments = new JClass[argCount];
                 for (int idx = 0; idx < typeArguments.size(); idx++) {
                     TypeMirror mirror = typeArguments.get(idx);
-                    arguments[idx] = (JClass) typeFor(env, codeModel, mirror);
+                    arguments[idx] = (JClass) typeFor(env, deparser, mirror);
                 }
                 return mirrored.narrow(arguments);
             case WILDCARD:
@@ -273,16 +273,15 @@ final class CodeModelUtils {
                 final TypeMirror extendsBound = wildcardType.getExtendsBound();
                 final TypeMirror superBound = wildcardType.getSuperBound();
                 if (extendsBound != null) {
-                    return ((JClass) typeFor(env, codeModel, extendsBound)).wildcard();
+                    return ((JClass) typeFor(env, deparser, extendsBound)).wildcard();
                 } else if (superBound != null) {
-                    messager.printMessage(Diagnostic.Kind.ERROR, "Super wildcards not yet supported by codemodel...");
-                    return codeModel.wildcard();
+                    return ((JClass) typeFor(env, deparser, superBound)).superWildcard();
                 } else {
-                    return codeModel.wildcard();
+                    return deparser.wildcard();
                 }
             default:
                 messager.printMessage(Diagnostic.Kind.ERROR, "Translating invalid type " + kind + " of " + typeMirror);
-                return codeModel.wildcard();
+                return deparser.wildcard();
         }
     }
 }

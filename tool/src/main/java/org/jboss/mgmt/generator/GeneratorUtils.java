@@ -24,7 +24,7 @@ package org.jboss.mgmt.generator;
 
 import nu.xom.Element;
 
-import com.sun.codemodel.JDefinedClass;
+import org.jboss.jdeparser.JDefinedClass;
 
 import javax.annotation.Generated;
 

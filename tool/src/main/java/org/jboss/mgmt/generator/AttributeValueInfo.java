@@ -22,9 +22,9 @@
 
 package org.jboss.mgmt.generator;
 
-import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JVar;
+import org.jboss.jdeparser.JExpr;
+import org.jboss.jdeparser.JMethod;
+import org.jboss.jdeparser.JVar;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>

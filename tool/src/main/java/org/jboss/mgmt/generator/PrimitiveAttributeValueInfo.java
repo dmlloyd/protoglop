@@ -22,16 +22,16 @@
 
 package org.jboss.mgmt.generator;
 
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JConditional;
-import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JVar;
+import org.jboss.jdeparser.JBlock;
+import org.jboss.jdeparser.JConditional;
+import org.jboss.jdeparser.JExpr;
+import org.jboss.jdeparser.JMethod;
+import org.jboss.jdeparser.JVar;
 
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 
-import static com.sun.codemodel.JMod.FINAL;
+import static org.jboss.jdeparser.JMod.FINAL;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
