@@ -39,7 +39,7 @@
     </parent>
 
     <properties>
-        <version.compiler.plugin>2.6-SNAPSHOT</version.compiler.plugin>
+        <version.compiler.plugin>2.5.1-jboss-2</version.compiler.plugin>
         <maven.compiler.target>1.6</maven.compiler.target>
         <maven.compiler.source>1.6</maven.compiler.source>
     </properties>
@@ -53,21 +53,8 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${version.compiler.plugin}</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.codehaus.plexus</groupId>
-                        <artifactId>plexus-compiler-api</artifactId>
-                        <version>1.9.2-jboss-1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.codehaus.plexus</groupId>
-                        <artifactId>plexus-compiler-javac</artifactId>
-                        <version>1.9.2-jboss-1</version>
-                    </dependency>
-                </dependencies>
                 <configuration>
                     <fork>false</fork>
                     <showWarnings>true</showWarnings>

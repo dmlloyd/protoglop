@@ -110,7 +110,6 @@ final class ProcessingContext {
     private final Map<TypeElement, NewSchemaInfo> schemaInfoMap = new IdentityHashMap<TypeElement, NewSchemaInfo>();
     private final Map<TypeElement, RootResourceInfo> rootResourceInfoMap = new IdentityHashMap<TypeElement, RootResourceInfo>();
     private final Map<ExecutableElement, SubResourceInfo> subResourceInfoMap = new IdentityHashMap<ExecutableElement, SubResourceInfo>();
-    private final Set<ExecutableElement> affiliatedMethods = Collections.newSetFromMap(new IdentityHashMap<ExecutableElement, Boolean>());
     private final Map<TypeElement, ResourceInfo> resourceInfoMap = new IdentityHashMap<TypeElement, ResourceInfo>();
 
     private final Set<TypeElement> inFlightAttributeTypes = Collections.newSetFromMap(new IdentityHashMap<TypeElement, Boolean>());
@@ -251,9 +250,6 @@ final class ProcessingContext {
             return processAttributeGroup(element.getReturnType());
         } else if (getAnnotation(env.getElementUtils(), element, SubResource.class.getName()) != null) {
             return processSubResource(element);
-        } else if (affiliatedMethods.contains(element)) {
-            // it's OK to skip
-            return null;
         } else {
             env.getMessager().printMessage(ERROR, "Unknown member '" + element + "' on resource " + element.getEnclosingElement(), element);
             return null;
@@ -281,6 +277,7 @@ final class ProcessingContext {
             return subResourceInfoMap.get(executableElement);
         }
         SubResourceInfo info;
+        subResourceInfoMap.put(executableElement, null); // fill with null to avoid recursion
         subResourceInfoMap.put(executableElement, info = processNewSubResource(executableElement));
         return info;
     }
@@ -288,103 +285,33 @@ final class ProcessingContext {
     private SubResourceInfo processNewSubResource(final ExecutableElement executableElement) {
         final Messager messager = env.getMessager();
         final String methodName = executableElement.getSimpleName().toString();
-        final ExecutableElement collector;
-        final ExecutableElement fetcher;
-        final String propertyName;
-        final TypeMirror returnType = executableElement.getReturnType();
-        final TypeMirror resourceType;
+        final TypeMirror rawReturnType = executableElement.getReturnType();
+        final DeclaredType returnType;
+        final List<? extends TypeMirror> returnTypeArguments;
+        final TypeMirror rawReturnTypeArgument;
+        final DeclaredType nestedResourceType;
+        if (rawReturnType.getKind() != TypeKind.DECLARED
+            || ! isSameType(Map.class, env.getTypeUtils().erasure(returnType = ((DeclaredType)rawReturnType)))
+            || (returnTypeArguments = returnType.getTypeArguments()).size() != 2
+            || ! isSameType(String.class, returnTypeArguments.get(0))
+            || (rawReturnTypeArgument = returnTypeArguments.get(1)).getKind() != TypeKind.DECLARED
+            || (nestedResourceType = ((DeclaredType)rawReturnTypeArgument)).asElement().getKind() != ElementKind.INTERFACE
+        ) {
+            messager.printMessage(ERROR, "SubResource return type must be a Map of String to a valid resource type", executableElement);
+            return null;
+        }
         if (! methodName.startsWith("get")) {
             messager.printMessage(ERROR, "SubResource reference method must be a getter", executableElement);
             return null;
         }
-        if (methodName.endsWith("Names")) {
-            // looks like the reference collector
-            final TypeMirror returnTypeErasure = env.getTypeUtils().erasure(returnType);
-            if (!isSameType(env.getTypeUtils().erasure(getType(List.class)), returnTypeErasure)) {
-                messager.printMessage(ERROR, "SubResource reference list getter must return a java.util.List (found " + returnTypeErasure + ")", executableElement);
-                return null;
-            }
-            collector = executableElement;
-            final List<? extends TypeMirror> typeArgs = ((DeclaredType) returnType).getTypeArguments();
-            if (typeArgs.size() != 1) {
-                messager.printMessage(ERROR, "SubResource reference list must have exactly one type argument", executableElement);
-                return null;
-            }
-            if (! executableElement.getParameters().isEmpty()) {
-                messager.printMessage(ERROR, "SubResource reference list getter must not accept any arguments", executableElement);
-                return null;
-            }
-            if (! isSameType(String.class, typeArgs.get(0))) {
-                messager.printMessage(ERROR, "SubResource reference list getter must return a list of Strings", executableElement);
-                return null;
-            }
-            propertyName = methodName.substring(3, methodName.length() - 5);
-            final String fetcherName = "get" + propertyName;
-
-            ExecutableElement prospect = null;
-            for (ExecutableElement otherMethod : ElementFilter.methodsIn(env.getElementUtils().getAllMembers((TypeElement) executableElement.getEnclosingElement()))) {
-                if (skipMemberClassNames.contains(((TypeElement)otherMethod.getEnclosingElement()).getQualifiedName().toString())) {
-                    continue;
-                }
-                final List<? extends VariableElement> parameters = otherMethod.getParameters();
-                final String prospectiveName = otherMethod.getSimpleName().toString();
-                if (prospectiveName.equals(fetcherName) && isAssignable(otherMethod.getReturnType(), Resource.class) && parameters.size() == 1 && isSameType(String.class, parameters.get(0).asType())) {
-                    prospect = otherMethod;
-                    break;
-                }
-            }
-            if (prospect == null) {
-                messager.printMessage(ERROR, "SubReference must have a corresponding resource getter method which accepts a String and returns a valid resource type", executableElement);
-                return null;
-            }
-            fetcher = prospect;
-            resourceType = prospect.getReturnType();
-        } else {
-            // looks like the reference fetcher
-            if (! isAssignable(returnType, Resource.class)) {
-                messager.printMessage(ERROR, "SubResource must refer to a resource type", executableElement);
-                return null;
-            }
-            fetcher = executableElement;
-            resourceType = executableElement.getReturnType();
-
-            final List<? extends VariableElement> fetcherParameters = executableElement.getParameters();
-            if (fetcherParameters.size() != 1 || ! isSameType(String.class, fetcherParameters.get(0).asType())) {
-                messager.printMessage(ERROR, "SubReference resource getter method must accept a String and return a " + resourceType, executableElement);
-                return null;
-            }
-
-            propertyName = methodName.substring(3);
-            final String collectorName = "get" + propertyName + "Names";
-
-            ExecutableElement prospect = null;
-            for (ExecutableElement otherMethod : ElementFilter.methodsIn(env.getElementUtils().getAllMembers((TypeElement) executableElement.getEnclosingElement()))) {
-                final List<? extends VariableElement> parameters = otherMethod.getParameters();
-                if (otherMethod.getSimpleName().toString().equals(collectorName) && isSameType(List.class, env.getTypeUtils().erasure(otherMethod.getReturnType())) && parameters.size() == 0) {
-                    final DeclaredType listType = (DeclaredType) otherMethod.getReturnType();
-                    final List<? extends TypeMirror> typeArguments = listType.getTypeArguments();
-                    if (typeArguments.size() != 1 || ! isSameType(String.class, typeArguments.get(0))) {
-                        messager.printMessage(ERROR, "SubResource reference list getter must return a java.util.List<String>", executableElement);
-                        return null;
-                    }
-                    prospect = otherMethod;
-                }
-            }
-            if (prospect == null) {
-                messager.printMessage(ERROR, "SubReference must have a corresponding resource getter method which accepts a String and returns a valid resource type", executableElement);
-                return null;
-            }
-            collector = prospect;
-        }
+        final String propertyName = methodName.substring(4);
         final AnnotationMirror subResourceAnnotation = getAnnotation(env.getElementUtils(), executableElement, SubResource.class.getName());
         final String type = stringValue(getAnnotationValue(subResourceAnnotation, "type"));
-        final String name = def(stringValue(getAnnotationValue(subResourceAnnotation, "name")), xmlify(xmlify(propertyName)));
+        final String name = def(stringValue(getAnnotationValue(subResourceAnnotation, "name")), xmlify(propertyName));
         final boolean requiresUnique = booleanValue(getAnnotationValue(subResourceAnnotation, "requiresUniqueProvider"), false);
         final AnnotationValue childrenValue = getAnnotationValue(subResourceAnnotation, "children");
         final TypeMirror[] children = classArrayValue(childrenValue);
         final List<ResourceInfo> childResources = new ArrayList<ResourceInfo>();
-        affiliatedMethods.add(collector);
-        affiliatedMethods.add(fetcher);
         if (children != null) {
             for (TypeMirror child : children) {
                 if (! (child instanceof DeclaredType && ((DeclaredType)child).asElement().getKind() == ElementKind.INTERFACE)) {
@@ -397,7 +324,7 @@ final class ProcessingContext {
                 }
             }
         }
-        return new SubResourceInfo(collector, fetcher, resourceType, type, name, requiresUnique, childResources.toArray(new ResourceInfo[childResources.size()]));
+        return new SubResourceInfo(nestedResourceType, type, name, requiresUnique, childResources.toArray(new ResourceInfo[childResources.size()]));
     }
 
     public AttributeValueInfo processAttributeValue(String name, ExecutableElement declaringElement) {

@@ -22,13 +22,8 @@
 
 package org.jboss.mgmt.generator;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
-import org.jboss.mgmt.annotation.AttributeType;
-import org.jboss.mgmt.annotation.ResourceType;
-import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.Schema;
 
 import javax.annotation.processing.Completion;
@@ -54,12 +49,7 @@ public final class Processor implements javax.annotation.processing.Processor {
     }
 
     public Set<String> getSupportedAnnotationTypes() {
-        return new HashSet<String>(Arrays.asList(
-            Schema.class.getName(),
-            AttributeType.class.getName(),
-            ResourceType.class.getName(),
-            RootResource.class.getName()
-        ));
+        return Collections.singleton(Schema.class.getName());
     }
 
     public SourceVersion getSupportedSourceVersion() {
@@ -71,17 +61,22 @@ public final class Processor implements javax.annotation.processing.Processor {
     }
 
     public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
-        final ProcessingContext ctxt = new ProcessingContext(env, roundEnv);
-        final GeneratorContext genCtxt = new GeneratorContext(ctxt);
+        final TypeElement schemaElement = env.getElementUtils().getTypeElement(Schema.class.getName());
+        if (annotations.contains(schemaElement)) {
+            final ProcessingContext ctxt = new ProcessingContext(env, roundEnv);
+            final GeneratorContext genCtxt = new GeneratorContext(ctxt);
 
-        for (TypeElement typeElement : ElementFilter.typesIn(roundEnv.getElementsAnnotatedWith(Schema.class))) {
-            if (typeElement.getKind() == ElementKind.ANNOTATION_TYPE) {
-                ctxt.processSchema(typeElement);
+            for (TypeElement typeElement : ElementFilter.typesIn(roundEnv.getElementsAnnotatedWith(Schema.class))) {
+                if (typeElement.getKind() == ElementKind.ANNOTATION_TYPE) {
+                    ctxt.processSchema(typeElement);
+                }
             }
-        }
 
-        genCtxt.generate();
-        return true;
+            genCtxt.generate();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public Iterable<? extends Completion> getCompletions(final Element element, final AnnotationMirror annotation, final ExecutableElement member, final String userText) {

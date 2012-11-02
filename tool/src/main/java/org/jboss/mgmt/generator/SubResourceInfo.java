@@ -22,7 +22,6 @@
 
 package org.jboss.mgmt.generator;
 
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
 
 /**
@@ -30,17 +29,13 @@ import javax.lang.model.type.TypeMirror;
  */
 final class SubResourceInfo implements ResourceMember {
 
-    private final ExecutableElement collector;
-    private final ExecutableElement fetcher;
     private final TypeMirror resourceType;
     private final String type;
     private final String name;
     private final boolean requiresUnique;
     private final ResourceInfo[] knownChildren;
 
-    public SubResourceInfo(final ExecutableElement collector, final ExecutableElement fetcher, final TypeMirror resourceType, final String type, final String name, final boolean requiresUnique, final ResourceInfo[] knownChildren) {
-        this.collector = collector;
-        this.fetcher = fetcher;
+    public SubResourceInfo(final TypeMirror resourceType, final String type, final String name, final boolean requiresUnique, final ResourceInfo[] knownChildren) {
         this.type = type;
         this.name = name;
         this.requiresUnique = requiresUnique;

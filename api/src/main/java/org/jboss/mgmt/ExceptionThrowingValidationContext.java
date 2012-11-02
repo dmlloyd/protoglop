@@ -71,4 +71,19 @@ public final class ExceptionThrowingValidationContext implements ValidateContext
     public Transaction getTransaction() {
         return null;
     }
+
+    public void addProblem(final Problem.Severity severity, final String message) {
+    }
+
+    public void addProblem(final Problem.Severity severity, final String message, final Throwable cause) {
+    }
+
+    public void addProblem(final String message, final Throwable cause) {
+    }
+
+    public void addProblem(final String message) {
+    }
+
+    public void addProblem(final Throwable cause) {
+    }
 }
