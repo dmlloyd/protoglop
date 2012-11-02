@@ -22,6 +22,7 @@
 
 package example1;
 
+import org.jboss.mgmt.annotation.Attribute;
 import org.jboss.mgmt.annotation.ResourceType;
 
 /**
@@ -29,5 +30,8 @@ import org.jboss.mgmt.annotation.ResourceType;
  */
 @ResourceType(name = "subsystem")
 public interface SubsystemResource {
+    boolean ENABLED_DEFAULT = true;
 
+    @Attribute
+    boolean enabled();
 }

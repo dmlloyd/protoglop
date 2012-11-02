@@ -77,6 +77,7 @@ import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Types;
 
 import static javax.tools.Diagnostic.Kind.ERROR;
+import static javax.tools.Diagnostic.Kind.NOTE;
 import static javax.tools.Diagnostic.Kind.WARNING;
 import static org.jboss.mgmt.generator.AnnotationUtils.annotationIs;
 import static org.jboss.mgmt.generator.AnnotationUtils.booleanValue;
@@ -406,8 +407,9 @@ final class ProcessingContext {
 
         for (VariableElement fieldElement : ElementFilter.fieldsIn(env.getElementUtils().getAllMembers(enclosingElement))) {
             if (defaultVarName.equals(fieldElement.getSimpleName().toString())) {
-                if (! isAssignable(fieldElement.asType(), type)) {
-                    messager.printMessage(ERROR, "Cannot assign default property value to property of type " + type, fieldElement);
+                final TypeMirror fieldType = fieldElement.asType();
+                if (! isAssignable(fieldType, type)) {
+                    messager.printMessage(ERROR, "Cannot assign default value of type " + fieldType + " to property of type " + type, fieldElement);
                 } else {
                     defaultVal = fieldElement;
                 }

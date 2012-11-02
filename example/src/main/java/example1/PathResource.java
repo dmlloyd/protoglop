@@ -23,10 +23,18 @@
 package example1;
 
 import org.jboss.mgmt.Resource;
+import org.jboss.mgmt.ResourceRef;
+import org.jboss.mgmt.annotation.Attribute;
+import org.jboss.mgmt.annotation.Reference;
+import org.jboss.mgmt.annotation.Required;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public interface PathResource extends Resource {
-    
+    @Required @Attribute
+    String getPath();
+
+    @Reference(scopeName = "core.paths") @Attribute
+    ResourceRef<PathResource> getRelativeTo();
 }
