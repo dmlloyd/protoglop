@@ -22,25 +22,43 @@
 
 package org.jboss.mgmt.generator;
 
-import javax.lang.model.type.TypeMirror;
-
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 final class SubResourceInfo implements ResourceMember {
 
-    private final TypeMirror resourceType;
+    private final ResourceTypeInfo resourceTypeInfo;
     private final String type;
     private final String name;
     private final boolean requiresUnique;
     private final ResourceInfo[] knownChildren;
 
-    public SubResourceInfo(final TypeMirror resourceType, final String type, final String name, final boolean requiresUnique, final ResourceInfo[] knownChildren) {
+    public SubResourceInfo(final ResourceTypeInfo resourceTypeInfo, final String type, final String name, final boolean requiresUnique, final ResourceInfo[] knownChildren) {
         this.type = type;
         this.name = name;
         this.requiresUnique = requiresUnique;
         this.knownChildren = knownChildren;
-        this.resourceType = resourceType;
+        this.resourceTypeInfo = resourceTypeInfo;
+    }
+
+    public ResourceTypeInfo getResourceTypeInfo() {
+        return resourceTypeInfo;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public boolean isRequiresUnique() {
+        return requiresUnique;
+    }
+
+    public ResourceInfo[] getKnownChildren() {
+        return knownChildren;
     }
 
     public void generate(final ResourceGeneratorContext resourceGeneratorContext) {

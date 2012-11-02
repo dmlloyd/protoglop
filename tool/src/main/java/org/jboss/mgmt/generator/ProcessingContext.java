@@ -27,6 +27,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -48,6 +49,7 @@ import org.jboss.mgmt.annotation.Enumerated;
 import org.jboss.mgmt.annotation.Provides;
 import org.jboss.mgmt.annotation.Reference;
 import org.jboss.mgmt.annotation.Required;
+import org.jboss.mgmt.annotation.ResourceType;
 import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.Schema;
 import org.jboss.mgmt.annotation.SubResource;
@@ -104,13 +106,14 @@ final class ProcessingContext {
     private final ProcessingEnvironment env;
     private final RoundEnvironment roundEnv;
 
-    private final Map<TypeElement, AttributeTypeInfo> attributeTypeInfoMap = new IdentityHashMap<TypeElement, AttributeTypeInfo>();
-    private final Map<ExecutableElement, AttributeValueInfo> attributeValueInfoMap = new IdentityHashMap<ExecutableElement, AttributeValueInfo>();
-    private final Map<TypeElement, AttributeGroupInfo> attributeGroupInfoMap = new IdentityHashMap<TypeElement, AttributeGroupInfo>();
-    private final Map<TypeElement, NewSchemaInfo> schemaInfoMap = new IdentityHashMap<TypeElement, NewSchemaInfo>();
-    private final Map<TypeElement, RootResourceInfo> rootResourceInfoMap = new IdentityHashMap<TypeElement, RootResourceInfo>();
-    private final Map<ExecutableElement, SubResourceInfo> subResourceInfoMap = new IdentityHashMap<ExecutableElement, SubResourceInfo>();
-    private final Map<TypeElement, ResourceInfo> resourceInfoMap = new IdentityHashMap<TypeElement, ResourceInfo>();
+    private final Map<TypeElement, AttributeTypeInfo> attributeTypeInfoMap = new HashMap<TypeElement, AttributeTypeInfo>();
+    private final Map<ExecutableElement, AttributeValueInfo> attributeValueInfoMap = new HashMap<ExecutableElement, AttributeValueInfo>();
+    private final Map<TypeElement, AttributeGroupInfo> attributeGroupInfoMap = new HashMap<TypeElement, AttributeGroupInfo>();
+    private final Map<TypeElement, NewSchemaInfo> schemaInfoMap = new HashMap<TypeElement, NewSchemaInfo>();
+    private final Map<TypeElement, RootResourceInfo> rootResourceInfoMap = new HashMap<TypeElement, RootResourceInfo>();
+    private final Map<ExecutableElement, SubResourceInfo> subResourceInfoMap = new HashMap<ExecutableElement, SubResourceInfo>();
+    private final Map<TypeElement, ResourceInfo> resourceInfoMap = new HashMap<TypeElement, ResourceInfo>();
+    private final Map<TypeElement, ResourceTypeInfo> resourceTypeInfoMap = new HashMap<TypeElement, ResourceTypeInfo>();
 
     private final Set<TypeElement> inFlightAttributeTypes = Collections.newSetFromMap(new IdentityHashMap<TypeElement, Boolean>());
     private final Set<TypeElement> inFlightAttributeGroups = Collections.newSetFromMap(new IdentityHashMap<TypeElement, Boolean>());
@@ -290,12 +293,13 @@ final class ProcessingContext {
         final List<? extends TypeMirror> returnTypeArguments;
         final TypeMirror rawReturnTypeArgument;
         final DeclaredType nestedResourceType;
+        final TypeElement resourceTypeElement;
         if (rawReturnType.getKind() != TypeKind.DECLARED
             || ! isSameType(Map.class, env.getTypeUtils().erasure(returnType = ((DeclaredType)rawReturnType)))
             || (returnTypeArguments = returnType.getTypeArguments()).size() != 2
             || ! isSameType(String.class, returnTypeArguments.get(0))
             || (rawReturnTypeArgument = returnTypeArguments.get(1)).getKind() != TypeKind.DECLARED
-            || (nestedResourceType = ((DeclaredType)rawReturnTypeArgument)).asElement().getKind() != ElementKind.INTERFACE
+            || (resourceTypeElement = (TypeElement)(nestedResourceType = ((DeclaredType)rawReturnTypeArgument)).asElement()).getKind() != ElementKind.INTERFACE
         ) {
             messager.printMessage(ERROR, "SubResource return type must be a Map of String to a valid resource type", executableElement);
             return null;
@@ -316,6 +320,8 @@ final class ProcessingContext {
             for (TypeMirror child : children) {
                 if (! (child instanceof DeclaredType && ((DeclaredType)child).asElement().getKind() == ElementKind.INTERFACE)) {
                     messager.printMessage(ERROR, "SubResource children must be interfaces", executableElement, subResourceAnnotation, childrenValue);
+                } else if (! isAssignable(child, nestedResourceType)) {
+                    messager.printMessage(ERROR, "SubResource type must be assignable from the declared resource type (map value type)", executableElement, subResourceAnnotation, childrenValue);
                 } else {
                     final ResourceInfo info = processResource((TypeElement) ((DeclaredType) child).asElement());
                     if (info != null) {
@@ -324,7 +330,27 @@ final class ProcessingContext {
                 }
             }
         }
-        return new SubResourceInfo(nestedResourceType, type, name, requiresUnique, childResources.toArray(new ResourceInfo[childResources.size()]));
+        return new SubResourceInfo(processResourceType(resourceTypeElement), type, name, requiresUnique, childResources.toArray(new ResourceInfo[childResources.size()]));
+    }
+
+    public ResourceTypeInfo processResourceType(final TypeElement typeElement) {
+        if (resourceTypeInfoMap.containsKey(typeElement)) {
+            return resourceTypeInfoMap.get(typeElement);
+        }
+        ResourceTypeInfo info;
+        resourceTypeInfoMap.put(typeElement, null);
+        resourceTypeInfoMap.put(typeElement, info = processNewResourceType(typeElement));
+        return info;
+    }
+
+    private ResourceTypeInfo processNewResourceType(final TypeElement typeElement) {
+        final AnnotationMirror resourceTypeAnnotation = getAnnotation(env.getElementUtils(), typeElement, ResourceType.class.getName());
+        if (resourceTypeAnnotation == null) {
+            env.getMessager().printMessage(ERROR, "Resource types must have (or inherit) a @ResourceType annotation", typeElement);
+            return null;
+        }
+        final String name = stringValue(getAnnotationValue(resourceTypeAnnotation, "name"));
+        return new ResourceTypeInfo(typeElement, name);
     }
 
     public AttributeValueInfo processAttributeValue(String name, ExecutableElement declaringElement) {
