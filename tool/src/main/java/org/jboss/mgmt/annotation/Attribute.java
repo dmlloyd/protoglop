@@ -72,7 +72,7 @@ public @interface Attribute {
      *
      * @return {@code true} to allow expressions, {@code false} otherwise
      */
-    boolean expression() default false;
+    boolean allowExpression() default true;
 
     Class<? extends AttributeValidator>[] validators() default {};
 }
