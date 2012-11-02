@@ -25,11 +25,11 @@ package example1;
 import org.jboss.mgmt.AttributeValidator;
 import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.ResourceRef;
-import org.jboss.mgmt.ValidationContext;
 import org.jboss.mgmt.annotation.Attribute;
 import org.jboss.mgmt.annotation.AttributeType;
 import org.jboss.mgmt.annotation.Reference;
 import org.jboss.mgmt.annotation.Required;
+import org.jboss.msc.txn.ValidateContext;
 
 /**
 * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
@@ -46,14 +46,15 @@ public interface FileReference {
     class Validator implements AttributeValidator<Resource, FileReference> {
         public static final Validator INSTANCE = new Validator();
 
-        public void validate(final Resource resource, final String attributeName, final FileReference previousValue, final FileReference newValue, final ValidationContext validatorContext) {
+        public void validate(final Resource resource, final String attributeName, final FileReference previousValue, final FileReference newValue, final ValidateContext validatorContext) {
             final String fileName = newValue.getFileName();
             final String relativeToName = newValue.getRelativeTo().getName();
             if (fileName.startsWith("/") && ! relativeToName.isEmpty()) {
-                validatorContext.reportProblem("File name may not be absolute if relative-to is given");
+                validatorContext.addProblem("File name may not be absolute if relative-to is given");
             } else if (! fileName.startsWith("/") && relativeToName.isEmpty()) {
-                validatorContext.reportProblem("File name may not be relative if no relative-to is given");
+                validatorContext.addProblem("File name may not be relative if no relative-to is given");
             }
+            validatorContext.complete();
         }
     }
 }

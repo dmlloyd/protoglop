@@ -22,9 +22,11 @@
 
 package org.jboss.mgmt;
 
+import org.jboss.msc.txn.ValidateContext;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public interface AttributeValidator<R, T> {
-    void validate(R resource, String attributeName, T previousValue, T newValue, ValidationContext validatorContext);
+    void validate(R resource, String attributeName, T previousValue, T newValue, ValidateContext validatorContext);
 }

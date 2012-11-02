@@ -60,7 +60,19 @@ public @interface Attribute {
      */
     RunLevel changeRunLevel() default RunLevel.RUNNING;
 
+    /**
+     * The default value, in string form.
+     *
+     * @return the default value
+     */
     String defaultValue() default "";
+
+    /**
+     * Specify whether this attribute my contain an expression.
+     *
+     * @return {@code true} to allow expressions, {@code false} otherwise
+     */
+    boolean expression() default false;
 
     Class<? extends AttributeValidator>[] validators() default {};
 }

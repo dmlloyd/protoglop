@@ -31,7 +31,8 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Declare an associated service for a resource.
+ * Declare an associated service for a resource or attribute group.  If declared on an attribute
+ * group's interface, the name will automatically be qualified with the attribute group name.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
@@ -76,8 +77,7 @@ public @interface ResourceService {
     ServiceMode activeMode() default ServiceMode.ACTIVE;
 
     /**
-     * The service type to instantiate.  The service type may include a constructor which accepts a
-     * {@link org.jboss.msc.value.ReadableValue} of this resource type as its single argument.
+     * The service type to instantiate.
      *
      * @return the service type
      */

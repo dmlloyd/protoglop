@@ -20,11 +20,35 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt;
+package org.jboss.mgmt.annotation;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
-* @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
-*/
-public interface ValidationContext {
-    void reportProblem(String problem);
+ * An injection of a dependency declared on the corresponding resource.  If the dependency is optional, the
+ * setter is only called when it is present.
+ *
+ * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
+ */
+@Retention(CLASS)
+@Target(METHOD)
+public @interface InjectedDependency {
+
+    /**
+     * The resource type.  If not given, the type of the setter method's sole parameter is used.
+     *
+     * @return the resource type
+     */
+    Class<?> resourceType();
+
+    /**
+     * The name that the dependency {@link Provides @Provides}.
+     *
+     * @return the name
+     */
+    String name();
 }

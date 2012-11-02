@@ -22,9 +22,11 @@
 
 package org.jboss.mgmt;
 
+import org.jboss.msc.txn.ValidateContext;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public interface ResourceValidator<R> {
-    void validate(R resource, ValidationContext validatorContext);
+    void validate(R resource, ValidateContext validatorContext);
 }

@@ -23,7 +23,9 @@
 package org.jboss.mgmt.annotation;
 
 /**
- * Declare that this resource depends on a specific {@link Provides} from a specific {@link ResourceType}.
+ * Declare that this resource depends on a specific {@link Provides} from a specific {@link ResourceType}.  A
+ * resource with this annotation will not be added without a satisfactory provider unless {@code optional} is {@code true}.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public @interface Dependency {

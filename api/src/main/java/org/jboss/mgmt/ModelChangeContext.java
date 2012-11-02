@@ -22,10 +22,13 @@
 
 package org.jboss.mgmt;
 
-import org.jboss.msc.txn.ExecuteContext;
+import org.jboss.msc.txn.CancellableContext;
+import org.jboss.msc.txn.ReportableContext;
+import org.jboss.msc.txn.SimpleWorkContext;
+import org.jboss.msc.txn.TransactionalContext;
 
 /**
  *
  */
-public interface ModelChangeContext extends ExecuteContext<Void> {
+public interface ModelChangeContext extends TransactionalContext, ReportableContext, CancellableContext, SimpleWorkContext {
 }

@@ -24,11 +24,14 @@ package org.jboss.mgmt;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.jboss.msc.txn.Problem;
+import org.jboss.msc.txn.Transaction;
+import org.jboss.msc.txn.ValidateContext;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class ExceptionThrowingValidationContext implements ValidationContext {
+public final class ExceptionThrowingValidationContext implements ValidateContext {
     private final List<String> problems = new ArrayList<String>(0);
 
     public void reportProblem(final String problem) {
@@ -44,5 +47,28 @@ public final class ExceptionThrowingValidationContext implements ValidationConte
             msg.append("\n    ").append(problem);
         }
         throw new IllegalArgumentException(msg.toString());
+    }
+
+    public boolean isCancelRequested() {
+        return false;
+    }
+
+    public void cancelled() {
+    }
+
+    public void addProblem(final Problem reason) {
+    }
+
+    public void complete() {
+    }
+
+    public void begin() {
+    }
+
+    public void end() {
+    }
+
+    public Transaction getTransaction() {
+        return null;
     }
 }
