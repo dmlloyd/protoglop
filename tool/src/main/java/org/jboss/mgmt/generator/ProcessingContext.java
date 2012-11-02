@@ -316,7 +316,14 @@ final class ProcessingContext {
         final AnnotationValue childrenValue = getAnnotationValue(subResourceAnnotation, "children");
         final TypeMirror[] children = classArrayValue(childrenValue);
         final List<ResourceInfo> childResources = new ArrayList<ResourceInfo>();
-        if (children != null) {
+        final boolean hasChildren = children != null && children.length > 0;
+        final boolean childIsResourceType;
+        if (hasChildren) {
+            if (getAnnotation(env.getElementUtils(), resourceTypeElement, ResourceType.class.getName()) == null) {
+                messager.printMessage(ERROR, "If SubResource children are given, then the Map value type must be a @ResourceType", executableElement, subResourceAnnotation, childrenValue);
+                return null;
+            }
+            childIsResourceType = true;
             for (TypeMirror child : children) {
                 if (! (child instanceof DeclaredType && ((DeclaredType)child).asElement().getKind() == ElementKind.INTERFACE)) {
                     messager.printMessage(ERROR, "SubResource children must be interfaces", executableElement, subResourceAnnotation, childrenValue);
@@ -329,8 +336,15 @@ final class ProcessingContext {
                     }
                 }
             }
+        } else {
+            childIsResourceType = getAnnotation(env.getElementUtils(), resourceTypeElement, ResourceType.class.getName()) != null;
         }
-        return new SubResourceInfo(processResourceType(resourceTypeElement), type, name, requiresUnique, childResources.toArray(new ResourceInfo[childResources.size()]));
+        if (childIsResourceType) {
+            return new SubResourceInfo(processResourceType(resourceTypeElement), type, name, requiresUnique, childResources.toArray(new ResourceInfo[childResources.size()]));
+        } else {
+            final ResourceInfo resourceInfo = processResource(resourceTypeElement);
+            return resourceInfo == null ? null : new SubResourceInfo(null, type, name, requiresUnique, new ResourceInfo[] { resourceInfo });
+        }
     }
 
     public ResourceTypeInfo processResourceType(final TypeElement typeElement) {

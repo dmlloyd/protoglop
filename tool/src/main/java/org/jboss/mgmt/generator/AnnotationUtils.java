@@ -130,7 +130,7 @@ final class AnnotationUtils {
     }
 
     public static VariableElement enumValue(AnnotationValue value) {
-        return (VariableElement) value;
+        return value == null ? null : (VariableElement) value.getValue();
     }
 
     public static String enumNameValue(AnnotationValue value) {
