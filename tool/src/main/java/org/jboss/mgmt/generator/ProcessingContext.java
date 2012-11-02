@@ -342,7 +342,7 @@ final class ProcessingContext {
         } else {
             // looks like the reference fetcher
             if (! isAssignable(returnType, Resource.class)) {
-                messager.printMessage(ERROR, "SubResource must refer to a resource type", executableElement);
+                messager.printMessage(ERROR, "SubResource must refer to a resource type, currently it is: "+returnType, executableElement);
                 return null;
             }
             fetcher = executableElement;

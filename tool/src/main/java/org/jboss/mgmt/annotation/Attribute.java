@@ -62,5 +62,7 @@ public @interface Attribute {
 
     String defaultValue() default "";
 
+    boolean allowExpression() default true;
+
     Class<? extends AttributeValidator>[] validators() default {};
 }

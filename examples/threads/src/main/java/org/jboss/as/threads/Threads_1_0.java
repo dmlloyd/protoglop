@@ -1,8 +1,8 @@
 /*
- * JBoss, Home of Professional Open Source
- * Copyright 2008, JBoss Inc., and individual contributors as indicated
- * by the @authors tag. See the copyright.txt in the distribution for a
- * full listing of individual contributors.
+ * JBoss, Home of Professional Open Source.
+ * Copyright 2012, Red Hat, Inc., and individual contributors
+ * as indicated by the @author tags. See the copyright.txt file in the
+ * distribution for a full listing of individual contributors.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -20,29 +20,27 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation;
+package org.jboss.as.threads;
+
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static java.lang.annotation.ElementType.*;
-import static java.lang.annotation.RetentionPolicy.CLASS;
+import org.jboss.mgmt.annotation.Schema;
 
 /**
- *
+ * @author <a href="mailto:tomaz.cerar@redhat.com">Tomaz Cerar</a> (c) 2012 Red Hat Inc.
  */
-@Target({TYPE, METHOD})
-@Retention(CLASS)
-public @interface XmlRender {
-    enum As {
-        ELEMENT,
-        ATTRIBUTE,
-        ;
-    }
-
-    As as();
-
-    boolean wrapperElement() default true;
-
-    String wrapperElementName() default "";
+@Schema(
+        schemaLocation = "http://www.jboss.org/schema/jbossas/jboss-as-threads_1_0.xsd",
+        compatibilityNamespaces = { "urn:jboss:xts:1.0" },
+        kind = Schema.Kind.EXTENSION,
+        namespace = "core.xts",
+        version = "1.0"
+)
+@Retention(SOURCE)
+@Target(TYPE)
+public @interface Threads_1_0 {
 }
