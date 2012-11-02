@@ -36,7 +36,7 @@ import org.jboss.mgmt.annotation.ResourceType;
 @ResourceType(name = "core.logging.handler")
 public interface HandlerResource extends Resource {
     @Attribute
-    @Reference(resourceType = HandlerResource.class)
+    @Reference(scopeName = "core.logging.handlers", resourceType = HandlerResource.class)
     List<ResourceRef<? extends HandlerResource>> getHandlers();
 
     @Attribute(validators = { /* FilterStringValidator.class */ })

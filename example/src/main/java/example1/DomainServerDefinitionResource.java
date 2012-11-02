@@ -30,6 +30,6 @@ import org.jboss.mgmt.annotation.Reference;
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public interface DomainServerDefinitionResource extends Resource {
-    @Reference
+    @Reference(scopeName = "core.domain.profiles")
     ResourceRef<ProfileResource> getProfile();
 }

@@ -30,7 +30,50 @@ import javax.lang.model.type.DeclaredType;
  */
 final class ReferenceAttributeValueInfo extends AttributeValueInfo {
 
-    public ReferenceAttributeValueInfo(final String name, final ExecutableElement declaringElement, final ExecutableElement getNameMethod, final boolean required, final DeclaredType referenceType, final boolean monitor) {
+    private final String name;
+    private final ExecutableElement declaringElement;
+    private final boolean required;
+    private final DeclaredType referenceType;
+    private final boolean monitor;
+    private final boolean list;
+    private final DeclaredType targetType;
+
+    public ReferenceAttributeValueInfo(final String name, final ExecutableElement declaringElement, final boolean required, final DeclaredType referenceType, final boolean monitor, final boolean list, final DeclaredType targetType) {
+        this.name = name;
+        this.declaringElement = declaringElement;
+        this.required = required;
+        this.referenceType = referenceType;
+        this.monitor = monitor;
+        this.list = list;
+        this.targetType = targetType;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public ExecutableElement getDeclaringElement() {
+        return declaringElement;
+    }
+
+    public boolean isRequired() {
+        return required;
+    }
+
+    public DeclaredType getReferenceType() {
+        return referenceType;
+    }
+
+    public boolean isMonitor() {
+        return monitor;
+    }
+
+    public boolean isList() {
+        return list;
+    }
+
+    public DeclaredType getTargetType() {
+        return targetType;
     }
 
     public void generate(final AttributeGeneratorContext attributeGeneratorContext) {

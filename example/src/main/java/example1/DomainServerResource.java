@@ -33,6 +33,6 @@ import org.jboss.mgmt.annotation.Reference;
 public interface DomainServerResource extends ServerResource {
 
     @Attribute(access = Access.READ_ONLY)
-    @Reference
+    @Reference(scopeName = "core.domain.profiles")
     ResourceRef<ProfileResource> getProfile();
 }

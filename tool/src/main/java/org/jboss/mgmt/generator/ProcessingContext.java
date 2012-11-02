@@ -41,6 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jboss.mgmt.AttributeValidator;
 import org.jboss.mgmt.Resource;
+import org.jboss.mgmt.ResourceRef;
 import org.jboss.mgmt.annotation.Access;
 import org.jboss.mgmt.annotation.Attribute;
 import org.jboss.mgmt.annotation.AttributeGroup;
@@ -71,6 +72,8 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
+import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Types;
 
@@ -136,7 +139,6 @@ final class ProcessingContext {
 
     private NewSchemaInfo processNewSchema(final TypeElement schemaAnnotation) {
         final Messager messager = env.getMessager();
-
         if (schemaAnnotation.getKind() != ElementKind.ANNOTATION_TYPE) {
             messager.printMessage(ERROR, "@Schema may only be applied to an annotation type");
             return null;
@@ -401,26 +403,6 @@ final class ProcessingContext {
         DeclaredType referenceType = null;
         boolean monitor = false;
 
-        for (AnnotationMirror annotationMirror : declaringElement.getAnnotationMirrors()) {
-            if (annotationIs(annotationMirror, Enumerated.class)) {
-                enumerations = stringArrayValue(getAnnotationValue(annotationMirror, "name"));
-            } else if (annotationIs(annotationMirror, Required.class)) {
-                required = booleanValue(getAnnotationValue(annotationMirror, "value"), true);
-            } else if (annotationIs(annotationMirror, Reference.class)) {
-                final AnnotationValue referenceTypeAnnotationValue = getAnnotationValue(annotationMirror, "referenceType");
-                TypeMirror expectedReferenceType = classValue(referenceTypeAnnotationValue);
-                if (expectedReferenceType == null) {
-                    expectedReferenceType = declaringElement.getReturnType();
-                }
-                if (! (expectedReferenceType instanceof DeclaredType && ((DeclaredType)expectedReferenceType).asElement().getKind() == ElementKind.INTERFACE)) {
-                    messager.printMessage(ERROR, "Reference types must refer to Resource interfaces", declaringElement, annotationMirror, referenceTypeAnnotationValue);
-                    return null;
-                }
-                referenceType = (DeclaredType) expectedReferenceType;
-                monitor = booleanValue(getAnnotationValue(annotationMirror, "monitor"), false);
-            }
-        }
-
         final TypeElement enclosingElement = (TypeElement) declaringElement.getEnclosingElement();
 
         for (VariableElement fieldElement : ElementFilter.fieldsIn(env.getElementUtils().getAllMembers(enclosingElement))) {
@@ -434,36 +416,75 @@ final class ProcessingContext {
             }
         }
 
-        if (referenceType != null) {
-            if (enumerations != null) {
-                messager.printMessage(WARNING, "Enumerations will not be used for attribute of type " + type, declaringElement);
-            }
-            if (defaultVal != null) {
-                messager.printMessage(WARNING, "Default value will not be used for attribute group of type " + type, defaultVal);
-            }
-            if (! getter) {
-                messager.printMessage(ERROR, "Reference attribute must be a getter method", declaringElement);
-                return null;
-            }
-            // find getXXXName method...
-            ExecutableElement getNameMethod = null;
-            for (ExecutableElement executableElement : ElementFilter.methodsIn(env.getElementUtils().getAllMembers(enclosingElement))) {
-                if (executableElement.getSimpleName().toString().equals(simpleName + "Name")) {
-                    if (executableElement.getParameters().size() > 0) {
-                        continue;
-                    }
-                    if (! isSameType(String.class, executableElement.getReturnType())) {
-                        messager.printMessage(ERROR, "getXXXName method must return a String", executableElement);
+        for (AnnotationMirror annotationMirror : declaringElement.getAnnotationMirrors()) {
+            if (annotationIs(annotationMirror, Enumerated.class)) {
+                enumerations = stringArrayValue(getAnnotationValue(annotationMirror, "name"));
+            } else if (annotationIs(annotationMirror, Required.class)) {
+                required = booleanValue(getAnnotationValue(annotationMirror, "value"), true);
+            } else if (annotationIs(annotationMirror, Reference.class)) {
+                final DeclaredType resourceRefType;
+                final boolean list;
+                if (isSameType(ResourceRef.class, type)) {
+                    resourceRefType = (DeclaredType) type;
+                    list = false;
+                } else if (isSameType(List.class, type)) {
+                    final DeclaredType listType = ((DeclaredType) type);
+                    final List<? extends TypeMirror> typeParameters = listType.getTypeArguments();
+                    if (typeParameters.size() != 1) {
+                        messager.printMessage(ERROR, "Reference type lists must have one type argument", declaringElement);
                         return null;
                     }
-                    getNameMethod = executableElement;
-                    break;
+                    final TypeMirror typeMirror = typeParameters.get(0);
+                    if (! isSameType(ResourceRef.class, typeMirror)) {
+                        messager.printMessage(ERROR, "Reference type lists must be of type List<ResourceRef<...>>", declaringElement);
+                        return null;
+                    }
+                    resourceRefType = (DeclaredType) typeMirror;
+                    list = true;
+                } else {
+                    messager.printMessage(ERROR, "Reference types must return ResourceRef instances or lists thereof", declaringElement);
+                    return null;
                 }
+                final List<? extends TypeMirror> typeArguments = resourceRefType.getTypeArguments();
+                if (typeArguments.size() != 1) {
+                    messager.printMessage(ERROR, "ResourceRef must have a type argument", declaringElement);
+                    return null;
+                }
+                final TypeMirror typeMirror = typeArguments.get(0);
+                final DeclaredType targetType;
+                if (typeMirror.getKind() == TypeKind.WILDCARD) {
+                    // List<ResourceRef<? extends Xyz>> or ResourceRef<? extends Xyz>
+                    final WildcardType wildcardType = (WildcardType) typeMirror;
+                    if (wildcardType.getSuperBound() != null) {
+                        messager.printMessage(ERROR, "ResourceRef type variable cannot have a super bound", declaringElement);
+                        return null;
+                    }
+                    final TypeMirror extendsBound = wildcardType.getExtendsBound();
+                    if (extendsBound.getKind() != TypeKind.DECLARED) {
+                        messager.printMessage(ERROR, "ResourceRef type variable must be or extend a concrete declared type", declaringElement);
+                        return null;
+                    }
+                    targetType = (DeclaredType) extendsBound;
+                } else if (typeMirror.getKind() == TypeKind.DECLARED) {
+                    // List<ResourceRef<Xyz>> or ResourceRef<Xyz>
+                    targetType = (DeclaredType) typeMirror;
+                } else {
+                    messager.printMessage(ERROR, "ResourceRef type variable must be or extend a concrete declared type", declaringElement);
+                    return null;
+                }
+                monitor = booleanValue(getAnnotationValue(annotationMirror, "monitor"), false);
+                if (enumerations != null) {
+                    messager.printMessage(WARNING, "Enumerations will not be used for attribute of type " + type, declaringElement);
+                }
+                if (defaultVal != null) {
+                    messager.printMessage(WARNING, "Default value will not be used for attribute group of type " + type, defaultVal);
+                }
+                if (! getter) {
+                    messager.printMessage(ERROR, "Reference attribute must be a getter method", declaringElement);
+                    return null;
+                }
+                return new ReferenceAttributeValueInfo(name, declaringElement, required, referenceType, monitor, list, targetType);
             }
-            if (getNameMethod == null) {
-                messager.printMessage(WARNING, "No getXXXName method for reference attribute", declaringElement);
-            }
-            return new ReferenceAttributeValueInfo(name, declaringElement, getNameMethod, required, referenceType, monitor);
         }
 
         if (isAssignable(type, String.class)) {
@@ -483,6 +504,10 @@ final class ProcessingContext {
         }
 
         if (declaringElement.getAnnotation(AttributeGroup.class) != null) {
+            if (isAssignable(type, Resource.class)) {
+                messager.printMessage(ERROR, "AttributeGroup types cannot be Resources; to share a type, factor out a child interface which inherits the AttributeGroup type and Resource", declaringElement);
+                return null;
+            }
             final AttributeGroupInfo attributeGroupInfo = processAttributeGroup(type);
             if (attributeGroupInfo == null) {
                 return null;

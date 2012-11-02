@@ -33,7 +33,7 @@ public @interface SubResource {
      * Specify a type for the sub-resource.  This allows root resources to be used.  If not given,
      * the return type will be inspected to see if it is a typed sub-resource.
      *
-     * @return
+     * @return the root resource type name
      */
     String type() default "";
 
@@ -43,6 +43,16 @@ public @interface SubResource {
      * @return the name name
      */
     String name() default "";
+
+    /**
+     * Specify an identifier which is a scope name that {@link Reference @Reference}s can use to refer to members
+     * of this collection.  Only one resource in a given model may specify a scope with a given name.  If a second
+     * resource attempts to register the same scope, a runtime failure will occur.  Referential integrity will be
+     * verified between members of this property and {@code @Reference}s elsewhere in the model.
+     *
+     * @return the scope identifier
+     */
+    String referenceAs() default "";
 
     /**
      * Requires a unique value for "provides" values.

@@ -39,6 +39,14 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 public @interface Reference {
 
     /**
+     * The name of the scope to refer to.  An element which encloses this one must have such a scope defined.
+     * By convention, scope names should be plural, and qualified by the namespace of their defining schema.
+     *
+     * @return the scope name
+     */
+    String scopeName();
+
+    /**
      * The type of resource being referred to.
      *
      * @return the type of resource

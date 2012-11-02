@@ -40,7 +40,7 @@ public interface FileReference {
     String getFileName();
 
     @Required(false)
-    @Reference(monitor = true)
+    @Reference(scopeName = "core.paths", monitor = true)
     ResourceRef<PathResource> getRelativeTo();
 
     class Validator implements AttributeValidator<Resource, FileReference> {

@@ -41,7 +41,7 @@ import org.jboss.mgmt.annotation.XmlName;
 )
 public interface LoggingSubsystemResource extends Resource {
 
-    @SubResource(children = { FileHandlerResource.class }, type = "core.logging.handler")
+    @SubResource(children = { FileHandlerResource.class })
     Map<String, HandlerResource> getHandlers();
 
     @SubResource
