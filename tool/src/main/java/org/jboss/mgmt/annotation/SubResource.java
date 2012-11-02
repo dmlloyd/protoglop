@@ -46,9 +46,8 @@ public @interface SubResource {
 
     /**
      * Specify an identifier which is a scope name that {@link Reference @Reference}s can use to refer to members
-     * of this collection.  Only one resource in a given model may specify a scope with a given name.  If a second
-     * resource attempts to register the same scope, a runtime failure will occur.  Referential integrity will be
-     * verified between members of this property and {@code @Reference}s elsewhere in the model.
+     * of this collection.  The scope is resolved via the nearest common ancestor between the reference and the
+     * sub-resource scope.
      *
      * @return the scope identifier
      */

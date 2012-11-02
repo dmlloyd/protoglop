@@ -36,10 +36,9 @@ import org.jboss.msc.txn.ValidateContext;
 */
 @AttributeType(validators = FileReference.Validator.class)
 public interface FileReference {
-    @Attribute(name = "file-name")
+    @Required @Attribute
     String getFileName();
 
-    @Required(false)
     @Reference(scopeName = "core.paths", monitor = true)
     ResourceRef<PathResource> getRelativeTo();
 
