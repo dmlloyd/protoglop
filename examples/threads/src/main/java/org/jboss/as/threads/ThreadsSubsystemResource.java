@@ -1,7 +1,6 @@
 package org.jboss.as.threads;
 
-import java.util.List;
-
+import java.util.Map;
 import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.annotation.Provides;
 import org.jboss.mgmt.annotation.RootResource;
@@ -21,9 +20,5 @@ import org.jboss.mgmt.annotation.XmlName;
 public interface ThreadsSubsystemResource extends Resource {
 
     @SubResource
-        //Map<String, ThreadFactoryResource> getThreadFactoryNames();
-        //List<String> getThreadFactoryNames();
-    ThreadFactoryResource getThreadFactory(String name);
-
-    List<String> getThreadFactoryNames();
+    Map<String, ThreadFactoryResource> getThreadFactories();
 }
