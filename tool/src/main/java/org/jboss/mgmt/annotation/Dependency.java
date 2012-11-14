@@ -22,12 +22,20 @@
 
 package org.jboss.mgmt.annotation;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.CLASS;
+
 /**
  * Declare that this resource depends on a specific {@link Provides} from a specific {@link ResourceType}.  A
  * resource with this annotation will not be added without a satisfactory provider unless {@code optional} is {@code true}.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
+@Retention(CLASS)
+@Target(METHOD)
 public @interface Dependency {
 
     /**
