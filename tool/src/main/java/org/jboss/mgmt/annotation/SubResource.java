@@ -45,6 +45,15 @@ public @interface SubResource {
     String name() default "";
 
     /**
+     * Specify a fixed address pair value for the sub-resource.  If given, the return
+     * value of the method should be a {@link org.jboss.mgmt.ResourceRef} of the child
+     * type, instead of a {@link java.util.Map}.
+     *
+     * @return the address value
+     */
+    String addressValue() default "";
+
+    /**
      * Specify an identifier which is a scope name that {@link Reference @Reference}s can use to refer to members
      * of this collection.  The scope is resolved via the nearest common ancestor between the reference and the
      * sub-resource scope.

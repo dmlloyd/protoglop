@@ -52,4 +52,11 @@ public @interface AttributeGroup {
      * @return {@code true} for required, {@code false} for optional
      */
     boolean required() default true;
+
+    /**
+     * Attribute has no name in the model (though it may still have a wrapper element and XML name).
+     *
+     * @return {@code true} if the attribute has no name
+     */
+    boolean anonymous() default false;
 }
