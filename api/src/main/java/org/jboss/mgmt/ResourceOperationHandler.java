@@ -20,14 +20,14 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.generator;
-
-import nu.xom.Element;
+package org.jboss.mgmt;
 
 /**
+ * @param <R> the affected resource type
+ * @param <P> the payload type
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-interface ResourceMember {
-
-    void addToSchema(SchemaGeneratorContext ctxt, Element typeElement, Element seqElement);
+public interface ResourceOperationHandler<R extends Resource, P extends Operation> {
+    void execute(ResourceOperationContext context, R resource, P payload);
 }

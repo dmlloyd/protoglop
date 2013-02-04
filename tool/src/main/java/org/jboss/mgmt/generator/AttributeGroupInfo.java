@@ -22,17 +22,26 @@
 
 package org.jboss.mgmt.generator;
 
+import nu.xom.Attribute;
+import nu.xom.Element;
+
 import javax.lang.model.element.TypeElement;
+
+import static org.jboss.mgmt.generator.SchemaInfo.XS;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 final class AttributeGroupInfo implements ResourceMember {
 
+    private final String xmlName;
+    private final String xmlTypeName;
     private final TypeElement typeElement;
     private final ResourceMember[] members;
 
-    public AttributeGroupInfo(final TypeElement typeElement, final ResourceMember[] members) {
+    public AttributeGroupInfo(final String xmlName, final String xmlTypeName, final TypeElement typeElement, final ResourceMember[] members) {
+        this.xmlName = xmlName;
+        this.xmlTypeName = xmlTypeName;
         this.typeElement = typeElement;
         this.members = members;
     }
@@ -45,6 +54,21 @@ final class AttributeGroupInfo implements ResourceMember {
         return members;
     }
 
-    public void generate(final ResourceGeneratorContext resourceGeneratorContext) {
+    public void addToSchema(final SchemaGeneratorContext ctxt, final Element typeElement, final Element seqElement) {
+        final Element elementElement = new Element("xs:element", XS);
+        elementElement.addAttribute(new Attribute("name", xmlName));
+        elementElement.addAttribute(new Attribute("type", xmlTypeName));
+        seqElement.appendChild(elementElement);
+        final Element groupTypeElement = ctxt.addRootComplexType(xmlTypeName, this, getTypeElement());
+        if (groupTypeElement == null) {
+            // already added
+            return;
+        }
+        GeneratorUtils.addDocumentation(groupTypeElement, "** add group doc here **"); // todo
+        final Element subSeqElement = new Element("xs:sequence", XS);
+        for (ResourceMember member : members) {
+            member.addToSchema(ctxt, groupTypeElement, subSeqElement);
+        }
+        groupTypeElement.appendChild(subSeqElement);
     }
 }

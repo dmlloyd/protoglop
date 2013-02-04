@@ -22,18 +22,20 @@
 
 package org.jboss.mgmt.generator;
 
-import org.jboss.jdeparser.JBlock;
+import nu.xom.Attribute;
+import nu.xom.Element;
 import org.jboss.jdeparser.JDefinedClass;
 import org.jboss.jdeparser.JExpr;
-import org.jboss.jdeparser.JFieldRef;
+import org.jboss.jdeparser.JFieldVar;
 import org.jboss.jdeparser.JMethod;
-import org.jboss.jdeparser.JType;
+import org.jboss.jdeparser.JVar;
 
 import javax.lang.model.element.VariableElement;
 
 import static org.jboss.jdeparser.JMod.FINAL;
 import static org.jboss.jdeparser.JMod.PRIVATE;
 import static org.jboss.jdeparser.JMod.PUBLIC;
+import static org.jboss.mgmt.generator.SchemaInfo.XS;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
@@ -46,6 +48,7 @@ final class StringAttributeValueInfo extends AttributeValueInfo {
     private final String[] enumerations;
 
     public StringAttributeValueInfo(final String name, final VariableElement defaultVal, final boolean required, final String[] enumerations) {
+        super(name);
         this.name = name;
         this.defaultVal = defaultVal;
         this.required = required;
@@ -68,22 +71,50 @@ final class StringAttributeValueInfo extends AttributeValueInfo {
         return enumerations;
     }
 
-    public void generate(final AttributeGeneratorContext attributeGeneratorContext) {
-        final ResourceGeneratorContext resourceGeneratorContext = attributeGeneratorContext.getResourceGeneratorContext();
-        final JDefinedClass resourceImplClass = resourceGeneratorContext.getResourceImplClass();
-        final JMethod implConstructor = resourceGeneratorContext.getResourceImplConstructor();
-        final JBlock implInitBlock = resourceGeneratorContext.getResourceImplConstructorInitBlock();
-        final JType attributeType = attributeGeneratorContext.getAttributeType();
-        final String attributeName = attributeGeneratorContext.getAttributeInfo().getName();
-        // init
-        final JFieldRef implField = JExpr.ref(JExpr._this(), resourceImplClass.field(PRIVATE | FINAL, attributeType, attributeName));
-        implInitBlock.assign(implField, implConstructor.param(FINAL, attributeType, attributeName));
-        // getter
-        final JMethod getterMethod = resourceImplClass.method(PUBLIC, attributeType, attributeGeneratorContext.getGetterName());
-        getterMethod.body()._return(implField);
-    }
-
     public boolean isValidInAttributeType() {
         return true;
+    }
+
+    public void addToResourceClass(JDefinedClass resourceClass, JMethod constructor) {
+        final String fieldName = NameUtils.fieldify(name);
+        final JFieldVar field = resourceClass.field(PRIVATE | FINAL, String.class, fieldName);
+        final JVar constructorParam = constructor.param(String.class, fieldName);
+        constructor.body().assign(JExpr._this().ref(field), constructorParam);
+
+        final JMethod getter = resourceClass.method(PUBLIC, String.class, "get" + name);
+        getter.body()._return(field);
+    }
+
+    public void addToResolvedResourceClass(JDefinedClass resolvedClass, JMethod constructor) {
+        addToResourceClass(resolvedClass, constructor);
+    }
+
+    public void addToBuilderClass(JDefinedClass builderClass) {
+        final String varName = NameUtils.fieldify(name);
+        builderClass.field(PRIVATE, String.class, varName);
+        final JMethod setter = builderClass.method(PUBLIC | FINAL, builderClass, "set" + name);
+        final JVar valParam = setter.param(FINAL, String.class, varName);
+        setter.body().assign(JExpr._this().ref(varName), valParam);
+        setter.body()._return(JExpr._this());
+    }
+
+    public void addToResolvedInterface(JDefinedClass resolvedInterface) {
+        resolvedInterface.method(0, String.class, "get" + name);
+    }
+
+    public void addToSchemaAsAttribute(final AttributeInfo attributeInfo, final Element enclosingSeqElement, final Element enclosingTypeElement, final Element attributeElement) {
+        attributeElement.addAttribute(new Attribute("type", "xs:string"));
+        if (defaultVal != null) {
+            attributeElement.addAttribute(new Attribute("default", defaultVal.getConstantValue().toString()));
+        }
+    }
+
+    public void addToSchemaAsElement(final AttributeInfo attributeInfo, final Element enclosingSeqElement, final Element enclosingTypeElement, final Element elementElement) {
+        final Element complexType = new Element("xs:complexType", XS);
+        elementElement.appendChild(complexType);
+        final Element attributeElement = new Element("xs:attribute", XS);
+        complexType.appendChild(attributeElement);
+        attributeElement.addAttribute(new Attribute("name", "value"));
+        attributeElement.addAttribute(new Attribute("type", "xs:string"));
     }
 }

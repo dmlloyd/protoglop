@@ -23,6 +23,7 @@
 package example1;
 
 import java.util.Map;
+import org.jboss.mgmt.annotation.AttributeGroup;
 import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.Provides;
 import org.jboss.mgmt.annotation.SubResource;
@@ -44,5 +45,8 @@ public interface LoggingSubsystemResource extends SubsystemResource {
     Map<String, HandlerResource> getHandlers();
 
     @SubResource
-    Map<String, LoggerResource> getLoggerNames();
+    Map<String, LoggerResource> getLoggers();
+
+    @AttributeGroup
+    LoggerInfo getRootLogger();
 }

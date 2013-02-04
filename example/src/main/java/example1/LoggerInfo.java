@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2012, Red Hat, Inc., and individual contributors
+ * Copyright 2013, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,14 +20,30 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt;
+package example1;
+
+import java.util.List;
+import org.jboss.mgmt.Commentable;
+import org.jboss.mgmt.ResourceRef;
+import org.jboss.mgmt.annotation.Attribute;
+import org.jboss.mgmt.annotation.Enumerated;
+import org.jboss.mgmt.annotation.XmlRender;
+
+import static org.jboss.mgmt.annotation.XmlRender.As.ELEMENT;
 
 /**
- * @param <R> the affected resource type
- * @param <P> the payload type
- *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface ResourceOperation<R extends Resource, P> {
-    void execute(ResourceOperationContext context, R resource, P payload);
+public interface LoggerInfo extends Commentable {
+
+    @Attribute
+    List<ResourceRef<? extends HandlerResource>> getHandlers();
+
+    @Attribute(validators = { /* FilterStringValidator.class */ })
+    @XmlRender(as = ELEMENT)
+    String getFilter();
+
+    @Attribute
+    @Enumerated({"OFF", "FATAL", "ERROR", "WARN", "WARNING", "NOTICE", "INFO", "CONFIG", "DEBUG", "FINE", "FINER", "FINEST", "TRACE", "ALL"})
+    String getLevel();
 }

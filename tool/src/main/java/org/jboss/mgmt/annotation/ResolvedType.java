@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2012, Red Hat, Inc., and individual contributors
+ * Copyright 2013, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,14 +20,15 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.generator;
-
-import nu.xom.Element;
+package org.jboss.mgmt.annotation;
 
 /**
+ * The resolved type for an expression.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-interface ResourceMember {
-
-    void addToSchema(SchemaGeneratorContext ctxt, Element typeElement, Element seqElement);
+public enum ResolvedType {
+    STRING,
+    INT,
+    LONG,
 }

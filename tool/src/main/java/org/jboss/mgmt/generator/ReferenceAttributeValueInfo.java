@@ -22,6 +22,10 @@
 
 package org.jboss.mgmt.generator;
 
+import nu.xom.Element;
+import org.jboss.jdeparser.JDefinedClass;
+import org.jboss.jdeparser.JMethod;
+
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.DeclaredType;
 
@@ -30,7 +34,6 @@ import javax.lang.model.type.DeclaredType;
  */
 final class ReferenceAttributeValueInfo extends AttributeValueInfo {
 
-    private final String name;
     private final ExecutableElement declaringElement;
     private final boolean required;
     private final DeclaredType referenceType;
@@ -39,7 +42,7 @@ final class ReferenceAttributeValueInfo extends AttributeValueInfo {
     private final DeclaredType targetType;
 
     public ReferenceAttributeValueInfo(final String name, final ExecutableElement declaringElement, final boolean required, final DeclaredType referenceType, final boolean monitor, final boolean list, final DeclaredType targetType) {
-        this.name = name;
+        super(name);
         this.declaringElement = declaringElement;
         this.required = required;
         this.referenceType = referenceType;
@@ -48,8 +51,22 @@ final class ReferenceAttributeValueInfo extends AttributeValueInfo {
         this.targetType = targetType;
     }
 
-    public String getName() {
-        return name;
+    public void addToSchemaAsAttribute(final AttributeInfo attributeInfo, final Element enclosingSeqElement, final Element enclosingTypeElement, final Element attributeElement) {
+    }
+
+    public void addToSchemaAsElement(final AttributeInfo attributeInfo, final Element enclosingSeqElement, final Element enclosingTypeElement, final Element elementElement) {
+    }
+
+    public void addToResourceClass(final JDefinedClass resourceClass, final JMethod constructor) {
+    }
+
+    public void addToBuilderClass(final JDefinedClass builderClass) {
+    }
+
+    public void addToResolvedResourceClass(final JDefinedClass resolvedClass, final JMethod constructor) {
+    }
+
+    public void addToResolvedInterface(final JDefinedClass resolvedInterface) {
     }
 
     public ExecutableElement getDeclaringElement() {
@@ -74,9 +91,6 @@ final class ReferenceAttributeValueInfo extends AttributeValueInfo {
 
     public DeclaredType getTargetType() {
         return targetType;
-    }
-
-    public void generate(final AttributeGeneratorContext attributeGeneratorContext) {
     }
 
     public boolean isValidInAttributeType() {

@@ -12,7 +12,7 @@ import org.jboss.mgmt.annotation.XmlRender;
 @XmlName("thread-factory")
 public interface ThreadFactoryResource extends Resource {
     @XmlRender(as = XmlRender.As.ATTRIBUTE)
-    @Attribute(allowExpression = false)
+    @Attribute()
     @Required(false)
     String getGroupName();
 

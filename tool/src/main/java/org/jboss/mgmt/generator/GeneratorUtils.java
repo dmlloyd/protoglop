@@ -28,6 +28,8 @@ import org.jboss.jdeparser.JDefinedClass;
 
 import javax.annotation.Generated;
 
+import static org.jboss.mgmt.generator.SchemaInfo.XS;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
@@ -36,7 +38,6 @@ final class GeneratorUtils {
     private GeneratorUtils() {
     }
 
-    static final String XSD = "http://www.w3.org/2001/XMLSchema";
     static final String GENERATOR_VERSION = "1.0";
 
     static <T> T def(T test, T def) {
@@ -44,14 +45,14 @@ final class GeneratorUtils {
     }
 
     static void addDocumentation(final Element element, final String documentation) {
-        final Element annotation = new Element("xs:annotation", XSD);
+        final Element annotation = new Element("xs:annotation", XS);
         element.appendChild(annotation);
-        final Element documentationElement = new Element("xs:documentation", XSD);
+        final Element documentationElement = new Element("xs:documentation", XS);
         annotation.appendChild(documentationElement);
         documentationElement.appendChild(documentation);
     }
 
     static void addGeneratedAnnotation(final JDefinedClass target) {
-        target.annotate(Generated.class).paramArray("value").param(Generator.class.getName()).param(GENERATOR_VERSION);
+        target.annotate(Generated.class).paramArray("value").param(Processor.class.getName()).param(GENERATOR_VERSION);
     }
 }

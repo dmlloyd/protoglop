@@ -23,12 +23,15 @@
 package org.jboss.mgmt.generator;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import org.jboss.mgmt.annotation.XmlName;
+import org.jboss.mgmt.annotation.XmlTypeName;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -74,6 +77,10 @@ final class AnnotationUtils {
             env.getMessager().printMessage(Diagnostic.Kind.ERROR, "Problem locating source element '" + element + "'", element);
             return false;
         }
+    }
+
+    public static AnnotationMirror getAnnotation(Elements elements, Element annotatedElement, Class<? extends Annotation> annotation) {
+        return getAnnotation(elements, annotatedElement, annotation.getName());
     }
 
     public static AnnotationMirror getAnnotation(Elements elements, Element annotatedElement, String annotationName) {
@@ -215,5 +222,21 @@ final class AnnotationUtils {
 
     public static boolean annotationIs(final AnnotationMirror mirror, final Class<?> testClass) {
         return getAnnotationName(mirror).equals(testClass.getName());
+    }
+
+    static String getXmlTypeName(final Elements elements, final Element typeElement, final String xmlName) {
+        String xmlTypeName = AnnotationUtils.getAnnotationValueString(AnnotationUtils.getAnnotation(elements, typeElement, XmlTypeName.class), "value");
+        if (xmlTypeName == null) xmlTypeName = xmlName + "-type";
+        return xmlTypeName;
+    }
+
+    static String getXmlName(final Elements elements, final Element element) {
+        return getXmlName(elements, element, element.getSimpleName().toString());
+    }
+
+    static String getXmlName(final Elements elements, final Element element, final String baseName) {
+        String xmlName = AnnotationUtils.getAnnotationValueString(AnnotationUtils.getAnnotation(elements, element, XmlName.class), "value");
+        if (xmlName == null) xmlName = NameUtils.xmlify(baseName);
+        return xmlName;
     }
 }

@@ -22,6 +22,9 @@
 
 package org.jboss.mgmt.generator;
 
+import nu.xom.Attribute;
+import nu.xom.Element;
+
 import javax.lang.model.element.TypeElement;
 
 /**
@@ -31,10 +34,16 @@ final class ResourceInfo {
 
     private final TypeElement typeElement;
     private final ResourceMember[] resourceMembers;
+    private final String name;
+    private final String xmlName;
+    private final String xmlTypeName;
 
-    ResourceInfo(final TypeElement typeElement, final ResourceMember[] resourceMembers) {
+    ResourceInfo(final TypeElement typeElement, final ResourceMember[] resourceMembers, final String name, final String xmlName, final String xmlTypeName) {
         this.typeElement = typeElement;
         this.resourceMembers = resourceMembers;
+        this.name = name;
+        this.xmlName = xmlName;
+        this.xmlTypeName = xmlTypeName;
     }
 
     public TypeElement getTypeElement() {
@@ -45,9 +54,34 @@ final class ResourceInfo {
         return resourceMembers;
     }
 
-    public void generate(final ResourceGeneratorContext context) {
+    public void addToSchema(final SchemaGeneratorContext ctxt) {
+        final Element element = ctxt.addRootComplexType(xmlTypeName, this, typeElement);
+        if (element == null) return;
+        final Element seqElement = new Element("xs:sequence", SchemaInfo.XS);
+        element.appendChild(seqElement);
+        addToSchemaType(ctxt, seqElement, element);
+    }
+
+    public void addToSchemaType(final SchemaGeneratorContext ctxt, final Element enclosingSeqElement, final Element enclosingTypeElement) {
+        final Element nameAttribute = new Element("xs:attribute", SchemaInfo.XS);
+        nameAttribute.addAttribute(new Attribute("name", "name"));
+        nameAttribute.addAttribute(new Attribute("type", "xs:string"));
+        nameAttribute.addAttribute(new Attribute("use", "required"));
+        enclosingTypeElement.appendChild(nameAttribute);
         for (ResourceMember member : resourceMembers) {
-            member.generate(context);
+            member.addToSchema(ctxt, enclosingTypeElement, enclosingSeqElement);
         }
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getXmlTypeName() {
+        return xmlTypeName;
+    }
+
+    public String getXmlName() {
+        return xmlName;
     }
 }

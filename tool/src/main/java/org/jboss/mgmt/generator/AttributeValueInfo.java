@@ -22,16 +22,35 @@
 
 package org.jboss.mgmt.generator;
 
-import org.jboss.jdeparser.JExpr;
+import nu.xom.Element;
+import org.jboss.jdeparser.JDefinedClass;
 import org.jboss.jdeparser.JMethod;
-import org.jboss.jdeparser.JVar;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 abstract class AttributeValueInfo {
+    private final String name;
 
-    public abstract void generate(AttributeGeneratorContext attributeGeneratorContext);
+    AttributeValueInfo(final String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
 
     public abstract boolean isValidInAttributeType();
+
+    public abstract void addToSchemaAsAttribute(final AttributeInfo attributeInfo, final Element enclosingSeqElement, final Element enclosingTypeElement, final Element attributeElement);
+
+    public abstract void addToSchemaAsElement(final AttributeInfo attributeInfo, final Element enclosingSeqElement, final Element enclosingTypeElement, final Element elementElement);
+
+    public abstract void addToResourceClass(JDefinedClass resourceClass, JMethod constructor);
+
+    public abstract void addToBuilderClass(JDefinedClass builderClass);
+
+    public abstract void addToResolvedResourceClass(JDefinedClass resolvedClass, JMethod constructor);
+
+    public abstract void addToResolvedInterface(JDefinedClass resolvedInterface);
 }

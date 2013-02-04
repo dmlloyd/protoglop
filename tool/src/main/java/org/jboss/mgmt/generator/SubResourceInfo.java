@@ -22,6 +22,11 @@
 
 package org.jboss.mgmt.generator;
 
+import nu.xom.Attribute;
+import nu.xom.Element;
+
+import static org.jboss.mgmt.generator.SchemaInfo.XS;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
@@ -30,12 +35,27 @@ final class SubResourceInfo implements ResourceMember {
     private final ResourceTypeInfo resourceTypeInfo;
     private final String type;
     private final String name;
+    private final String xmlName;
+    private final String xmlTypeName;
     private final boolean requiresUnique;
     private final ResourceInfo[] knownChildren;
 
-    public SubResourceInfo(final ResourceTypeInfo resourceTypeInfo, final String type, final String name, final boolean requiresUnique, final ResourceInfo[] knownChildren) {
+    /**
+     * Construct a new instance.
+     *
+     * @param resourceTypeInfo the info for the resource type ({@code null} if none given)
+     * @param type the symbolic type name of candidate members or {@code null}
+     * @param name the name in the model in XML form (not {@code null})
+     * @param xmlName the XML wrapper element name
+     * @param xmlTypeName the XML wrapper element type name
+     * @param requiresUnique
+     * @param knownChildren same-schema candidate child resources
+     */
+    SubResourceInfo(final ResourceTypeInfo resourceTypeInfo, final String type, final String name, final String xmlName, final String xmlTypeName, final boolean requiresUnique, final ResourceInfo[] knownChildren) {
         this.type = type;
         this.name = name;
+        this.xmlName = xmlName;
+        this.xmlTypeName = xmlTypeName;
         this.requiresUnique = requiresUnique;
         this.knownChildren = knownChildren;
         this.resourceTypeInfo = resourceTypeInfo;
@@ -61,11 +81,37 @@ final class SubResourceInfo implements ResourceMember {
         return knownChildren;
     }
 
-    public void generate(final ResourceGeneratorContext resourceGeneratorContext) {
-        final ResourceGeneratorContext childContext = ResourceGeneratorContext.create(resourceGeneratorContext.getContext(), resourceGeneratorContext.getResourceInfo(), resourceGeneratorContext);
-        for (ResourceInfo resourceInfo : knownChildren) {
-            resourceInfo.generate(childContext);
+    public void addToSchema(final SchemaGeneratorContext ctxt, final Element typeElement, final Element seqElement) {
+        // wrapper element
+        final Element wrapperElement = new Element("xs:element", XS);
+        wrapperElement.addAttribute(new Attribute("name", xmlName));
+        wrapperElement.addAttribute(new Attribute("type", xmlTypeName));
+        seqElement.appendChild(wrapperElement);
+
+        final Element rootType = ctxt.addRootComplexType(xmlTypeName, this, null);
+        if (rootType == null) {
+            // done
+            return;
         }
 
+        final Element choiceElement = new Element("xs:choice", XS);
+        for (ResourceInfo knownChild : knownChildren) {
+            // make sure this XML type is in the schema
+            knownChild.addToSchema(ctxt);
+            // add this element to our content
+            final Element elementElement = new Element("xs:element", XS);
+            elementElement.addAttribute(new Attribute("name", knownChild.getXmlName()));
+            elementElement.addAttribute(new Attribute("type", knownChild.getXmlTypeName()));
+            choiceElement.appendChild(elementElement);
+        }
+        // add an xs:any element if one is needed
+        if (resourceTypeInfo != null) {
+            final Element anyElement = new Element("xs:any", XS);
+            anyElement.addAttribute(new Attribute("namespace", "##other"));
+            anyElement.addAttribute(new Attribute("processContents", "strict"));
+            choiceElement.appendChild(anyElement);
+        }
+        choiceElement.addAttribute(new Attribute("maxOccurs", "unbounded"));
+        rootType.appendChild(choiceElement);
     }
 }

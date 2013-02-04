@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2012, Red Hat, Inc., and individual contributors
+ * Copyright 2013, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,41 +20,11 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import org.jboss.mgmt.Resource;
-import org.jboss.mgmt.ResourceOperation;
-
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.CLASS;
+package org.jboss.mgmt.generator;
 
 /**
- * Define an operation on a resource and its subtypes.
- *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-@Retention(CLASS)
-@Target(TYPE)
-public @interface Operation {
-    String name() default "";
+final class CompositeOperationInfo {
 
-    Class<? extends ResourceOperation<?, ?>> value();
-
-    /**
-     * The run level of this operation.  Below this run level, the operation is not
-     * available.
-     *
-     * @return the run level
-     */
-    RunLevel runLevel() default RunLevel.MANAGEMENT;
-
-    /**
-     * The resource root under which this operation applies.  This operation will
-     * not be available under any other root.
-     *
-     * @return the resource root
-     */
-    Class<? extends Resource> root() default Resource.class;
 }

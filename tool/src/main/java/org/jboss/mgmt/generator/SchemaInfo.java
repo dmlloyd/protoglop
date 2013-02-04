@@ -22,42 +22,98 @@
 
 package org.jboss.mgmt.generator;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import nu.xom.Element;
+import java.net.URI;
+import java.net.URISyntaxException;
 import org.jboss.mgmt.annotation.Schema;
+
+import javax.annotation.processing.Messager;
+
+import static javax.tools.Diagnostic.Kind.ERROR;
+import static javax.tools.Diagnostic.Kind.WARNING;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 final class SchemaInfo {
-    private final Map<String, Element> typeDecls = new TreeMap<String, Element>();
-    private final Map<String, Element> rootElementDecls = new TreeMap<String, Element>();
-    private final Set<String> altXmlNamespaces = new HashSet<String>();
-    private final Schema schema;
+    public static final String XS = "http://www.w3.org/2001/XMLSchema";
+
+    private final String version;
+    private final String namespace;
+    private final Schema.Kind kind;
+    private final String schemaLocation;
+    private final String schemaFileName;
+    private final String[] compatNamespaces;
+
+    private final RootResourceInfo[] resources;
+    private final boolean localSource;
     private final String xmlNamespace;
 
-    SchemaInfo(final Schema schema) {
-        this.schema = schema;
-        xmlNamespace = NameUtils.buildNamespace(schema.kind(), schema.namespace(), schema.version());
+    SchemaInfo(final String version, final String namespace, final Schema.Kind kind, final String schemaLocation, final String schemaFileName, final String[] compatNamespaces, final RootResourceInfo[] resources, final boolean localSource, final String xmlNamespace) {
+        this.version = version;
+        this.namespace = namespace;
+        this.kind = kind;
+        this.schemaLocation = schemaLocation;
+        this.schemaFileName = schemaFileName;
+        this.compatNamespaces = compatNamespaces;
+        this.resources = resources;
+        this.localSource = localSource;
+        this.xmlNamespace = xmlNamespace;
     }
 
-    public Map<String, Element> getTypeDecls() {
-        return typeDecls;
+    public String getVersion() {
+        return version;
     }
 
-    public Map<String, Element> getRootElementDecls() {
-        return rootElementDecls;
+    public String getNamespace() {
+        return namespace;
     }
 
-    public Set<String> getAltXmlNamespaces() {
-        return altXmlNamespaces;
+    public Schema.Kind getKind() {
+        return kind;
     }
 
-    public Schema getSchema() {
-        return schema;
+    public String getSchemaLocation() {
+        return schemaLocation;
+    }
+
+    public String getSchemaFileName() {
+        return schemaFileName;
+    }
+
+    public String[] getCompatNamespaces() {
+        return compatNamespaces;
+    }
+
+    public RootResourceInfo[] getResources() {
+        return resources;
+    }
+
+    public boolean isLocalSource() {
+        return localSource;
+    }
+
+    public static String fileNameFromSchemaLocation(Messager messager, String schemaLocation, String xmlNamespace) {
+        if (schemaLocation == null) {
+            messager.printMessage(ERROR, "No namespace location for schema " + xmlNamespace);
+            return null;
+        }
+        final URI uri;
+        try {
+            uri = new URI(schemaLocation);
+        } catch (URISyntaxException e) {
+            messager.printMessage(ERROR, "Namespace schema location '" + schemaLocation + "' is not valid for " + xmlNamespace);
+            return null;
+        }
+        final String path = uri.getPath();
+        if (path == null) {
+            messager.printMessage(ERROR, "Namespace schema location '" + schemaLocation + "' does not have a path component for " + xmlNamespace);
+            return null;
+        }
+        final String fileName = path.substring(path.lastIndexOf('/') + 1);
+        if (! fileName.endsWith(".xsd")) {
+            messager.printMessage(WARNING, "Namespace schema location '" + schemaLocation + "' should specify a file name ending in \".xsd\"");
+        }
+        return fileName;
     }
 
     public String getXmlNamespace() {

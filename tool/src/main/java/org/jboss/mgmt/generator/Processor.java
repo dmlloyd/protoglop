@@ -24,6 +24,7 @@ package org.jboss.mgmt.generator;
 
 import java.util.Collections;
 import java.util.Set;
+import org.jboss.mgmt.annotation.CompositeOperation;
 import org.jboss.mgmt.annotation.Schema;
 
 import javax.annotation.processing.Completion;
@@ -37,12 +38,16 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
 
+import javax.tools.Diagnostic;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public final class Processor implements javax.annotation.processing.Processor {
 
     private ProcessingEnvironment env;
+    private GeneratorContext genCtxt;
+    private ProcessingContext ctxt;
 
     public Set<String> getSupportedOptions() {
         return Collections.emptySet();
@@ -63,20 +68,27 @@ public final class Processor implements javax.annotation.processing.Processor {
     public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
         final TypeElement schemaElement = env.getElementUtils().getTypeElement(Schema.class.getName());
         if (annotations.contains(schemaElement)) {
-            final ProcessingContext ctxt = new ProcessingContext(env, roundEnv);
-            final GeneratorContext genCtxt = new GeneratorContext(ctxt);
+            if (ctxt == null) ctxt = new ProcessingContext(env, roundEnv);
 
             for (TypeElement typeElement : ElementFilter.typesIn(roundEnv.getElementsAnnotatedWith(Schema.class))) {
                 if (typeElement.getKind() == ElementKind.ANNOTATION_TYPE) {
                     ctxt.processSchema(typeElement);
                 }
             }
-
-            genCtxt.generate();
-            return true;
-        } else {
-            return false;
+            for (TypeElement typeElement : ElementFilter.typesIn(roundEnv.getElementsAnnotatedWith(CompositeOperation.class))) {
+                if (typeElement.getKind() == ElementKind.INTERFACE) {
+                    env.getMessager().printMessage(Diagnostic.Kind.ERROR, "Composite operations are not yet supported", typeElement);
+                    if (false) ctxt.processCompositeOperation(typeElement);
+                } else {
+                    env.getMessager().printMessage(Diagnostic.Kind.WARNING, "Ignoring @CompositeOperation annotation on wrong element type", typeElement);
+                }
+            }
         }
+        if (roundEnv.processingOver() && ctxt != null && genCtxt == null) {
+            if (genCtxt == null) genCtxt = new GeneratorContext(ctxt);
+            genCtxt.generate();
+        }
+        return true;
     }
 
     public Iterable<? extends Completion> getCompletions(final Element element, final AnnotationMirror annotation, final ExecutableElement member, final String userText) {

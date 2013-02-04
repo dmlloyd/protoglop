@@ -22,18 +22,38 @@
 
 package org.jboss.mgmt.generator;
 
+import nu.xom.Element;
+import org.jboss.jdeparser.JDefinedClass;
+import org.jboss.jdeparser.JMethod;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 final class AttributeGroupValueInfo extends AttributeValueInfo {
 
     public AttributeGroupValueInfo(final String name, final AttributeGroupInfo attributeGroupInfo, final boolean required) {
-    }
-
-    public void generate(final AttributeGeneratorContext attributeGeneratorContext) {
+        super(name);
     }
 
     public boolean isValidInAttributeType() {
         return false;
+    }
+
+    public void addToSchemaAsAttribute(final AttributeInfo attributeInfo, final Element enclosingSeqElement, final Element enclosingTypeElement, final Element attributeElement) {
+    }
+
+    public void addToSchemaAsElement(final AttributeInfo attributeInfo, final Element enclosingSeqElement, final Element enclosingTypeElement, final Element elementElement) {
+    }
+
+    public void addToResourceClass(final JDefinedClass resourceClass, final JMethod constructor) {
+    }
+
+    public void addToBuilderClass(final JDefinedClass builderClass) {
+    }
+
+    public void addToResolvedResourceClass(final JDefinedClass resolvedClass, final JMethod constructor) {
+    }
+
+    public void addToResolvedInterface(final JDefinedClass resolvedInterface) {
     }
 }

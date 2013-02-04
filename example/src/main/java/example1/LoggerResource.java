@@ -22,35 +22,20 @@
 
 package example1;
 
-import java.util.List;
 import org.jboss.mgmt.Resource;
-import org.jboss.mgmt.ResourceRef;
 import org.jboss.mgmt.annotation.Attribute;
-import org.jboss.mgmt.annotation.Enumerated;
 import org.jboss.mgmt.annotation.XmlName;
 import org.jboss.mgmt.annotation.XmlRender;
 
 import static org.jboss.mgmt.annotation.XmlRender.As.ATTRIBUTE;
-import static org.jboss.mgmt.annotation.XmlRender.As.ELEMENT;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @XmlName("logger")
-public interface LoggerResource extends Resource {
-
-    @Attribute
-    List<ResourceRef<? extends HandlerResource>> getHandlers();
-
-    @Attribute(validators = { /* FilterStringValidator.class */ })
-    @XmlRender(as = ELEMENT)
-    String getFilter();
+public interface LoggerResource extends Resource, LoggerInfo {
 
     @Attribute
     @XmlRender(as = ATTRIBUTE)
     boolean isUseParentHandlers();
-
-    @Attribute
-    @Enumerated({"OFF", "FATAL", "ERROR", "WARN", "WARNING", "NOTICE", "INFO", "CONFIG", "DEBUG", "FINE", "FINER", "FINEST", "TRACE", "ALL"})
-    String getLevel();
 }

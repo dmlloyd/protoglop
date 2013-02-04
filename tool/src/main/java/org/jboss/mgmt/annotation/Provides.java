@@ -25,7 +25,7 @@ package org.jboss.mgmt.annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
@@ -33,7 +33,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * may restrict their child types to only allow one provider for each service.
  */
 @Retention(CLASS)
-@Target(METHOD)
+@Target(TYPE)
 public @interface Provides {
     String[] value();
 }

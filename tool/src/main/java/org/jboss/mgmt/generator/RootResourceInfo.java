@@ -24,31 +24,35 @@ package org.jboss.mgmt.generator;
 
 import nu.xom.Attribute;
 import nu.xom.Element;
+import org.jboss.jdeparser.JClassAlreadyExistsException;
+import org.jboss.jdeparser.JDefinedClass;
+import org.jboss.jdeparser.JDeparser;
+import org.jboss.jdeparser.JTypeVar;
 import org.jboss.mgmt.BuilderFactory;
 
-import org.jboss.jdeparser.JClassAlreadyExistsException;
-import org.jboss.jdeparser.JDeparser;
-import org.jboss.jdeparser.JDefinedClass;
-import org.jboss.jdeparser.JTypeVar;
+import javax.lang.model.element.TypeElement;
 
 import javax.tools.Diagnostic;
 
 import static org.jboss.jdeparser.ClassType.CLASS;
 import static org.jboss.jdeparser.JMod.FINAL;
 import static org.jboss.jdeparser.JMod.PUBLIC;
-import static org.jboss.mgmt.generator.GeneratorUtils.XSD;
+import static org.jboss.mgmt.generator.SchemaInfo.XS;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 final class RootResourceInfo {
+
+    private final TypeElement resourceInterface;
     private final String name;
     private final String type;
     private final String[] provides;
     private final String xmlName;
     private final ResourceInfo resourceInfo;
 
-    RootResourceInfo(final String name, final String type, final String[] provides, final String xmlName, final ResourceInfo resourceInfo) {
+    RootResourceInfo(final TypeElement resourceInterface, final String name, final String type, final String[] provides, final String xmlName, final ResourceInfo resourceInfo) {
+        this.resourceInterface = resourceInterface;
         this.name = name;
         this.type = type;
         this.provides = provides;
@@ -76,8 +80,21 @@ final class RootResourceInfo {
         return resourceInfo;
     }
 
-    public void generate(final SchemaGeneratorContext ctxt) {
-        final JDeparser deparser = ctxt.getContext().getDeparser();
+    public void addToSchema(SchemaGeneratorContext ctxt) {
+        final Element rootElementDefinition = ctxt.addRootElement(xmlName, this, resourceInterface);
+        if (rootElementDefinition == null) return;
+        final Element typeElement = new Element("xs:complexType", XS);
+        rootElementDefinition.addAttribute(new Attribute("name", xmlName));
+        rootElementDefinition.appendChild(typeElement);
+        GeneratorUtils.addDocumentation(rootElementDefinition, "*** DOCUMENTATION HERE ***");
+        final Element seqElement = new Element("xs:sequence", XS);
+        typeElement.appendChild(seqElement);
+        resourceInfo.addToSchemaType(ctxt, seqElement, typeElement);
+    }
+
+    public void generateClasses(GeneratorContext ctxt) {
+        final ResourceInfo resourceInfo = this.resourceInfo;
+        final JDeparser deparser = ctxt.getDeparser();
 
         final String interfaceName = resourceInfo.getTypeElement().getQualifiedName().toString();
 
@@ -85,27 +102,11 @@ final class RootResourceInfo {
         try {
             builderFactoryClass = deparser._class(PUBLIC | FINAL, interfaceName + "BuilderFactory", CLASS);
         } catch (JClassAlreadyExistsException e) {
-            ctxt.getContext().getEnv().getMessager().printMessage(Diagnostic.Kind.ERROR, "Builder factory class already exists for " + interfaceName, resourceInfo.getTypeElement());
+            ctxt.getEnv().getMessager().printMessage(Diagnostic.Kind.ERROR, "Builder factory class already exists for " + interfaceName, resourceInfo.getTypeElement());
             return;
         }
         final JTypeVar builderFactoryP = builderFactoryClass.generify("P");
         builderFactoryClass._implements(deparser.ref(BuilderFactory.class).erasure().narrow(builderFactoryP, deparser.ref(interfaceName + "Builder").narrow(builderFactoryP)));
 
-        final Element rootElementDefinition = new Element("xs:element", XSD);
-        rootElementDefinition.addAttribute(new Attribute("name", xmlName));
-        GeneratorUtils.addDocumentation(rootElementDefinition, "*** DOCUMENTATION HERE ***");
-        ctxt.addRootElement(name, rootElementDefinition);
-        final ResourceGeneratorContext resourceGeneratorContext = ResourceGeneratorContext.create(ctxt, this, null);
-        resourceInfo.generate(resourceGeneratorContext);
-        final Element type = new Element("xs:complexType", XSD);
-        final Element seq = new Element("xs:sequence", XSD);
-        for (Element nestedElement : resourceGeneratorContext.getNestedElements()) {
-            seq.appendChild(nestedElement);
-        }
-        type.appendChild(seq);
-        for (Element xmlAttributeDefinition : resourceGeneratorContext.getXmlAttributeDefinitions()) {
-            type.appendChild(xmlAttributeDefinition);
-        }
-        rootElementDefinition.appendChild(type);
     }
 }

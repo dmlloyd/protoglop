@@ -24,25 +24,12 @@ package org.jboss.mgmt.generator;
 
 import nu.xom.Attribute;
 import nu.xom.Element;
-import org.jboss.mgmt.AbstractResource;
 import org.jboss.mgmt.annotation.Access;
 import org.jboss.mgmt.annotation.XmlRender;
 
-import org.jboss.jdeparser.JBlock;
-import org.jboss.jdeparser.JClass;
-import org.jboss.jdeparser.JDeparser;
-import org.jboss.jdeparser.JDefinedClass;
-import org.jboss.jdeparser.JMethod;
-import org.jboss.jdeparser.JType;
-
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
-
-import static org.jboss.jdeparser.JMod.PUBLIC;
-import static org.jboss.mgmt.generator.GeneratorUtils.XSD;
-import static org.jboss.mgmt.generator.NameUtils.fieldify;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
@@ -50,6 +37,10 @@ import static org.jboss.mgmt.generator.NameUtils.fieldify;
 final class AttributeInfo implements ResourceMember {
 
     private final ExecutableElement executableElement;
+    /**
+     * Attribute names must always be stored using OriginalUpperCamelCase in order
+     * to preserve the original case of acronym CamelWords.
+     */
     private final String name;
     private final AttributeValueInfo valueInfo;
     private final Access access;
@@ -119,77 +110,54 @@ final class AttributeInfo implements ResourceMember {
         return renderAs;
     }
 
-    public void generate(final ResourceGeneratorContext resourceGeneratorContext) {
-        final ProcessingEnvironment env = resourceGeneratorContext.getContext().getContext().getEnv();
-        final JDeparser deparser = resourceGeneratorContext.getContext().getContext().getDeparser();
-
-        // ---------------------------
-        // Resource interface stuff
-        // ---------------------------
-
-        final JClass resourceInterface = resourceGeneratorContext.getResourceInterface();
-
-        final JType attributeJType = JDeparserUtils.typeFor(env, deparser, executableElement.getReturnType());
-        final String getterName = executableElement.getSimpleName().toString();
-        final String attrVarName = fieldify(name);
-
-        final JDefinedClass resourceImplClass = resourceGeneratorContext.getResourceImplClass();
-        final JMethod resourceImplConstructor = resourceGeneratorContext.getResourceImplConstructor();
-        final JBlock resourceImplConstructorInitBlock = resourceGeneratorContext.getResourceImplConstructorInitBlock();
-
-        final JMethod getterMethod = resourceImplClass.method(PUBLIC, attributeJType, getterName);
-        final JBlock getterMethodBody = getterMethod.body();
-        if (access.isReadable()) {
-
-        } else {
-            getterMethodBody._throw(deparser.ref(AbstractResource.class).staticInvoke("notReadable"));
-        }
-
-        // ---------------------------
-        // Builder class stuff
-        // ---------------------------
-
-        final JMethod setterDecl;
-        final JBlock setterBody;
-
-        // ---------------------------
-        // XML schema stuff
-        // ---------------------------
-
-        // Generate our entry in the enclosing complexType::sequence
-        valueInfo.generate(new AttributeGeneratorContext(this, resourceGeneratorContext));
-        final String xmlType;
+    public void addToSchema(final SchemaGeneratorContext ctxt, final Element enclosingTypeElement, final Element enclosingSeqElement) {
         if (renderAs == XmlRender.As.ATTRIBUTE) {
-            xmlType = "xs:string"; // TODO
-            final Element definition = new Element("xs:attribute", XSD);
-            definition.addAttribute(new Attribute("name", xmlName));
-            definition.addAttribute(new Attribute("type", xmlType));
-            definition.addAttribute(new Attribute("use", required ? "required" : "optional"));
-            GeneratorUtils.addDocumentation(definition, "*** DOCS HERE ***");
-            resourceGeneratorContext.addXmlAttribute(name, definition);
+            final Element attributeElement = new Element("xs:attribute", SchemaInfo.XS);
+            attributeElement.addAttribute(new Attribute("name", xmlName));
+            attributeElement.addAttribute(new Attribute("use", required ? "required" : "optional"));
+            valueInfo.addToSchemaAsAttribute(this, enclosingSeqElement, enclosingTypeElement, attributeElement);
+            GeneratorUtils.addDocumentation(attributeElement, "*** DOCS HERE ***");
+            enclosingTypeElement.appendChild(attributeElement);
         } else {
-            xmlType = xmlName + "Type"; // TODO
-            final Element definition = new Element("xs:element", XSD);
-            definition.addAttribute(new Attribute("name", xmlName));
-            definition.addAttribute(new Attribute("type", xmlType));
-            definition.addAttribute(new Attribute("minOccurs", required ? "1" : "0"));
-            if (false /* isCollection */) {
-                if (wrapperElement) {
-                    definition.addAttribute(new Attribute("maxOccurs", "1"));
-                } else {
-                    definition.addAttribute(new Attribute("maxOccurs", "unbounded"));
-                }
-            } else {
-                definition.addAttribute(new Attribute("maxOccurs", "1"));
-            }
+            final Element elementElement = new Element("xs:element", SchemaInfo.XS);
+            elementElement.addAttribute(new Attribute("name", xmlName));
+            valueInfo.addToSchemaAsElement(this, enclosingSeqElement, enclosingTypeElement, elementElement);
         }
+    }
 
-        // ---------------------------
-        // XML parser stuff
-        // ---------------------------
-
-        // ---------------------------
-        // XML deparser stuff
-        // ---------------------------
+    public void addToClass() {
+//        final SchemaGeneratorContext schemaGeneratorContext = resourceGeneratorContext.getContext();
+//        final GeneratorContext generatorContext = schemaGeneratorContext.getContext();
+//        final ProcessingEnvironment env = generatorContext.getEnv();
+//        final JDeparser deparser = generatorContext.getDeparser();
+//
+//        // ---------------------------
+//        // Resource interface stuff
+//        // ---------------------------
+//
+//        final JClass resourceInterface = resourceGeneratorContext.getResourceInterface();
+//
+//        final JType attributeJType = JDeparserUtils.typeFor(env, deparser, executableElement.getReturnType());
+//        final String getterName = executableElement.getSimpleName().toString();
+//        final String attrVarName = fieldify(name);
+//
+//        final JDefinedClass resourceImplClass = resourceGeneratorContext.getResourceImplClass();
+//        final JMethod resourceImplConstructor = resourceGeneratorContext.getResourceImplConstructor();
+//        final JBlock resourceImplConstructorInitBlock = resourceGeneratorContext.getResourceImplConstructorInitBlock();
+//
+//        final JMethod getterMethod = resourceImplClass.method(PUBLIC, attributeJType, getterName);
+//        final JBlock getterMethodBody = getterMethod.body();
+//        if (access.isReadable()) {
+//
+//        } else {
+//            getterMethodBody._throw(deparser.ref(AbstractResource.class).staticInvoke("notReadable"));
+//        }
+//
+//        // ---------------------------
+//        // Builder class stuff
+//        // ---------------------------
+//
+//        final JMethod setterDecl;
+//        final JBlock setterBody;
     }
 }

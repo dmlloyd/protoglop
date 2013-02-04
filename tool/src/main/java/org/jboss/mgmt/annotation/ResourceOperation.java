@@ -20,14 +20,41 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.generator;
+package org.jboss.mgmt.annotation;
 
-import nu.xom.Element;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import org.jboss.mgmt.Resource;
+import org.jboss.mgmt.ResourceOperationHandler;
+
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
+ * Define an operation on a resource and its subtypes.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-interface ResourceMember {
+@Retention(CLASS)
+@Target(TYPE)
+public @interface ResourceOperation {
+    String name() default "";
 
-    void addToSchema(SchemaGeneratorContext ctxt, Element typeElement, Element seqElement);
+    Class<? extends ResourceOperationHandler<?, ?>> value();
+
+    /**
+     * The run level of this operation.  Below this run level, the operation is not
+     * available.
+     *
+     * @return the run level
+     */
+    RunLevel runLevel() default RunLevel.MANAGEMENT;
+
+    /**
+     * The resource root under which this operation applies.  This operation will
+     * not be available under any other root.
+     *
+     * @return the resource root
+     */
+    Class<? extends Resource> root() default Resource.class;
 }
