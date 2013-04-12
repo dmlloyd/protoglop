@@ -24,8 +24,10 @@ package org.jboss.mgmt.generator;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Set;
 import nu.xom.Document;
 import nu.xom.Serializer;
 
@@ -50,6 +52,7 @@ final class GeneratorContext {
     private final JDeparser deparser = new JDeparser();
 
     private final Map<SchemaInfo, Document> documents = new IdentityHashMap<SchemaInfo, Document>();
+    private final Set<Object> generatedClassInfos = new HashSet<Object>();
 
     GeneratorContext(final ProcessingContext ctxt) {
         this.ctxt = ctxt;
@@ -115,6 +118,10 @@ final class GeneratorContext {
 
     public ProcessingEnvironment getEnv() {
         return ctxt.getEnv();
+    }
+
+    public boolean generated(final Object info) {
+        return ! generatedClassInfos.add(info);
     }
 
     static class NiceSerializer extends Serializer {

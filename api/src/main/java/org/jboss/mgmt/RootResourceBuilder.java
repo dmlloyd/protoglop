@@ -22,11 +22,30 @@
 
 package org.jboss.mgmt;
 
+import javax.xml.stream.XMLStreamReader;
+
 /**
- * The super-interface of generated parent builder factories.
+ * Infrastructure class used by generated root resource implementations.
+ *
+ * @param <R> the root resource type
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface BuilderFactory<P, B extends NestedBuilder<P>> {
-    B construct(P parent);
+public abstract class RootResourceBuilder<R extends Resource> {
+
+    /**
+     * Construct this resource node and all child nodes.
+     *
+     * @param parentNode the node under which to nest, or {@code null} for an ultimate root
+     * @return the constructed node
+     */
+    protected abstract ResourceNode<R> construct(ResourceNode<?> parentNode);
+
+    /**
+     * Populate this builder instance from the given XML.
+     *
+     * @param reader the XML to read from
+     * @throws org.jboss.mgmt.XMLParseException if the XML is not properly formed or is not valid
+     */
+    public abstract void fromXml(XMLStreamReader reader) throws XMLParseException;
 }

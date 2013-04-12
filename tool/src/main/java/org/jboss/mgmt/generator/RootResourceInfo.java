@@ -27,8 +27,12 @@ import nu.xom.Element;
 import org.jboss.jdeparser.JClassAlreadyExistsException;
 import org.jboss.jdeparser.JDefinedClass;
 import org.jboss.jdeparser.JDeparser;
+import org.jboss.jdeparser.JExpr;
+import org.jboss.jdeparser.JMethod;
 import org.jboss.jdeparser.JTypeVar;
-import org.jboss.mgmt.BuilderFactory;
+import org.jboss.jdeparser.JVar;
+import org.jboss.mgmt.ResourceBuilderFactory;
+import org.jboss.mgmt.RootResourceBuilder;
 
 import javax.lang.model.element.TypeElement;
 
@@ -93,20 +97,21 @@ final class RootResourceInfo {
     }
 
     public void generateClasses(GeneratorContext ctxt) {
-        final ResourceInfo resourceInfo = this.resourceInfo;
-        final JDeparser deparser = ctxt.getDeparser();
-
-        final String interfaceName = resourceInfo.getTypeElement().getQualifiedName().toString();
-
-        final JDefinedClass builderFactoryClass;
-        try {
-            builderFactoryClass = deparser._class(PUBLIC | FINAL, interfaceName + "BuilderFactory", CLASS);
-        } catch (JClassAlreadyExistsException e) {
-            ctxt.getEnv().getMessager().printMessage(Diagnostic.Kind.ERROR, "Builder factory class already exists for " + interfaceName, resourceInfo.getTypeElement());
+        if (ctxt.generated(this)) {
             return;
         }
-        final JTypeVar builderFactoryP = builderFactoryClass.generify("P");
-        builderFactoryClass._implements(deparser.ref(BuilderFactory.class).erasure().narrow(builderFactoryP, deparser.ref(interfaceName + "Builder").narrow(builderFactoryP)));
+        final JDeparser deparser = ctxt.getDeparser();
+        final String builderName = resourceInterface.getQualifiedName().toString() + "Builder";
+        final String factoryName = builderName + "Factory";
+        final JDefinedClass factoryClass = deparser._class(PUBLIC | FINAL, factoryName, CLASS);
+        final JDefinedClass builderClass = deparser._class(PUBLIC | FINAL, builderName, CLASS);
 
+        factoryClass._implements(deparser.ref(ResourceBuilderFactory.class).narrow(deparser.ref(resourceInterface.getQualifiedName().toString()), builderClass));
+
+        final JMethod createNewMethod = factoryClass.method(PUBLIC | FINAL, builderClass, "createNew");
+        createNewMethod.body()._return(JExpr._new(builderClass));
+
+        builderClass._extends(deparser.ref(RootResourceBuilder.class).narrow(deparser.ref(resourceInterface.getQualifiedName().toString())));
+        resourceInfo.generateClasses(ctxt, builderClass);
     }
 }

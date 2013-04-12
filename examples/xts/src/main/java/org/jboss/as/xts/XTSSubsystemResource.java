@@ -6,6 +6,7 @@ import org.jboss.mgmt.annotation.Attribute;
 import org.jboss.mgmt.annotation.Provides;
 import org.jboss.mgmt.annotation.RootResource;
 import org.jboss.mgmt.annotation.XmlName;
+import org.jboss.mgmt.annotation.XmlRender;
 
 /**
  * @author <a href="mailto:tomaz.cerar@redhat.com">Tomaz Cerar</a> (c) 2012 Red Hat Inc.
@@ -20,6 +21,6 @@ import org.jboss.mgmt.annotation.XmlName;
 public interface XTSSubsystemResource extends Resource {
 
     @Attribute
-        //@XmlRender(as = XmlRender.As.ATTRIBUTE) //todo this breaks annotation processor
+    @XmlRender(as = XmlRender.As.ATTRIBUTE)
     String getEnvironmentUrl();
 }

@@ -60,10 +60,26 @@ final class PrimitiveAttributeValueInfo extends AttributeValueInfo {
         return true;
     }
 
+    private Class<?> getPrimitiveType() {
+        switch (kind) {
+            case BOOLEAN: return boolean.class;
+            case BYTE:    return byte.class;
+            case SHORT:   return short.class;
+            case INT:     return int.class;
+            case LONG:    return long.class;
+            case CHAR:    return char.class;
+            case FLOAT:   return float.class;
+            case DOUBLE:  return double.class;
+            default: throw new IllegalStateException();
+        }
+    }
+
     public void addToResolvedResourceClass(final JDefinedClass resolvedClass, final JMethod constructor) {
+        addToResourceClass(resolvedClass, constructor);
     }
 
     public void addToResolvedInterface(final JDefinedClass resolvedInterface) {
+        resolvedInterface.method(0, getPrimitiveType(), (kind == TypeKind.BOOLEAN ? "is" : "get") + name);
     }
 
     public void addToResourceClass(JDefinedClass resourceClass, JMethod constructor) {

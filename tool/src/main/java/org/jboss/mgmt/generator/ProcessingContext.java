@@ -654,9 +654,9 @@ final class ProcessingContext {
 
         String name;
         if (getterName.startsWith("get")) {
-            name = fieldify(getterName.substring(3));
+            name = getterName.substring(3);
         } else if (getterName.startsWith("is")) {
-            name = fieldify(getterName.substring(2));
+            name = getterName.substring(2);
         } else {
             name = getterName;
         }

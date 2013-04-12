@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2012, Red Hat, Inc., and individual contributors
+ * Copyright 2013, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,21 +20,19 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+package org.jboss.mgmt;
 
 /**
- * A collection of operation hooks.
+ * A factory for root resource builders.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-@Retention(SOURCE)
-@Target(TYPE)
-public @interface OperationHooks {
-    OperationHook[] value();
+public interface ResourceBuilderFactory<R extends Resource, B extends RootResourceBuilder<R>> {
+
+    /**
+     * Create a new root resource builder.
+     *
+     * @return the new builder
+     */
+    B createNew();
 }

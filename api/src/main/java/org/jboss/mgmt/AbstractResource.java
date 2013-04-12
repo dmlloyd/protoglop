@@ -27,25 +27,15 @@ package org.jboss.mgmt;
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public abstract class AbstractResource implements Resource {
-    private final String preComment;
-    private final String postComment;
+public abstract class AbstractResource extends AbstractCommentable implements Resource {
+
     private final String name;
     private final ResourceNode<?> parent;
 
     protected AbstractResource(final String preComment, final String postComment, final String name, final ResourceNode<?> parent) {
-        this.preComment = preComment;
-        this.postComment = postComment;
+        super(postComment, preComment);
         this.name = name;
         this.parent = parent;
-    }
-
-    public String getPreComment() {
-        return preComment;
-    }
-
-    public String getPostComment() {
-        return postComment;
     }
 
     public String getName() {

@@ -24,8 +24,29 @@ package org.jboss.mgmt.generator;
 
 import nu.xom.Attribute;
 import nu.xom.Element;
+import org.jboss.jdeparser.JClass;
+import org.jboss.jdeparser.JClassAlreadyExistsException;
+import org.jboss.jdeparser.JDefinedClass;
+import org.jboss.jdeparser.JDeparser;
+import org.jboss.jdeparser.JExpr;
+import org.jboss.jdeparser.JMethod;
+import org.jboss.jdeparser.JVar;
+import org.jboss.mgmt.AbstractResource;
+import org.jboss.mgmt.Resource;
+import org.jboss.mgmt.ResourceNode;
+import org.jboss.mgmt.XMLParseException;
+
+import javax.xml.stream.XMLStreamReader;
 
 import javax.lang.model.element.TypeElement;
+
+import javax.tools.Diagnostic;
+
+import static org.jboss.jdeparser.ClassType.CLASS;
+import static org.jboss.jdeparser.ClassType.INTERFACE;
+import static org.jboss.jdeparser.JMod.FINAL;
+import static org.jboss.jdeparser.JMod.PROTECTED;
+import static org.jboss.jdeparser.JMod.PUBLIC;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
@@ -83,5 +104,85 @@ final class ResourceInfo {
 
     public String getXmlName() {
         return xmlName;
+    }
+
+    public void generateClasses(final GeneratorContext ctxt, final JDefinedClass builderClass) {
+        if (ctxt.generated(this)) {
+            return;
+        }
+        final JDeparser deparser = ctxt.getDeparser();
+
+        // Original resource
+        final String resourceName = typeElement.getQualifiedName().toString();
+        final JClass resource = deparser.ref(resourceName);
+
+        // Resolved interface
+        final String resolvedResourceName = resourceName + "Resolved";
+        final JDefinedClass resolvedResource;
+
+        // Resource class
+        final String resourceClassName = resourceName + "Impl";
+        final JDefinedClass resourceClass;
+
+        // Resource node proxy class
+        final String resourceNodeClassName = resourceName + "NodeImpl";
+
+
+        // Resolved resource class
+        final String resolvedResourceClassName = resolvedResourceName + "Impl";
+        final JDefinedClass resolvedResourceClass;
+
+        resolvedResource = deparser._class(PUBLIC, resolvedResourceName, INTERFACE);
+        resourceClass = deparser._class(FINAL, resourceClassName, CLASS);
+        resolvedResourceClass = deparser._class(FINAL, resolvedResourceClassName, CLASS);
+
+        // Resolved interface
+        resolvedResource._extends(Resource.class);
+
+        // Resource class
+        resourceClass._extends(AbstractResource.class)._implements(resource);
+
+        final JClass anyResourceNode = deparser.ref(ResourceNode.class).erasure().narrow(deparser.wildcard());
+
+        final JMethod resourceConstructor = resourceClass.constructor(0);
+        {
+            final JVar nodeParam = resourceConstructor.param(FINAL, anyResourceNode, "node");
+            final JVar nameParam = resourceConstructor.param(FINAL, String.class, "name");
+            final JVar preCommentParam = resourceConstructor.param(FINAL, String.class, "preComment");
+            final JVar postCommentParam = resourceConstructor.param(FINAL, String.class, "postComment");
+            resourceConstructor.body().invoke("super").arg(nameParam).arg(preCommentParam).arg(postCommentParam).arg(nodeParam.invoke("getParent"));
+        }
+
+        // Resolved resource class
+        resolvedResourceClass._extends(AbstractResource.class)._implements(resolvedResource);
+
+        final JMethod resolvedResourceConstructor = resolvedResourceClass.constructor(0);
+        {
+            final JVar nameParam = resolvedResourceConstructor.param(FINAL, String.class, "name");
+            final JVar preCommentParam = resolvedResourceConstructor.param(FINAL, String.class, "preComment");
+            final JVar postCommentParam = resolvedResourceConstructor.param(FINAL, String.class, "postComment");
+            final JVar parentParam = resolvedResourceConstructor.param(FINAL, anyResourceNode, "parent");
+            resolvedResourceConstructor.body().invoke("super").arg(nameParam).arg(preCommentParam).arg(postCommentParam).arg(parentParam);
+        }
+
+        // Builder class
+
+        builderClass.constructor(0);
+
+        final JMethod resourceBuilderConstruct = builderClass.method(PROTECTED | FINAL, deparser.ref(ResourceNode.class).erasure().narrow(resource), "construct");
+        resourceBuilderConstruct.param(deparser.ref(ResourceNode.class).erasure().narrow(deparser.wildcard()), "parent");
+        resourceBuilderConstruct.body()._return(JExpr._null());
+
+        final JMethod fromXmlMethod = builderClass.method(PUBLIC | FINAL, deparser.VOID, "fromXml");
+        fromXmlMethod.param(FINAL, XMLStreamReader.class, "reader");
+        fromXmlMethod._throws(XMLParseException.class);
+        fromXmlMethod.body();
+
+        for (ResourceMember resourceMember : resourceMembers) {
+            resourceMember.addToBuilderClass(builderClass);
+            resourceMember.addToResourceClass(resourceClass, resourceConstructor);
+            resourceMember.addToResolvedInterface(resolvedResource);
+            resourceMember.addToResolvedResourceClass(resolvedResourceClass, resolvedResourceConstructor);
+        }
     }
 }

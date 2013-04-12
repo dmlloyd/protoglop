@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2012, Red Hat, Inc., and individual contributors
+ * Copyright 2013, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,52 +20,48 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt;
+package org.jboss.mgmt.generator;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
+import javax.lang.model.element.TypeElement;
 
 /**
+ * Base info about a class.
+ *
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public abstract class ResourceNode<R extends Resource> implements Resource {
-    private volatile R current;
-    private final ResourceNode<?> parent;
+final class BaseInfo {
+    private final TypeElement typeElement;
+    private final ResourceMember[] resourceMembers;
+    private final String name;
+    private final String xmlName;
+    private final String xmlTypeName;
 
-    protected ResourceNode(final ResourceNode<?> parent) {
-        this.parent = parent;
+    BaseInfo(final TypeElement typeElement, final ResourceMember[] resourceMembers, final String name, final String xmlName, final String xmlTypeName) {
+        this.typeElement = typeElement;
+        this.resourceMembers = resourceMembers;
+        this.name = name;
+        this.xmlName = xmlName;
+        this.xmlTypeName = xmlTypeName;
     }
 
-    protected R getCurrent() {
-        return current;
+    public TypeElement getTypeElement() {
+        return typeElement;
     }
 
-    protected void modify(R newValue) {
-        current = newValue;
-    }
-
-    public String getPreComment() {
-        return current.getPreComment();
-    }
-
-    public String getPostComment() {
-        return current.getPostComment();
+    public ResourceMember[] getResourceMembers() {
+        return resourceMembers;
     }
 
     public String getName() {
-        return current.getName();
+        return name;
     }
 
-    public Resource getParent() {
-        return parent;
+    public String getXmlName() {
+        return xmlName;
     }
 
-    public abstract Resource navigate(final String key, final String value);
-
-    public abstract void toXml(XMLStreamWriter writer) throws XMLStreamException;
-
-    @SuppressWarnings("unchecked")
-    R asResource() {
-        return (R) this;
+    public String getXmlTypeName() {
+        return xmlTypeName;
     }
 }

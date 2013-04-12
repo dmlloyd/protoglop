@@ -24,6 +24,8 @@ package org.jboss.mgmt.generator;
 
 import nu.xom.Attribute;
 import nu.xom.Element;
+import org.jboss.jdeparser.JDefinedClass;
+import org.jboss.jdeparser.JMethod;
 
 import static org.jboss.mgmt.generator.SchemaInfo.XS;
 
@@ -113,5 +115,17 @@ final class SubResourceInfo implements ResourceMember {
         }
         choiceElement.addAttribute(new Attribute("maxOccurs", "unbounded"));
         rootType.appendChild(choiceElement);
+    }
+
+    public void addToResourceClass(final JDefinedClass resourceClass, final JMethod constructor) {
+    }
+
+    public void addToBuilderClass(final JDefinedClass builderClass) {
+    }
+
+    public void addToResolvedResourceClass(final JDefinedClass resolvedClass, final JMethod constructor) {
+    }
+
+    public void addToResolvedInterface(final JDefinedClass resolvedInterface) {
     }
 }

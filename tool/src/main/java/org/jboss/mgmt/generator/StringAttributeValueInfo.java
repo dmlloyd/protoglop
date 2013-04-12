@@ -78,7 +78,7 @@ final class StringAttributeValueInfo extends AttributeValueInfo {
     public void addToResourceClass(JDefinedClass resourceClass, JMethod constructor) {
         final String fieldName = NameUtils.fieldify(name);
         final JFieldVar field = resourceClass.field(PRIVATE | FINAL, String.class, fieldName);
-        final JVar constructorParam = constructor.param(String.class, fieldName);
+        final JVar constructorParam = constructor.param(FINAL, String.class, fieldName);
         constructor.body().assign(JExpr._this().ref(field), constructorParam);
 
         final JMethod getter = resourceClass.method(PUBLIC, String.class, "get" + name);

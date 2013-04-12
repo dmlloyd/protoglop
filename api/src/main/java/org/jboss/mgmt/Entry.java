@@ -29,7 +29,7 @@ import java.util.Map;
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class Entry<K, V> implements Map.Entry<K, V> {
+final class Entry<K, V> implements Map.Entry<K, V> {
     private final K key;
     private final V value;
 

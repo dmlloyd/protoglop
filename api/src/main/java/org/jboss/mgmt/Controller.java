@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2012, Red Hat, Inc., and individual contributors
+ * Copyright 2013, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -22,18 +22,16 @@
 
 package org.jboss.mgmt;
 
-import java.util.concurrent.Future;
+import org.jboss.msc.service.ServiceContainer;
+import org.jboss.msc.txn.Transaction;
+import org.jboss.msc.value.Listener;
 
 /**
- * A controller for a resource.
- *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface Controller<R extends Resource> {
+public interface Controller {
+    // todo - use a shutdown hook when run from a JVM?
+    void transition(RunLevel runLevel, ServiceContainer container, Transaction transaction, Listener<? super Controller> finishListener);
 
-    Future<R> read();
-
-    Future<Void> remove();
-
-    <B extends NestedBuilder<Future<R>>> B writeAttributes(BuilderFactory<Future<R>, B> factory);
+    RunLevel getRunLevel();
 }

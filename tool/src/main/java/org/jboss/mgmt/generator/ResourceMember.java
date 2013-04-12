@@ -23,6 +23,8 @@
 package org.jboss.mgmt.generator;
 
 import nu.xom.Element;
+import org.jboss.jdeparser.JDefinedClass;
+import org.jboss.jdeparser.JMethod;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
@@ -30,4 +32,12 @@ import nu.xom.Element;
 interface ResourceMember {
 
     void addToSchema(SchemaGeneratorContext ctxt, Element typeElement, Element seqElement);
+
+    void addToResourceClass(JDefinedClass resourceClass, JMethod constructor);
+
+    void addToBuilderClass(JDefinedClass builderClass);
+
+    void addToResolvedResourceClass(JDefinedClass resolvedClass, JMethod constructor);
+
+    void addToResolvedInterface(JDefinedClass resolvedInterface);
 }

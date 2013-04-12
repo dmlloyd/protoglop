@@ -24,6 +24,8 @@ package org.jboss.mgmt.generator;
 
 import nu.xom.Attribute;
 import nu.xom.Element;
+import org.jboss.jdeparser.JDefinedClass;
+import org.jboss.jdeparser.JMethod;
 
 import javax.lang.model.element.TypeElement;
 
@@ -70,5 +72,17 @@ final class AttributeGroupInfo implements ResourceMember {
             member.addToSchema(ctxt, groupTypeElement, subSeqElement);
         }
         groupTypeElement.appendChild(subSeqElement);
+    }
+
+    public void addToResourceClass(final JDefinedClass resourceClass, final JMethod constructor) {
+    }
+
+    public void addToBuilderClass(final JDefinedClass builderClass) {
+    }
+
+    public void addToResolvedResourceClass(final JDefinedClass resolvedClass, final JMethod constructor) {
+    }
+
+    public void addToResolvedInterface(final JDefinedClass resolvedInterface) {
     }
 }

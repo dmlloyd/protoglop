@@ -68,7 +68,7 @@ public final class Processor implements javax.annotation.processing.Processor {
     public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
         final TypeElement schemaElement = env.getElementUtils().getTypeElement(Schema.class.getName());
         if (annotations.contains(schemaElement)) {
-            if (ctxt == null) ctxt = new ProcessingContext(env, roundEnv);
+            ProcessingContext ctxt = new ProcessingContext(env, roundEnv);
 
             for (TypeElement typeElement : ElementFilter.typesIn(roundEnv.getElementsAnnotatedWith(Schema.class))) {
                 if (typeElement.getKind() == ElementKind.ANNOTATION_TYPE) {
@@ -83,8 +83,6 @@ public final class Processor implements javax.annotation.processing.Processor {
                     env.getMessager().printMessage(Diagnostic.Kind.WARNING, "Ignoring @CompositeOperation annotation on wrong element type", typeElement);
                 }
             }
-        }
-        if (roundEnv.processingOver() && ctxt != null && genCtxt == null) {
             if (genCtxt == null) genCtxt = new GeneratorContext(ctxt);
             genCtxt.generate();
         }

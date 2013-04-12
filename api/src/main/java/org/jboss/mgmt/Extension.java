@@ -33,6 +33,4 @@ public interface Extension {
     <B> ModelNodeParser<B> getParser(String rootElementName);
 
     <R> ModelNodeDeparser<R> getDeparser(R resource);
-
-    // todo getDMRLoader(...) ?
 }

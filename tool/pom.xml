@@ -31,7 +31,7 @@
         </dependency>
         <dependency>
             <groupId>org.jboss.msc</groupId>
-            <artifactId>jboss-msc2</artifactId>
+            <artifactId>jboss-msc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jboss.jdeparser</groupId>

@@ -24,6 +24,8 @@ package org.jboss.mgmt.generator;
 
 import nu.xom.Attribute;
 import nu.xom.Element;
+import org.jboss.jdeparser.JDefinedClass;
+import org.jboss.jdeparser.JMethod;
 import org.jboss.mgmt.annotation.Access;
 import org.jboss.mgmt.annotation.XmlRender;
 
@@ -123,6 +125,22 @@ final class AttributeInfo implements ResourceMember {
             elementElement.addAttribute(new Attribute("name", xmlName));
             valueInfo.addToSchemaAsElement(this, enclosingSeqElement, enclosingTypeElement, elementElement);
         }
+    }
+
+    public void addToResourceClass(final JDefinedClass resourceClass, final JMethod constructor) {
+        valueInfo.addToResourceClass(resourceClass, constructor);
+    }
+
+    public void addToBuilderClass(final JDefinedClass builderClass) {
+        valueInfo.addToBuilderClass(builderClass);
+    }
+
+    public void addToResolvedResourceClass(final JDefinedClass resolvedClass, final JMethod constructor) {
+        valueInfo.addToResolvedResourceClass(resolvedClass, constructor);
+    }
+
+    public void addToResolvedInterface(final JDefinedClass resolvedInterface) {
+        valueInfo.addToResolvedInterface(resolvedInterface);
     }
 
     public void addToClass() {

@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2012, Red Hat, Inc., and individual contributors
+ * Copyright 2013, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,15 +20,26 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation;
+package org.jboss.mgmt;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public @interface OperationHook {
-    String operationName();
+public abstract class AbstractCommentable {
 
-    RunLevel runLevel() default RunLevel.RUNNING;
+    protected final String preComment;
+    protected final String postComment;
 
-    Class<?> implClass();
+    protected AbstractCommentable(final String postComment, final String preComment) {
+        this.postComment = postComment;
+        this.preComment = preComment;
+    }
+
+    public String getPreComment() {
+        return preComment;
+    }
+
+    public String getPostComment() {
+        return postComment;
+    }
 }

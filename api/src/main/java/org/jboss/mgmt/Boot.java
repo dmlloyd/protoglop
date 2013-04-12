@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2012, Red Hat, Inc., and individual contributors
+ * Copyright 2013, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -22,24 +22,22 @@
 
 package org.jboss.mgmt;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
- * Infrastructure class used by generated resource implementations.
- *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public abstract class AbstractResourceBuilder<R extends Resource, P extends NestedBuilder<?>, THIS extends AbstractResourceBuilder<R, P, THIS>> implements NestedBuilder<P> {
-    protected abstract ResourceNode<R> construct(ResourceNode<?> parentNode);
+public final class Boot {
 
-    @SuppressWarnings("unchecked")
-    protected final THIS _this() {
-        return (THIS) this;
+    private Boot() {
     }
 
-    protected static <K, V> Map<K, V> _buildMap(List<Entry<K, V>> list) {
-        return new LinkedHashMap<K, V>(new ListMap<K, V>(list));
+    /**
+     * Load a built management model.
+     *
+     * @param builder the builder from which to load
+     * @return a controller at {@link RunLevel#STOPPED} run level
+     * @throws IllegalArgumentException if the given model is invalid
+     */
+    public static Controller load(RootResourceBuilder<?> builder) throws IllegalArgumentException {
+        return null;
     }
 }

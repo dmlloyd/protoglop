@@ -42,13 +42,4 @@ public interface Resource extends Commentable {
      * @return the parent, or {@code null}
      */
     Resource getParent();
-
-    /**
-     * Navigate to a nested resource.
-     *
-     * @param key the key
-     * @param value the value
-     * @return the nested resource or {@code null} if nothing matched
-     */
-    Resource navigate(String key, String value);
 }

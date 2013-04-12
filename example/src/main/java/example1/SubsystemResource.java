@@ -22,6 +22,7 @@
 
 package example1;
 
+import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.annotation.Attribute;
 import org.jboss.mgmt.annotation.ResourceType;
 
@@ -29,7 +30,7 @@ import org.jboss.mgmt.annotation.ResourceType;
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @ResourceType(name = "subsystem")
-public interface SubsystemResource {
+public interface SubsystemResource extends Resource {
     boolean ENABLED_DEFAULT = true;
 
     @Attribute

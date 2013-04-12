@@ -93,6 +93,7 @@ final class SchemaGeneratorContext {
 
         for (RootResourceInfo resourceInfo : info.getResources()) {
             resourceInfo.addToSchema(this);
+            resourceInfo.generateClasses(context);
         }
 
         // build the schema into a document
