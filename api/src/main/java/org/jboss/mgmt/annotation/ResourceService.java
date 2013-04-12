@@ -81,5 +81,5 @@ public @interface ResourceService {
      *
      * @return the service type
      */
-    Class<? extends Service> type();
+    Class<?> type();
 }
