@@ -24,7 +24,6 @@ package org.jboss.mgmt.annotation;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import org.jboss.dmr.ValueExpression;
 import org.jboss.mgmt.AttributeValidator;
 
 import static java.lang.annotation.ElementType.METHOD;
@@ -39,7 +38,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  *     <li>An array (ordered) of simple type</li>
  *     <li>An attribute group type ({@link AttributeGroup})</li>
  *     <li>A complex attribute type ({@link AttributeType})</li>
- *     <li>A value expression ({@link ValueExpression})</li>
+ *     <li>A value expression ({@link org.jboss.dmr.ValueExpression})</li>
  * </ul>
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
@@ -63,7 +62,7 @@ public @interface Attribute {
     RunLevel changeRunLevel() default RunLevel.RUNNING;
 
     /**
-     * The resolved type of this attribute, if its primary type is a {@link ValueExpression}.
+     * The resolved type of this attribute, if its primary type is a {@link org.jboss.dmr.ValueExpression}.
      *
      * @return the resolved type
      */

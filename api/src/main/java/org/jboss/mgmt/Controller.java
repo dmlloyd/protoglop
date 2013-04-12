@@ -30,7 +30,6 @@ import org.jboss.msc.value.Listener;
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public interface Controller {
-    // todo - use a shutdown hook when run from a JVM?
     void transition(RunLevel runLevel, ServiceContainer container, Transaction transaction, Listener<? super Controller> finishListener);
 
     RunLevel getRunLevel();
