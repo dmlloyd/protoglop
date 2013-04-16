@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation;
+package org.jboss.mgmt;
 
 /**
  *

@@ -23,12 +23,20 @@
 package org.jboss.mgmt;
 
 /**
- * The run level of a managed node.
  *
- * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public enum RunLevel {
+    /**
+     * No services running; model only.  This is the lowest level.
+     */
     STOPPED,
+    /**
+     * Services are running at a management level only.
+     */
     MANAGEMENT,
+    /**
+     * Services are running at an "available" level.
+     */
     RUNNING,
+    ;
 }

@@ -1,8 +1,8 @@
 /*
- * JBoss, Home of Professional Open Source
- * Copyright 2008, JBoss Inc., and individual contributors as indicated
- * by the @authors tag. See the copyright.txt in the distribution for a
- * full listing of individual contributors.
+ * JBoss, Home of Professional Open Source.
+ * Copyright 2012, Red Hat, Inc., and individual contributors
+ * as indicated by the @author tags. See the copyright.txt file in the
+ * distribution for a full listing of individual contributors.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -24,44 +24,33 @@ package org.jboss.mgmt.annotation;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import org.jboss.mgmt.Resource;
+import org.jboss.mgmt.ResourceValidator;
+import org.jboss.mgmt.RunLevel;
 
-import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * A listener on an attribute or resource.
+ * A validation specification for a resource.  Resource validations always happen during
+ * the validation phase.
+ *
+ * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @Retention(CLASS)
-@Target({TYPE, METHOD})
-public @interface Listener {
+@Target(TYPE)
+public @interface ValidatedResource {
 
     /**
-     * The listener type.  Should implement one or more of the four MSC task traits.
+     * The resource validator type.
      *
-     * @return the listener type
-     *
-     * @see org.jboss.msc.txn.Executable
-     * @see org.jboss.msc.txn.Validatable
-     * @see org.jboss.msc.txn.Revertible
-     * @see org.jboss.msc.txn.Committable
+     * @return the resource validator type
      */
-    Class<?> value();
+    Class<? extends ResourceValidator> value();
 
     /**
-     * The run level at which the listener applies.  In order to transition between run levels, all
-     * matching listeners must be invoked successfully.
+     * The run level at which this validation may apply.
      *
      * @return the run level
      */
     RunLevel runLevel() default RunLevel.RUNNING;
-
-    /**
-     * The resource root under which this listener applies.  This listener will
-     * not execute under any other root.
-     *
-     * @return the resource root
-     */
-    Class<? extends Resource> root() default Resource.class;
 }

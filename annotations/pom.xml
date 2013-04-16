@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -10,16 +11,21 @@
         <version>1.0.0.Beta1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>jboss-mgmt-api</artifactId>
+    <artifactId>jboss-mgmt-annotations</artifactId>
+
+    <build>
+        <plugins>
+        </plugins>
+    </build>
 
     <dependencies>
         <dependency>
-            <groupId>org.jboss.msc</groupId>
-            <artifactId>jboss-msc</artifactId>
+            <groupId>org.jboss.mgmt</groupId>
+            <artifactId>jboss-mgmt-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jboss</groupId>
-            <artifactId>jboss-dmr</artifactId>
+            <groupId>org.jboss.msc</groupId>
+            <artifactId>jboss-msc</artifactId>
         </dependency>
     </dependencies>
 </project>

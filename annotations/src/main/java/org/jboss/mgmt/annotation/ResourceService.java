@@ -24,37 +24,62 @@ package org.jboss.mgmt.annotation;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import org.jboss.mgmt.Resource;
-import org.jboss.mgmt.ResourceOperationHandler;
+import org.jboss.mgmt.RunLevel;
+import org.jboss.msc.service.ServiceMode;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Define an operation on a resource and its subtypes.
+ * Declare an associated service for a resource or attribute group.  If declared on an attribute
+ * group's interface, the name will automatically be qualified with the attribute group name.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @Retention(CLASS)
 @Target(TYPE)
-public @interface ResourceOperation {
-    String name() default "";
-
-    Class<? extends ResourceOperationHandler<?, ?>> value();
+public @interface ResourceService {
 
     /**
-     * The run level of this operation.  Below this run level, the operation is not
-     * available.
+     * The service name within this resource's associated container.
+     *
+     * @return the service name
+     */
+    String name();
+
+    /**
+     * The minimum run level at which this service may be installed.  Must not be {@link RunLevel#STOPPED}.
      *
      * @return the run level
      */
-    RunLevel runLevel() default RunLevel.MANAGEMENT;
+    RunLevel installed() default RunLevel.RUNNING;
 
     /**
-     * The resource root under which this operation applies.  This operation will
-     * not be available under any other root.
+     * The service mode to apply to installed, but not active, resource services.
      *
-     * @return the resource root
+     * @return the install mode
      */
-    Class<? extends Resource> root() default Resource.class;
+    ServiceMode installMode() default ServiceMode.ON_DEMAND;
+
+    /**
+     * The minimum run level at which this service may be active.  If given, must be greater than or equal to
+     * the {@link #installed()} run level.  By default, all installed services are immediately active.
+     *
+     * @return the run level
+     */
+    RunLevel active() default RunLevel.RUNNING;
+
+    /**
+     * The service mode to apply to active resource services.
+     *
+     * @return the active mode
+     */
+    ServiceMode activeMode() default ServiceMode.ACTIVE;
+
+    /**
+     * The service type to instantiate.
+     *
+     * @return the service type
+     */
+    Class<?> type();
 }

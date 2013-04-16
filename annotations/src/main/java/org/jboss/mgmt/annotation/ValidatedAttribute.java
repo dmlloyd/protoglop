@@ -24,47 +24,40 @@ package org.jboss.mgmt.annotation;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import org.jboss.mgmt.AttributeValidator;
+import org.jboss.mgmt.RunLevel;
 
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Declare that this resource depends on a specific {@link Provides} from a specific {@link ResourceType}.  A
- * resource with this annotation will not be added without a satisfactory provider unless {@code optional} is {@code true}.
+ * A validation specification for an attribute.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @Retention(CLASS)
 @Target(METHOD)
-public @interface Dependency {
+public @interface ValidatedAttribute {
 
     /**
-     * The resource type required.
+     * The attribute validator type.
      *
-     * @return the resource type
+     * @return the attribute validator type
      */
-    Class<?> type();
+    Class<? extends AttributeValidator> value();
 
     /**
-     * The names required.
-     *
-     * @return the names
-     */
-    String[] names();
-
-    /**
-     * Dependency is optional ({@code true}) or required ({@code false}).
-     *
-     * @return {@code true} for optional, {@code false} for required
-     */
-    boolean optional() default false;
-
-    /**
-     * The maximum run level that must be used to modify this dependency.
+     * The run level at which this validation may apply.
      *
      * @return the run level
      */
-    RunLevel runLevel() default RunLevel.STOPPED;
+    RunLevel runLevel() default RunLevel.RUNNING;
 
-
+    /**
+     * Set this attribute validation to happen immediately upon changes, as opposed to waiting until
+     * the validation phase.
+     *
+     * @return {@code true} to validate immediately, {@code false} to await validation phase
+     */
+    boolean immediate() default true;
 }

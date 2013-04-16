@@ -24,62 +24,48 @@ package org.jboss.mgmt.annotation;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import org.jboss.msc.service.Service;
-import org.jboss.msc.service.ServiceMode;
+import org.jboss.mgmt.RunLevel;
 
-import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Declare an associated service for a resource or attribute group.  If declared on an attribute
- * group's interface, the name will automatically be qualified with the attribute group name.
+ * Declare that this resource depends on a specific {@link Provides} from a specific {@link ResourceType}.  A
+ * resource with this annotation will not be added without a satisfactory provider unless {@code optional} is {@code true}.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @Retention(CLASS)
-@Target(TYPE)
-public @interface ResourceService {
+@Target(METHOD)
+public @interface Dependency {
 
     /**
-     * The service name within this resource's associated container.
+     * The resource type required.
      *
-     * @return the service name
-     */
-    String name();
-
-    /**
-     * The minimum run level at which this service may be installed.  Must not be {@link RunLevel#STOPPED}.
-     *
-     * @return the run level
-     */
-    RunLevel installed() default RunLevel.RUNNING;
-
-    /**
-     * The service mode to apply to installed, but not active, resource services.
-     *
-     * @return the install mode
-     */
-    ServiceMode installMode() default ServiceMode.ON_DEMAND;
-
-    /**
-     * The minimum run level at which this service may be active.  If given, must be greater than or equal to
-     * the {@link #installed()} run level.  By default, all installed services are immediately active.
-     *
-     * @return the run level
-     */
-    RunLevel active() default RunLevel.RUNNING;
-
-    /**
-     * The service mode to apply to active resource services.
-     *
-     * @return the active mode
-     */
-    ServiceMode activeMode() default ServiceMode.ACTIVE;
-
-    /**
-     * The service type to instantiate.
-     *
-     * @return the service type
+     * @return the resource type
      */
     Class<?> type();
+
+    /**
+     * The names required.
+     *
+     * @return the names
+     */
+    String[] names();
+
+    /**
+     * Dependency is optional ({@code true}) or required ({@code false}).
+     *
+     * @return {@code true} for optional, {@code false} for required
+     */
+    boolean optional() default false;
+
+    /**
+     * The maximum run level that must be used to modify this dependency.
+     *
+     * @return the run level
+     */
+    RunLevel runLevel() default RunLevel.STOPPED;
+
+
 }

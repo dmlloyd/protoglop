@@ -46,6 +46,7 @@
 
     <modules>
         <module>api</module>
+        <module>annotations</module>
         <module>tool</module>
         <module>examples/xts</module>
         <module>examples/threads</module>

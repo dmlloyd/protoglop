@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2012, Red Hat, Inc., and individual contributors
+ * Copyright 2011, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,23 +20,30 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation;
+package org.jboss.mgmt;
 
 /**
- *
+ * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public enum RunLevel {
-    /**
-     * No services running; model only.  This is the lowest level.
-     */
-    STOPPED,
-    /**
-     * Services are running at a management level only.
-     */
-    MANAGEMENT,
-    /**
-     * Services are running at an "available" level.
-     */
-    RUNNING,
+public enum Access {
+    NO_ACCESS(false, false),
+    READ_ONLY(true, false),
+    WRITE_ONLY(false, true),
+    READ_WRITE(true, true),
     ;
+    private final boolean readable;
+    private final boolean writable;
+
+    private Access(final boolean readable, final boolean writable) {
+        this.readable = readable;
+        this.writable = writable;
+    }
+
+    public boolean isReadable() {
+        return readable;
+    }
+
+    public boolean isWritable() {
+        return writable;
+    }
 }

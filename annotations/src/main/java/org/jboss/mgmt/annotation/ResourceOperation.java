@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
+ * Copyright 2012, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -22,28 +22,40 @@
 
 package org.jboss.mgmt.annotation;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import org.jboss.mgmt.Resource;
+import org.jboss.mgmt.ResourceOperationHandler;
+import org.jboss.mgmt.RunLevel;
+
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.CLASS;
+
 /**
+ * Define an operation on a resource and its subtypes.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public enum Access {
-    NO_ACCESS(false, false),
-    READ_ONLY(true, false),
-    WRITE_ONLY(false, true),
-    READ_WRITE(true, true),
-    ;
-    private final boolean readable;
-    private final boolean writable;
+@Retention(CLASS)
+@Target(TYPE)
+public @interface ResourceOperation {
+    String name() default "";
 
-    private Access(final boolean readable, final boolean writable) {
-        this.readable = readable;
-        this.writable = writable;
-    }
+    Class<? extends ResourceOperationHandler<?, ?>> value();
 
-    public boolean isReadable() {
-        return readable;
-    }
+    /**
+     * The run level of this operation.  Below this run level, the operation is not
+     * available.
+     *
+     * @return the run level
+     */
+    RunLevel runLevel() default RunLevel.MANAGEMENT;
 
-    public boolean isWritable() {
-        return writable;
-    }
+    /**
+     * The resource root under which this operation applies.  This operation will
+     * not be available under any other root.
+     *
+     * @return the resource root
+     */
+    Class<? extends Resource> root() default Resource.class;
 }

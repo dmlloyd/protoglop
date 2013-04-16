@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2012, Red Hat, Inc., and individual contributors
+ * Copyright 2013, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,36 +20,15 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.mgmt.annotation;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import org.jboss.mgmt.ResourceValidator;
-
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.CLASS;
+package org.jboss.mgmt;
 
 /**
- * A validation specification for a resource.  Resource validations always happen during
- * the validation phase.
+ * The resolved type for an expression.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-@Retention(CLASS)
-@Target(TYPE)
-public @interface ValidatedResource {
-
-    /**
-     * The resource validator type.
-     *
-     * @return the resource validator type
-     */
-    Class<? extends ResourceValidator> value();
-
-    /**
-     * The run level at which this validation may apply.
-     *
-     * @return the run level
-     */
-    RunLevel runLevel() default RunLevel.RUNNING;
+public enum ResolvedType {
+    STRING,
+    INT,
+    LONG,
 }
