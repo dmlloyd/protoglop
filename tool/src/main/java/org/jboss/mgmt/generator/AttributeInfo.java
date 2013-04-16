@@ -26,7 +26,7 @@ import nu.xom.Attribute;
 import nu.xom.Element;
 import org.jboss.jdeparser.JDefinedClass;
 import org.jboss.jdeparser.JMethod;
-import org.jboss.mgmt.annotation.Access;
+import org.jboss.mgmt.Access;
 import org.jboss.mgmt.annotation.XmlRender;
 
 import javax.lang.model.element.ExecutableElement;

@@ -72,6 +72,11 @@
         <dependencies>
             <dependency>
                 <groupId>org.jboss.mgmt</groupId>
+                <artifactId>jboss-mgmt-annotations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.mgmt</groupId>
                 <artifactId>jboss-mgmt-api</artifactId>
                 <version>${project.version}</version>
             </dependency>

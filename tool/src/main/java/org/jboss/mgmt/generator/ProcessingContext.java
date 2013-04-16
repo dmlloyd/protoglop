@@ -44,7 +44,7 @@ import org.jboss.mgmt.AttributeValidator;
 import org.jboss.mgmt.Commentable;
 import org.jboss.mgmt.Resource;
 import org.jboss.mgmt.ResourceRef;
-import org.jboss.mgmt.annotation.Access;
+import org.jboss.mgmt.Access;
 import org.jboss.mgmt.annotation.Attribute;
 import org.jboss.mgmt.annotation.AttributeGroup;
 import org.jboss.mgmt.annotation.AttributeType;
