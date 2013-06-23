@@ -23,8 +23,8 @@
 package example1;
 
 import java.util.Map;
-import org.jboss.mgmt.annotation.RunLevel;
-import org.jboss.mgmt.annotation.SubResource;
+import org.wildfly.core.management.RunLevel;
+import org.wildfly.core.management.annotation.SubResource;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>

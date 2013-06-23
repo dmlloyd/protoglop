@@ -22,11 +22,11 @@
 
 package example1;
 
-import org.jboss.mgmt.Resource;
+import org.wildfly.core.management.Node;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface JvmResource extends Resource {
+public interface JvmResource extends Node {
 
 }

@@ -23,21 +23,21 @@
 package example1;
 
 import java.util.List;
-import org.jboss.mgmt.Resource;
-import org.jboss.mgmt.ResourceRef;
-import org.jboss.mgmt.annotation.Attribute;
-import org.jboss.mgmt.annotation.Enumerated;
-import org.jboss.mgmt.annotation.Reference;
-import org.jboss.mgmt.annotation.ResourceType;
+import org.wildfly.core.management.Node;
+import org.wildfly.core.management.ResourceLink;
+import org.wildfly.core.management.annotation.Attribute;
+import org.wildfly.core.management.annotation.Enumerated;
+import org.wildfly.core.management.annotation.Reference;
+import org.wildfly.core.management.annotation.ResourceType;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @ResourceType(name = "core.logging.handler")
-public interface HandlerResource extends Resource {
+public interface HandlerResource extends Node {
     @Attribute
     @Reference(scopeName = "core.logging.handlers", resourceType = HandlerResource.class)
-    List<ResourceRef<? extends HandlerResource>> getHandlers();
+    List<ResourceLink<? extends HandlerResource>> getHandlers();
 
     @Attribute(validators = { /* FilterStringValidator.class */ })
     String getFilterSpec();

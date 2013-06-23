@@ -22,18 +22,18 @@
 
 package example1;
 
-import org.jboss.mgmt.Resource;
-import org.jboss.mgmt.annotation.Attribute;
-import org.jboss.mgmt.annotation.XmlName;
-import org.jboss.mgmt.annotation.XmlRender;
+import org.wildfly.core.management.Node;
+import org.wildfly.core.management.annotation.Attribute;
+import org.wildfly.core.management.annotation.XmlName;
+import org.wildfly.core.management.annotation.XmlRender;
 
-import static org.jboss.mgmt.annotation.XmlRender.As.ATTRIBUTE;
+import static org.wildfly.core.management.annotation.XmlRender.As.ATTRIBUTE;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @XmlName("logger")
-public interface LoggerResource extends Resource, LoggerInfo {
+public interface LoggerResource extends Node, LoggerInfo {
 
     @Attribute
     @XmlRender(as = ATTRIBUTE)

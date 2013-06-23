@@ -22,15 +22,15 @@
 
 package example1;
 
-import org.jboss.mgmt.Resource;
-import org.jboss.mgmt.annotation.Attribute;
-import org.jboss.mgmt.annotation.ResourceType;
+import org.wildfly.core.management.Node;
+import org.wildfly.core.management.annotation.Attribute;
+import org.wildfly.core.management.annotation.ResourceType;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 @ResourceType(name = "subsystem")
-public interface SubsystemResource extends Resource {
+public interface SubsystemResource extends Node {
     boolean ENABLED_DEFAULT = true;
 
     @Attribute

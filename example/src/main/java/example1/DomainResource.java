@@ -23,10 +23,10 @@
 package example1;
 
 import java.util.Map;
-import org.jboss.mgmt.Resource;
-import org.jboss.mgmt.annotation.Attribute;
-import org.jboss.mgmt.annotation.RootResource;
-import org.jboss.mgmt.annotation.SubResource;
+import org.wildfly.core.management.Node;
+import org.wildfly.core.management.annotation.Attribute;
+import org.wildfly.core.management.annotation.RootResource;
+import org.wildfly.core.management.annotation.SubResource;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
@@ -35,7 +35,7 @@ import org.jboss.mgmt.annotation.SubResource;
 @RootResource(
     type = "top"
 )
-public interface DomainResource extends Resource {
+public interface DomainResource extends Node {
 
     @Attribute
     Map<String, BootTimePropertyType> getProperties();

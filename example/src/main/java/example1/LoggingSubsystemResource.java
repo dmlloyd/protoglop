@@ -23,11 +23,11 @@
 package example1;
 
 import java.util.Map;
-import org.jboss.mgmt.annotation.AttributeGroup;
-import org.jboss.mgmt.annotation.RootResource;
-import org.jboss.mgmt.annotation.Provides;
-import org.jboss.mgmt.annotation.SubResource;
-import org.jboss.mgmt.annotation.XmlName;
+import org.wildfly.core.management.annotation.AttributeGroup;
+import org.wildfly.core.management.annotation.RootResource;
+import org.wildfly.core.management.annotation.Provides;
+import org.wildfly.core.management.annotation.SubResource;
+import org.wildfly.core.management.annotation.XmlName;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>

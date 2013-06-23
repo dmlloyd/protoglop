@@ -22,9 +22,9 @@
 
 package example1;
 
-import org.jboss.mgmt.annotation.Attribute;
-import org.jboss.mgmt.annotation.Listener;
-import org.jboss.mgmt.annotation.XmlName;
+import org.wildfly.core.management.annotation.Attribute;
+import org.wildfly.core.management.annotation.Listener;
+import org.wildfly.core.management.annotation.XmlName;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>

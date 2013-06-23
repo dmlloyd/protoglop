@@ -22,10 +22,10 @@
 
 package example1;
 
-import org.jboss.mgmt.ResourceRef;
-import org.jboss.mgmt.annotation.Access;
-import org.jboss.mgmt.annotation.Attribute;
-import org.jboss.mgmt.annotation.Reference;
+import org.wildfly.core.management.ResourceLink;
+import org.wildfly.core.management.Access;
+import org.wildfly.core.management.annotation.Attribute;
+import org.wildfly.core.management.annotation.Reference;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
@@ -34,5 +34,5 @@ public interface DomainServerResource extends ServerResource {
 
     @Attribute(access = Access.READ_ONLY)
     @Reference(scopeName = "core.domain.profiles")
-    ResourceRef<ProfileResource> getProfile();
+    ResourceLink<ProfileResource> getProfile();
 }

@@ -22,8 +22,8 @@
 
 package example1;
 
-import org.jboss.mgmt.annotation.AttributeGroup;
-import org.jboss.mgmt.annotation.RootResource;
+import org.wildfly.core.management.annotation.AttributeGroup;
+import org.wildfly.core.management.annotation.RootResource;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>

@@ -22,10 +22,10 @@
 
 package example1;
 
-import org.jboss.mgmt.annotation.AttributeType;
-import org.jboss.mgmt.annotation.XmlRender;
+import org.wildfly.core.management.annotation.AttributeType;
+import org.wildfly.core.management.annotation.XmlRender;
 
-import static org.jboss.mgmt.annotation.XmlRender.As.ELEMENT;
+import static org.wildfly.core.management.annotation.XmlRender.As.ELEMENT;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>

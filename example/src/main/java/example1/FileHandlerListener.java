@@ -22,8 +22,8 @@
 
 package example1;
 
-import org.jboss.mgmt.ModelChangeContext;
-import org.jboss.mgmt.ResourceListener;
+import org.wildfly.core.management.ModelChangeContext;
+import org.wildfly.core.management.ResourceListener;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>

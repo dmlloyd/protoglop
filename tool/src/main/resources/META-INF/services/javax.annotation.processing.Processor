@@ -1,1 +1,1 @@
-org.jboss.mgmt.generator.Processor
+org.wildfly.core.management.processor.Processor

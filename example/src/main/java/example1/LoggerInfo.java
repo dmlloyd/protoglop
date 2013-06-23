@@ -23,21 +23,21 @@
 package example1;
 
 import java.util.List;
-import org.jboss.mgmt.Commentable;
-import org.jboss.mgmt.ResourceRef;
-import org.jboss.mgmt.annotation.Attribute;
-import org.jboss.mgmt.annotation.Enumerated;
-import org.jboss.mgmt.annotation.XmlRender;
+import org.wildfly.core.management.Node;
+import org.wildfly.core.management.ResourceLink;
+import org.wildfly.core.management.annotation.Attribute;
+import org.wildfly.core.management.annotation.Enumerated;
+import org.wildfly.core.management.annotation.XmlRender;
 
-import static org.jboss.mgmt.annotation.XmlRender.As.ELEMENT;
+import static org.wildfly.core.management.annotation.XmlRender.As.ELEMENT;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface LoggerInfo extends Commentable {
+public interface LoggerInfo extends Node {
 
     @Attribute
-    List<ResourceRef<? extends HandlerResource>> getHandlers();
+    List<ResourceLink<? extends HandlerResource>> getHandlers();
 
     @Attribute(validators = { /* FilterStringValidator.class */ })
     @XmlRender(as = ELEMENT)

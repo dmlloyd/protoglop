@@ -22,13 +22,13 @@
 
 package example1;
 
-import org.jboss.mgmt.AttributeValidator;
-import org.jboss.mgmt.Resource;
-import org.jboss.mgmt.ResourceRef;
-import org.jboss.mgmt.annotation.Attribute;
-import org.jboss.mgmt.annotation.AttributeType;
-import org.jboss.mgmt.annotation.Reference;
-import org.jboss.mgmt.annotation.Required;
+import org.wildfly.core.management.AttributeValidator;
+import org.wildfly.core.management.Node;
+import org.wildfly.core.management.ResourceLink;
+import org.wildfly.core.management.annotation.Attribute;
+import org.wildfly.core.management.annotation.AttributeType;
+import org.wildfly.core.management.annotation.Reference;
+import org.wildfly.core.management.annotation.Required;
 import org.jboss.msc.txn.ValidateContext;
 
 /**
@@ -40,12 +40,12 @@ public interface FileReference {
     String getFileName();
 
     @Reference(scopeName = "core.paths", monitor = true)
-    ResourceRef<PathResource> getRelativeTo();
+    ResourceLink<PathResource> getRelativeTo();
 
-    class Validator implements AttributeValidator<Resource, FileReference> {
+    class Validator implements AttributeValidator<Node, FileReference> {
         public static final Validator INSTANCE = new Validator();
 
-        public void validate(final Resource resource, final String attributeName, final FileReference previousValue, final FileReference newValue, final ValidateContext validatorContext) {
+        public void validate(final Node node, final String attributeName, final FileReference previousValue, final FileReference newValue, final ValidateContext validatorContext) {
             final String fileName = newValue.getFileName();
             final String relativeToName = newValue.getRelativeTo().getName();
             if (fileName.startsWith("/") && ! relativeToName.isEmpty()) {

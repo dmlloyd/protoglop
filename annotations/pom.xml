@@ -6,12 +6,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>jboss-mgmt</artifactId>
-        <groupId>org.jboss.mgmt</groupId>
+        <artifactId>core-management-parent</artifactId>
+        <groupId>org.wildfly.core.management</groupId>
         <version>1.0.0.Beta1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>jboss-mgmt-annotations</artifactId>
+    <artifactId>core-management-annotations</artifactId>
 
     <build>
         <plugins>
@@ -20,8 +20,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.jboss.mgmt</groupId>
-            <artifactId>jboss-mgmt-api</artifactId>
+            <groupId>org.wildfly.core.management</groupId>
+            <artifactId>core-management-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jboss.msc</groupId>

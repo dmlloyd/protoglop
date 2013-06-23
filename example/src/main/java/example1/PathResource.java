@@ -22,19 +22,19 @@
 
 package example1;
 
-import org.jboss.mgmt.Resource;
-import org.jboss.mgmt.ResourceRef;
-import org.jboss.mgmt.annotation.Attribute;
-import org.jboss.mgmt.annotation.Reference;
-import org.jboss.mgmt.annotation.Required;
+import org.wildfly.core.management.Node;
+import org.wildfly.core.management.ResourceLink;
+import org.wildfly.core.management.annotation.Attribute;
+import org.wildfly.core.management.annotation.Reference;
+import org.wildfly.core.management.annotation.Required;
 
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface PathResource extends Resource {
+public interface PathResource extends Node {
     @Required @Attribute
     String getPath();
 
     @Reference(scopeName = "core.paths") @Attribute
-    ResourceRef<PathResource> getRelativeTo();
+    ResourceLink<PathResource> getRelativeTo();
 }

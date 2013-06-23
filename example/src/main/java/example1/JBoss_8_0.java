@@ -24,7 +24,7 @@ package example1;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import org.jboss.mgmt.annotation.Schema;
+import org.wildfly.core.management.annotation.Schema;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
